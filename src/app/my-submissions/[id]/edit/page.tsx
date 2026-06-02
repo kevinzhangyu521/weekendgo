@@ -82,7 +82,7 @@ export default async function EditSubmissionPage({
                 </select>
               </label>
             </div>
-            <div className="grid gap-3 md:grid-cols-4">
+            <div className="grid gap-3 md:grid-cols-3">
               <label className={labelClass}>
                 {"\u7eac\u5ea6"}
                 <input name="latitude" type="number" step="0.000001" defaultValue={item.latitude ?? ""} className={inputClass} />
@@ -90,10 +90,6 @@ export default async function EditSubmissionPage({
               <label className={labelClass}>
                 {"\u7ecf\u5ea6"}
                 <input name="longitude" type="number" step="0.000001" defaultValue={item.longitude ?? ""} className={inputClass} />
-              </label>
-              <label className={labelClass}>
-                {"\u8ddd\u79bb(km)"}
-                <input name="distance_km" type="number" min="0" defaultValue={item.distanceKm} className={inputClass} />
               </label>
               <label className={labelClass}>
                 {"\u9002\u5408\u5e74\u9f84"}

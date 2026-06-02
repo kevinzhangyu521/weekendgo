@@ -23,6 +23,11 @@ function displayCity(item: DestinationItem) {
   return item.cityZh || item.city;
 }
 
+function formatDistance(distanceKm: number) {
+  if (!distanceKm || distanceKm <= 0) return "\u8ddd\u79bb\u5f85\u8ba1\u7b97";
+  return `${distanceKm}km`;
+}
+
 export function MapExplorer({ items, locale }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<Map | null>(null);
@@ -48,7 +53,7 @@ export function MapExplorer({ items, locale }: Props) {
     items.forEach((item) => {
       const marker = new mapboxgl.Marker({ color: "#16a34a" })
         .setLngLat([item.longitude, item.latitude])
-        .setPopup(new mapboxgl.Popup({ offset: 24 }).setHTML(`<strong>${displayName(item)}</strong><br/>${item.distanceKm}km`))
+        .setPopup(new mapboxgl.Popup({ offset: 24 }).setHTML(`<strong>${displayName(item)}</strong><br/>${formatDistance(item.distanceKm)}`))
         .addTo(map);
 
       marker.getElement().addEventListener("click", () => setActiveId(item.id));
@@ -96,7 +101,7 @@ export function MapExplorer({ items, locale }: Props) {
                 </span>
               </div>
               <p className="mt-1 text-xs text-slate-600">
-                {displayCity(item)} - {item.distanceKm}km
+                {displayCity(item)} - {formatDistance(item.distanceKm)}
               </p>
             </button>
             <Link href={`/destinations/${item.id}`} className="mt-2 inline-flex text-xs font-medium text-emerald-700">

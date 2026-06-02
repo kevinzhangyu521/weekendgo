@@ -54,7 +54,7 @@ export async function updateSubmission(formData: FormData) {
     scenario: String(formData.get("scenario") ?? "creek"),
     difficulty: String(formData.get("difficulty") ?? "easy"),
     safety: String(formData.get("safety") ?? "low_risk"),
-    distance_km: Number(formData.get("distance_km") || "0"),
+    distance_km: 0,
     min_kid_age: Number(formData.get("min_kid_age") || "0"),
     has_parking: formData.get("has_parking") === "on",
     has_toilet: formData.get("has_toilet") === "on",

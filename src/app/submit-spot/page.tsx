@@ -102,7 +102,7 @@ export default function SubmitSpotPage() {
         scenario: String(form.get("scenario") ?? "creek"),
         difficulty: String(form.get("difficulty") ?? "easy"),
         safety: String(form.get("safety") ?? "low_risk"),
-        distance_km: Number(form.get("distance_km") || "0"),
+        distance_km: 0,
         min_kid_age: Number(form.get("min_kid_age") || "0"),
         has_parking: form.get("has_parking") === "on",
         has_toilet: form.get("has_toilet") === "on",
@@ -204,7 +204,7 @@ export default function SubmitSpotPage() {
                 </select>
               </label>
             </div>
-            <div className="grid gap-3 md:grid-cols-4">
+            <div className="grid gap-3 md:grid-cols-3">
               <label className={labelClass}>
                 {"\u7eac\u5ea6"}
                 <input name="latitude" type="number" step="0.000001" placeholder={"\u53ef\u9009"} className={inputClass} />
@@ -212,10 +212,6 @@ export default function SubmitSpotPage() {
               <label className={labelClass}>
                 {"\u7ecf\u5ea6"}
                 <input name="longitude" type="number" step="0.000001" placeholder={"\u53ef\u9009"} className={inputClass} />
-              </label>
-              <label className={labelClass}>
-                {"\u8ddd\u79bb(km)"}
-                <input name="distance_km" type="number" min="0" placeholder={"\u4f8b\u5982\uff1a12"} className={inputClass} />
               </label>
               <label className={labelClass}>
                 {"\u9002\u5408\u5e74\u9f84"}

@@ -6,6 +6,11 @@ import { getPublicPlanBySlug } from "@/features/plans/repository";
 import { getAmapNavigationUrl } from "@/lib/maps/navigation";
 import { getLocale, pick } from "@/lib/i18n/server";
 
+function formatDistance(distanceKm: number) {
+  if (!distanceKm || distanceKm <= 0) return "\u8ddd\u79bb\u5f85\u8ba1\u7b97";
+  return `${distanceKm}km`;
+}
+
 export default async function SharedPlanPage({
   params,
   searchParams
@@ -91,7 +96,7 @@ export default async function SharedPlanPage({
                         </span>
                       </div>
                       <p className="mt-1 text-sm text-slate-600">
-                        {destinationCity(item.destination, locale)} - {item.destination.distanceKm}km
+                        {destinationCity(item.destination, locale)} - {formatDistance(item.destination.distanceKm)}
                       </p>
                       <p className="mt-1 inline-flex items-center gap-1 text-xs text-slate-600">
                         <MapPinned className="h-3.5 w-3.5" />

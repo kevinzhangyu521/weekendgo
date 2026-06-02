@@ -4,6 +4,11 @@ import { destinationCity, destinationName, destinationScenario } from "@/feature
 import { getMyFavoriteDestinations } from "@/features/destinations/repository";
 import { getLocale, pick } from "@/lib/i18n/server";
 
+function formatDistance(distanceKm: number) {
+  if (!distanceKm || distanceKm <= 0) return "\u8ddd\u79bb\u5f85\u8ba1\u7b97";
+  return `${distanceKm}km`;
+}
+
 export default async function FavoritesPage() {
   const locale = await getLocale();
   const list = await getMyFavoriteDestinations();
@@ -50,16 +55,16 @@ export default async function FavoritesPage() {
                   </div>
 
                   <h2 className="text-base font-semibold text-slate-900">{destinationName(item, locale)}</h2>
-                  <p className="text-sm text-slate-600">{destinationCity(item, locale)} - {item.distanceKm}km</p>
+                  <p className="text-sm text-slate-600">{destinationCity(item, locale)} - {formatDistance(item.distanceKm)}</p>
 
                   <div className="flex items-center gap-4 border-t border-slate-100 pt-3 text-xs text-slate-600">
                     <span className="inline-flex items-center gap-1">
                       <Car className="h-3.5 w-3.5" />
-                      {locale === "zh" ? (item.hasParking ? "\u53ef\u505c\u8f66" : "\u505c\u8f66\u4e00\u822c") : item.hasParking ? "Parking" : "Limited Parking"}
+                      {item.hasParking ? "\u53ef\u505c\u8f66" : "\u505c\u8f66\u4e00\u822c"}
                     </span>
                     <span className="inline-flex items-center gap-1">
                       <Bath className="h-3.5 w-3.5" />
-                      {locale === "zh" ? (item.hasToilet ? "\u6709\u5395\u6240" : "\u5395\u6240\u8f83\u5c11") : item.hasToilet ? "Toilet" : "Limited Toilet"}
+                      {item.hasToilet ? "\u6709\u5395\u6240" : "\u5395\u6240\u8f83\u5c11"}
                     </span>
                   </div>
                 </div>

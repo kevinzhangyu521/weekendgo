@@ -21,6 +21,11 @@ const safetyLabelMap = {
   high_risk: "\u9ad8\u98ce\u9669"
 } as const;
 
+function formatDistance(distanceKm: number) {
+  if (!distanceKm || distanceKm <= 0) return "\u8ddd\u79bb\u5f85\u8ba1\u7b97";
+  return `${distanceKm}km`;
+}
+
 export default async function AdminSubmissionsPage() {
   const submissions = await getPendingSubmissions();
 
@@ -58,7 +63,7 @@ export default async function AdminSubmissionsPage() {
                   <span className="rounded-full bg-slate-100 px-2.5 py-1">{"\u505c\u8f66\uff1a"}{item.hasParking ? "\u6709" : "\u672a\u786e\u8ba4"}</span>
                   <span className="rounded-full bg-slate-100 px-2.5 py-1">{"\u6d17\u624b\u95f4\uff1a"}{item.hasToilet ? "\u6709" : "\u672a\u786e\u8ba4"}</span>
                   <span className="rounded-full bg-slate-100 px-2.5 py-1">{"\u9002\u5408\u5e74\u9f84\uff1a"}{item.minKidAge}{"\u5c81\u4ee5\u4e0a"}</span>
-                  <span className="rounded-full bg-slate-100 px-2.5 py-1">{"\u8ddd\u79bb\uff1a"}{item.distanceKm}km</span>
+                  <span className="rounded-full bg-slate-100 px-2.5 py-1">{"\u8ddd\u79bb\uff1a"}{formatDistance(item.distanceKm)}</span>
                   <span className="rounded-full bg-slate-100 px-2.5 py-1">
                     {"\u5750\u6807\uff1a"}{item.latitude ?? "-"}, {item.longitude ?? "-"}
                   </span>

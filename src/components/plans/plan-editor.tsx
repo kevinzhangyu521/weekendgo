@@ -20,6 +20,11 @@ function randomSlug() {
   return `wg-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+function formatDistance(distanceKm: number) {
+  if (!distanceKm || distanceKm <= 0) return "\u8ddd\u79bb\u5f85\u8ba1\u7b97";
+  return `${distanceKm}km`;
+}
+
 export function PlanEditor({ plan, locale }: Props) {
   const text = getPlanEditorMessages(locale);
   const router = useRouter();
@@ -313,7 +318,7 @@ export function PlanEditor({ plan, locale }: Props) {
                 <div className="min-w-0">
                   <p className="text-xs text-slate-500">{`${text.stop} ${index + 1}`}</p>
                   <p className="mt-1 text-base font-semibold text-slate-900">{item.destination ? destinationName(item.destination, locale) : text.unknownDestination}</p>
-                  <p className="mt-1 text-sm text-slate-600">{item.destination ? `${destinationCity(item.destination, locale)} - ${item.destination.distanceKm}km` : text.noDetails}</p>
+                  <p className="mt-1 text-sm text-slate-600">{item.destination ? `${destinationCity(item.destination, locale)} - ${formatDistance(item.destination.distanceKm)}` : text.noDetails}</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 md:justify-end">
                   {item.destination ? (
