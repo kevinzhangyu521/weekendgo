@@ -9,5 +9,5 @@ export async function getLocale(): Promise<Locale> {
 }
 
 export function pick<T>(locale: Locale, en: T, zh: T): T {
-  return zh;
+  return locale === "zh" ? zh : en;
 }
