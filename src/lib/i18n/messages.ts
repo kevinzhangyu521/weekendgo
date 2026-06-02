@@ -68,6 +68,7 @@ export function getPlanEditorMessages(locale: Locale) {
     stop: byLocale(locale, "Stop", "\u7ad9\u70b9"),
     unknownDestination: byLocale(locale, "Unknown destination", "\u672a\u77e5\u76ee\u7684\u5730"),
     noDetails: byLocale(locale, "No details", "\u65e0\u8be6\u60c5"),
+    navigate: byLocale(locale, "Navigate", "\u7acb\u5373\u5bfc\u822a"),
     moveUp: byLocale(locale, "Move up", "\u4e0a\u79fb"),
     moveDown: byLocale(locale, "Move down", "\u4e0b\u79fb"),
     remove: byLocale(locale, "Remove", "\u79fb\u9664")

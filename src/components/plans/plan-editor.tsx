@@ -7,6 +7,7 @@ import { ArrowDown, ArrowUp, CalendarDays, ImageDown, Link2, Pencil, QrCode, Sav
 import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/lib/i18n/config";
 import { getPlanEditorMessages } from "@/lib/i18n/messages";
+import { getAmapNavigationUrl } from "@/lib/maps/navigation";
 import { destinationCity, destinationName } from "@/features/destinations/presenter";
 import type { PlanDetail } from "@/features/plans/types";
 
@@ -315,6 +316,16 @@ export function PlanEditor({ plan, locale }: Props) {
                   <p className="mt-1 text-sm text-slate-600">{item.destination ? `${destinationCity(item.destination, locale)} - ${item.destination.distanceKm}km` : text.noDetails}</p>
                 </div>
                 <div className="flex items-center gap-1">
+                  {item.destination ? (
+                    <a
+                      href={getAmapNavigationUrl(item.destination)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-2 text-xs font-medium text-emerald-700"
+                    >
+                      {text.navigate}
+                    </a>
+                  ) : null}
                   <button type="button" onClick={() => moveItem(index, "up")} disabled={index === 0 || busyItemId === item.id} className="rounded-md border border-slate-200 p-2 text-slate-700 disabled:opacity-40" title={text.moveUp}>
                     <ArrowUp className="h-4 w-4" />
                   </button>

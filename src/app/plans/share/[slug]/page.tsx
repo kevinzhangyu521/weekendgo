@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { CalendarDays, MapPinned, Route, Share2, Star } from "lucide-react";
 import { destinationCity, destinationName, destinationScenario } from "@/features/destinations/presenter";
 import { getPublicPlanBySlug } from "@/features/plans/repository";
+import { getAmapNavigationUrl } from "@/lib/maps/navigation";
 import { getLocale, pick } from "@/lib/i18n/server";
 
 export default async function SharedPlanPage({
@@ -97,12 +98,22 @@ export default async function SharedPlanPage({
                         {destinationScenario(item.destination, locale)}
                       </p>
                       {!cardView ? (
-                        <Link
-                          href={`/destinations/${item.destination.id}`}
-                          className="mt-2 inline-flex text-sm text-emerald-700 hover:underline no-print"
-                        >
-                          {pick(locale, "Open destination", "\u6253\u5f00\u76ee\u7684\u5730")}
-                        </Link>
+                        <div className="mt-2 flex flex-wrap gap-2 no-print">
+                          <a
+                            href={getAmapNavigationUrl(item.destination)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex rounded-full bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white"
+                          >
+                            {pick(locale, "Navigate", "\u7acb\u5373\u5bfc\u822a")}
+                          </a>
+                          <Link
+                            href={`/destinations/${item.destination.id}`}
+                            className="inline-flex rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700"
+                          >
+                            {pick(locale, "Open destination", "\u6253\u5f00\u76ee\u7684\u5730")}
+                          </Link>
+                        </div>
                       ) : null}
                     </>
                   ) : (
