@@ -28,11 +28,12 @@ export default async function AdminSubmissionsPage() {
     <main className="min-h-screen bg-slate-50">
       <section className="mx-auto max-w-5xl px-4 py-6 md:px-6">
         <p className="text-sm text-slate-500">WeekendGo Admin</p>
-        <h1 className="mt-1 text-2xl font-bold text-slate-900">地点投稿审核</h1>
+        <h1 className="mt-1 text-2xl font-bold text-slate-900">{"\u5730\u70b9\u6295\u7a3f\u5ba1\u6838"}</h1>
+        <p className="mt-2 text-sm text-slate-600">{"\u7528\u6237\u63d0\u4ea4\u7684\u4eb2\u5b50\u6237\u5916\u5730\u70b9\u4f1a\u51fa\u73b0\u5728\u8fd9\u91cc\uff0c\u5ba1\u6838\u901a\u8fc7\u540e\u5c06\u53d1\u5e03\u5230\u76ee\u7684\u5730\u5217\u8868\u3002"}</p>
 
         {submissions.length === 0 ? (
           <div className="mt-5 rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-600">
-            暂无待审核投稿。
+            {"\u6682\u65e0\u5f85\u5ba1\u6838\u6295\u7a3f\u3002"}
           </div>
         ) : (
           <div className="mt-5 space-y-4">
@@ -45,7 +46,7 @@ export default async function AdminSubmissionsPage() {
                     <p className="mt-1 text-sm text-slate-600">
                       {item.cityZh || item.city} - {scenarioLabelMap[item.scenario]} - {difficultyLabelMap[item.difficulty]} - {safetyLabelMap[item.safety]}
                     </p>
-                    {item.address ? <p className="mt-1 text-sm text-slate-600">地址：{item.address}</p> : null}
+                    {item.address ? <p className="mt-1 text-sm text-slate-600">{"\u5730\u5740\uff1a"}{item.address}</p> : null}
                   </div>
                   {item.imageUrl ? (
                     <div className="h-24 w-32 rounded-lg bg-cover bg-center" style={{ backgroundImage: `url('${item.imageUrl}')` }} />
@@ -54,11 +55,12 @@ export default async function AdminSubmissionsPage() {
 
                 <p className="mt-3 text-sm text-slate-700">{item.descriptionZh || item.description}</p>
                 <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-600">
-                  <span className="rounded-full bg-slate-100 px-2.5 py-1">停车：{item.hasParking ? "有" : "未确认"}</span>
-                  <span className="rounded-full bg-slate-100 px-2.5 py-1">洗手间：{item.hasToilet ? "有" : "未确认"}</span>
-                  <span className="rounded-full bg-slate-100 px-2.5 py-1">孩子年龄：{item.minKidAge}岁+</span>
+                  <span className="rounded-full bg-slate-100 px-2.5 py-1">{"\u505c\u8f66\uff1a"}{item.hasParking ? "\u6709" : "\u672a\u786e\u8ba4"}</span>
+                  <span className="rounded-full bg-slate-100 px-2.5 py-1">{"\u6d17\u624b\u95f4\uff1a"}{item.hasToilet ? "\u6709" : "\u672a\u786e\u8ba4"}</span>
+                  <span className="rounded-full bg-slate-100 px-2.5 py-1">{"\u9002\u5408\u5e74\u9f84\uff1a"}{item.minKidAge}{"\u5c81\u4ee5\u4e0a"}</span>
+                  <span className="rounded-full bg-slate-100 px-2.5 py-1">{"\u8ddd\u79bb\uff1a"}{item.distanceKm}km</span>
                   <span className="rounded-full bg-slate-100 px-2.5 py-1">
-                    坐标：{item.latitude ?? "-"}, {item.longitude ?? "-"}
+                    {"\u5750\u6807\uff1a"}{item.latitude ?? "-"}, {item.longitude ?? "-"}
                   </span>
                 </div>
 
@@ -67,19 +69,15 @@ export default async function AdminSubmissionsPage() {
                     <input type="hidden" name="id" value={item.id} />
                     <button className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white">
                       <CheckCircle2 className="h-4 w-4" />
-                      审核通过并发布
+                      {"\u5ba1\u6838\u901a\u8fc7\u5e76\u53d1\u5e03"}
                     </button>
                   </form>
                   <form action={rejectSubmission} className="flex flex-wrap gap-2">
                     <input type="hidden" name="id" value={item.id} />
-                    <input
-                      name="review_note"
-                      placeholder="拒绝原因"
-                      className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                    />
+                    <input name="review_note" placeholder={"\u62d2\u7edd\u539f\u56e0"} className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
                     <button className="inline-flex items-center gap-1 rounded-lg border border-rose-200 bg-white px-3 py-2 text-sm font-medium text-rose-700">
                       <XCircle className="h-4 w-4" />
-                      拒绝
+                      {"\u62d2\u7edd"}
                     </button>
                   </form>
                 </div>

@@ -36,7 +36,7 @@ export function AuthNavClient({ locale, initialEmail }: Props) {
           disabled={loading}
           className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-50 disabled:opacity-60"
         >
-          {locale === "zh" ? "退出" : "Sign out"}
+          {locale === "zh" ? "\u9000\u51fa" : "Sign out"}
         </button>
       </div>
     );
@@ -47,7 +47,7 @@ export function AuthNavClient({ locale, initialEmail }: Props) {
       href={`/login?next=${encodeURIComponent(pathname || "/")}`}
       className="rounded-full bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700"
     >
-      {locale === "zh" ? "登录" : "Sign in"}
+      {locale === "zh" ? "\u767b\u5f55" : "Sign in"}
     </Link>
   );
 }

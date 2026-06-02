@@ -10,6 +10,12 @@ export async function AuthNav() {
   const {
     data: { user }
   } = await supabase.auth.getUser();
+  let isAdmin = false;
+
+  if (user) {
+    const { data } = await supabase.from("admin_users").select("user_id").eq("user_id", user.id).maybeSingle();
+    isAdmin = Boolean(data);
+  }
 
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
@@ -34,6 +40,11 @@ export async function AuthNav() {
             <Link href="/submit-spot" className="hover:text-slate-900">
               {pick(locale, "Submit", "\u63a8\u8350\u5730\u70b9")}
             </Link>
+            {isAdmin ? (
+              <Link href="/admin/submissions" className="font-medium text-emerald-700 hover:text-emerald-800">
+                {pick(locale, "Review", "\u5ba1\u6838\u6295\u7a3f")}
+              </Link>
+            ) : null}
           </nav>
         </div>
 
