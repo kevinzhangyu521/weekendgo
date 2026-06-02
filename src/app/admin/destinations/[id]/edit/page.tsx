@@ -32,7 +32,7 @@ export default async function AdminEditDestinationPage({
         <h1 className="mt-1 text-2xl font-bold text-slate-900">{"\u7f16\u8f91\u76ee\u7684\u5730"}</h1>
         <p className="mt-2 text-sm text-slate-600">{"\u4fee\u6539\u540e\u4f1a\u7acb\u5373\u5f71\u54cd\u524d\u53f0\u76ee\u7684\u5730\u5217\u8868\u3001\u8be6\u60c5\u9875\u3001\u5730\u56fe\u548c\u8ba1\u5212\u9875\u3002"}</p>
 
-        <form action={updateDestination} className="mt-5 space-y-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <form action={updateDestination} encType="multipart/form-data" className="mt-5 space-y-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <input type="hidden" name="id" value={item.id} />
 
           <section className="space-y-3">
@@ -40,19 +40,11 @@ export default async function AdminEditDestinationPage({
             <div className="grid gap-3 md:grid-cols-2">
               <label className={labelClass}>
                 {"\u540d\u79f0 *"}
-                <input name="name" required defaultValue={item.name} className={inputClass} />
-              </label>
-              <label className={labelClass}>
-                {"\u4e2d\u6587\u540d"}
-                <input name="name_zh" defaultValue={item.nameZh ?? ""} className={inputClass} />
+                <input name="name" required defaultValue={item.nameZh || item.name} className={inputClass} />
               </label>
               <label className={labelClass}>
                 {"\u57ce\u5e02 *"}
-                <input name="city" required defaultValue={item.city} className={inputClass} />
-              </label>
-              <label className={labelClass}>
-                {"\u4e2d\u6587\u57ce\u5e02"}
-                <input name="city_zh" defaultValue={item.cityZh ?? ""} className={inputClass} />
+                <input name="city" required defaultValue={item.cityZh || item.city} className={inputClass} />
               </label>
             </div>
           </section>
@@ -87,7 +79,7 @@ export default async function AdminEditDestinationPage({
                 </select>
               </label>
             </div>
-            <div className="grid gap-3 md:grid-cols-3">
+            <div className="grid gap-3 md:grid-cols-2">
               <label className={labelClass}>
                 {"\u7eac\u5ea6"}
                 <input name="latitude" type="number" step="0.000001" defaultValue={item.latitude} className={inputClass} />
@@ -95,10 +87,6 @@ export default async function AdminEditDestinationPage({
               <label className={labelClass}>
                 {"\u7ecf\u5ea6"}
                 <input name="longitude" type="number" step="0.000001" defaultValue={item.longitude} className={inputClass} />
-              </label>
-              <label className={labelClass}>
-                {"\u8ddd\u79bb\u7f13\u5b58(km)"}
-                <input name="distance_km" type="number" min="0" step="0.1" defaultValue={item.distanceKm} className={inputClass} />
               </label>
               <label className={labelClass}>
                 {"\u8bc4\u5206"}
@@ -125,16 +113,13 @@ export default async function AdminEditDestinationPage({
             <h2 className="text-base font-bold text-slate-900">{"\u56fe\u7247\u4e0e\u63cf\u8ff0"}</h2>
             {item.image ? <div className="h-40 rounded-lg bg-cover bg-center" style={{ backgroundImage: `url('${item.image}')` }} /> : null}
             <label className={labelClass}>
-              {"\u56fe\u7247 URL"}
-              <input name="image" defaultValue={item.image} className={inputClass} />
+              {"\u66f4\u6362\u56fe\u7247"}
+              <input name="image_file" type="file" accept="image/*" className={inputClass} />
+              <span className="mt-1 block text-xs font-normal text-slate-500">{"\u4e0d\u9009\u65b0\u56fe\u7247\u65f6\uff0c\u4fdd\u7559\u539f\u56fe\u7247\u3002"}</span>
             </label>
             <label className={labelClass}>
               {"\u63cf\u8ff0 *"}
-              <textarea name="description" required rows={4} defaultValue={item.description} className={inputClass} />
-            </label>
-            <label className={labelClass}>
-              {"\u4e2d\u6587\u63cf\u8ff0"}
-              <textarea name="description_zh" rows={4} defaultValue={item.descriptionZh ?? ""} className={inputClass} />
+              <textarea name="description" required rows={4} defaultValue={item.descriptionZh || item.description} className={inputClass} />
             </label>
           </section>
 
