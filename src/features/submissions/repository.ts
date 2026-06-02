@@ -107,3 +107,15 @@ export async function getMySubmissions(): Promise<SpotSubmission[]> {
   if (error || !data) return [];
   return (data as SubmissionRow[]).map(normalize);
 }
+
+export async function purgeExpiredDeletedSubmissions() {
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) return;
+
+  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  await supabase.from("spot_submissions").delete().eq("user_id", user.id).not("deleted_at", "is", null).lte("deleted_at", cutoff);
+}

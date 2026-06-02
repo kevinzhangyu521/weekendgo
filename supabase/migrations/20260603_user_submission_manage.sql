@@ -11,3 +11,10 @@ for update
 to authenticated
 using (auth.uid() = user_id)
 with check (auth.uid() = user_id);
+
+drop policy if exists "users can permanently delete own expired submissions" on public.spot_submissions;
+create policy "users can permanently delete own expired submissions"
+on public.spot_submissions
+for delete
+to authenticated
+using (auth.uid() = user_id and deleted_at is not null and deleted_at <= now() - interval '24 hours');

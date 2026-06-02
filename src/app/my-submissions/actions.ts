@@ -57,6 +57,12 @@ export async function restoreSubmission(formData: FormData) {
   const { supabase, userId } = await getUserId();
   if (!userId) return;
 
-  await supabase.from("spot_submissions").update({ deleted_at: null, updated_at: new Date().toISOString() }).eq("id", id).eq("user_id", userId);
+  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  await supabase
+    .from("spot_submissions")
+    .update({ deleted_at: null, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .eq("user_id", userId)
+    .gt("deleted_at", cutoff);
   revalidatePath("/my-submissions");
 }

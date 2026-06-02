@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Lock, RotateCcw, Trash2, Unlock } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { getMySubmissions } from "@/features/submissions/repository";
+import { getMySubmissions, purgeExpiredDeletedSubmissions } from "@/features/submissions/repository";
 import type { SpotSubmission } from "@/features/submissions/types";
 import { deleteSubmission, lockSubmission, restoreSubmission, unlockSubmission } from "./actions";
 
@@ -23,6 +23,21 @@ const statusMap = {
   }
 } as const;
 
+function getDeleteCountdown(deletedAt: string | null) {
+  if (!deletedAt) return "\u5269\u4f59 24 \u5c0f\u65f6";
+
+  const expiresAt = new Date(deletedAt).getTime() + 24 * 60 * 60 * 1000;
+  const remainingMs = Math.max(0, expiresAt - Date.now());
+  const totalMinutes = Math.ceil(remainingMs / (60 * 1000));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (totalMinutes <= 0) return "\u5373\u5c06\u6c38\u4e45\u5220\u9664";
+  if (hours <= 0) return `\u5269\u4f59 ${minutes} \u5206\u949f`;
+  if (minutes === 0) return `\u5269\u4f59 ${hours} \u5c0f\u65f6`;
+  return `\u5269\u4f59 ${hours} \u5c0f\u65f6 ${minutes} \u5206\u949f`;
+}
+
 function SubmissionCard({ item, deleted = false }: { item: SpotSubmission; deleted?: boolean }) {
   const status = statusMap[item.status];
 
@@ -42,14 +57,16 @@ function SubmissionCard({ item, deleted = false }: { item: SpotSubmission; delet
             </span>
           ) : null}
           {deleted ? (
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200">{"\u5df2\u5220\u9664"}</span>
+            <span className="rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700 ring-1 ring-rose-200">{getDeleteCountdown(item.deletedAt)}</span>
           ) : (
             <span className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${status.className}`}>{status.label}</span>
           )}
         </div>
       </div>
 
-      <p className="mt-3 text-sm text-slate-700">{deleted ? "\u8fd9\u6761\u6295\u7a3f\u5df2\u79fb\u5230\u5df2\u5220\u9664\u5217\u8868\uff0c\u4ecd\u53ef\u4ee5\u6062\u590d\u3002" : status.message}</p>
+      <p className="mt-3 text-sm text-slate-700">
+        {deleted ? `\u8fd9\u6761\u6295\u7a3f\u5df2\u79fb\u5230\u5df2\u5220\u9664\u5217\u8868\uff0c${getDeleteCountdown(item.deletedAt)}\u540e\u5c06\u6c38\u4e45\u5220\u9664\uff0c\u671f\u95f4\u4ecd\u53ef\u6062\u590d\u3002` : status.message}
+      </p>
       {item.status === "rejected" && !deleted ? (
         <div className="mt-3 rounded-lg border border-rose-100 bg-rose-50 p-3 text-sm text-rose-700">
           <p className="font-semibold">{"\u7ba1\u7406\u5458\u53cd\u9988"}</p>
@@ -120,6 +137,7 @@ export default async function MySubmissionsPage() {
     );
   }
 
+  await purgeExpiredDeletedSubmissions();
   const submissions = await getMySubmissions();
   const activeSubmissions = submissions.filter((item) => !item.deletedAt);
   const deletedSubmissions = submissions.filter((item) => item.deletedAt);
@@ -149,7 +167,7 @@ export default async function MySubmissionsPage() {
         {deletedSubmissions.length > 0 ? (
           <section className="mt-8">
             <h2 className="text-base font-bold text-slate-900">{"\u5df2\u5220\u9664\u6295\u7a3f"}</h2>
-            <p className="mt-1 text-sm text-slate-600">{"\u8fd9\u4e9b\u6295\u7a3f\u6ca1\u6709\u6c38\u4e45\u5220\u9664\uff0c\u4f60\u53ef\u4ee5\u968f\u65f6\u6062\u590d\u3002"}</p>
+            <p className="mt-1 text-sm text-slate-600">{"\u5df2\u5220\u9664\u6295\u7a3f\u4f1a\u4fdd\u7559 24 \u5c0f\u65f6\uff0c\u8d85\u65f6\u540e\u5c06\u6c38\u4e45\u5220\u9664\uff1b\u5728\u5012\u8ba1\u65f6\u7ed3\u675f\u524d\u4f60\u53ef\u4ee5\u6062\u590d\u3002"}</p>
             <div className="mt-4 space-y-4">
               {deletedSubmissions.map((item) => (
                 <SubmissionCard key={item.id} item={item} deleted />
