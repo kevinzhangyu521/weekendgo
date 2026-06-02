@@ -2,21 +2,24 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { CheckCircle2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 const scenarios = [
-  { value: "creek", label: "溯溪" },
-  { value: "camping", label: "露营" },
-  { value: "hiking", label: "徒步" },
-  { value: "picnic", label: "野餐" }
+  { value: "creek", label: "\u6eaf\u6eaa" },
+  { value: "camping", label: "\u9732\u8425" },
+  { value: "hiking", label: "\u5f92\u6b65" },
+  { value: "picnic", label: "\u91ce\u9910" }
 ];
 
 export default function SubmitSpotPage() {
+  const router = useRouter();
   const pathname = usePathname();
   const supabase = useMemo(() => createClient(), []);
   const [loading, setLoading] = useState(false);
   const [needsLogin, setNeedsLogin] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -24,17 +27,19 @@ export default function SubmitSpotPage() {
     event.preventDefault();
     setLoading(true);
     setNeedsLogin(false);
+    setSubmitted(false);
     setMessage("");
     setError("");
 
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     const {
       data: { user }
     } = await supabase.auth.getUser();
 
     if (!user) {
       setNeedsLogin(true);
-      setError("请先登录后再提交地点。");
+      setError("\u8bf7\u5148\u767b\u5f55\u540e\u518d\u63d0\u4ea4\u5730\u70b9\u3002");
       setLoading(false);
       return;
     }
@@ -61,7 +66,7 @@ export default function SubmitSpotPage() {
     };
 
     if (!payload.name || !payload.city || !payload.description) {
-      setError("请至少填写地点名称、城市和推荐理由。");
+      setError("\u8bf7\u81f3\u5c11\u586b\u5199\u5730\u70b9\u540d\u79f0\u3001\u57ce\u5e02\u548c\u63a8\u8350\u7406\u7531\u3002");
       setLoading(false);
       return;
     }
@@ -74,8 +79,10 @@ export default function SubmitSpotPage() {
       return;
     }
 
-    event.currentTarget.reset();
-    setMessage("提交成功，管理员审核通过后会出现在目的地列表。");
+    formElement.reset();
+    setSubmitted(true);
+    setMessage("\u63d0\u4ea4\u6210\u529f\uff0c\u7ba1\u7406\u5458\u5ba1\u6838\u901a\u8fc7\u540e\u4f1a\u51fa\u73b0\u5728\u76ee\u7684\u5730\u5217\u8868\u3002");
+    window.setTimeout(() => router.push("/"), 2000);
   }
 
   return (
@@ -84,6 +91,22 @@ export default function SubmitSpotPage() {
         <p className="text-sm text-slate-500">WeekendGo 共建</p>
         <h1 className="mt-1 text-2xl font-bold text-slate-900">推荐一个亲子户外地点</h1>
         <p className="mt-2 text-sm text-slate-600">提交后会进入审核，审核通过才会展示给其他家庭。</p>
+
+        {submitted ? (
+          <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-800">
+            <div className="flex items-start gap-3">
+              <CheckCircle2 className="mt-0.5 h-5 w-5" />
+              <div>
+                <p className="font-semibold">提交成功</p>
+                <p className="mt-1 text-sm">{message}</p>
+                <p className="mt-1 text-xs">页面将自动返回首页。</p>
+                <Link href="/" className="mt-3 inline-flex rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white">
+                  返回首页
+                </Link>
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         <form onSubmit={handleSubmit} className="mt-5 space-y-4 rounded-xl border border-slate-200 bg-white p-5">
           <div className="grid gap-3 md:grid-cols-2">
@@ -187,7 +210,6 @@ export default function SubmitSpotPage() {
             {loading ? "提交中..." : "提交审核"}
           </button>
 
-          {message ? <p className="text-sm text-emerald-700">{message}</p> : null}
           {error ? <p className="text-sm text-rose-600">{error}</p> : null}
           {needsLogin ? (
             <Link href={`/login?next=${encodeURIComponent(pathname || "/submit-spot")}`} className="inline-flex text-sm text-emerald-700 hover:underline">

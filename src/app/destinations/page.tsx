@@ -28,6 +28,11 @@ const difficultyLabelMap = {
   hard: { en: "Hard", zh: "\u9ad8\u96be\u5ea6" }
 } as const;
 
+function formatDistance(distanceKm: number, isZh: boolean) {
+  if (!distanceKm || distanceKm <= 0) return isZh ? "\u8ddd\u79bb\u5f85\u8865\u5145" : "Distance TBD";
+  return isZh ? `\u8ddd\u79bb ${distanceKm}km` : `${distanceKm}km away`;
+}
+
 export default async function DestinationsPage({
   searchParams
 }: {
@@ -142,7 +147,7 @@ export default async function DestinationsPage({
                 </h2>
                 <p className="line-clamp-2 text-sm text-slate-600">{destinationDescription(item, locale)}</p>
                 <p className="text-sm text-slate-600">
-                  {destinationCity(item, locale)} - {item.distanceKm}km - {destinationDifficultyShort(item, locale)} - {destinationSafety(item, locale)}
+                  {destinationCity(item, locale)} - {formatDistance(item.distanceKm, isZh)} - {destinationDifficultyShort(item, locale)} - {destinationSafety(item, locale)}
                 </p>
 
                 <div className="flex items-center gap-4 border-t border-slate-100 pt-3 text-xs text-slate-600">
