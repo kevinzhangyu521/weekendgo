@@ -75,7 +75,8 @@ export default function SubmitSpotPage() {
     }
 
     try {
-      const imageFile = form.get("image_file") instanceof File ? form.get("image_file") : null;
+      const imageEntry = form.get("image_file");
+      const imageFile = imageEntry instanceof File ? imageEntry : null;
       const imageUrl = await uploadImage(user.id, imageFile);
 
       const payload = {
