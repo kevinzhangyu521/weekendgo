@@ -309,19 +309,19 @@ export function PlanEditor({ plan, locale }: Props) {
         ) : (
           plan.items.map((item, index) => (
             <div key={item.id} className="rounded-xl border border-slate-200 bg-white p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
+              <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                <div className="min-w-0">
                   <p className="text-xs text-slate-500">{`${text.stop} ${index + 1}`}</p>
                   <p className="mt-1 text-base font-semibold text-slate-900">{item.destination ? destinationName(item.destination, locale) : text.unknownDestination}</p>
                   <p className="mt-1 text-sm text-slate-600">{item.destination ? `${destinationCity(item.destination, locale)} - ${item.destination.distanceKm}km` : text.noDetails}</p>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex flex-wrap items-center gap-2 md:justify-end">
                   {item.destination ? (
                     <a
                       href={getAmapNavigationUrl(item.destination)}
                       target="_blank"
                       rel="noreferrer"
-                      className="rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-2 text-xs font-medium text-emerald-700"
+                      className="inline-flex min-h-10 items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white"
                     >
                       {text.navigate}
                     </a>
