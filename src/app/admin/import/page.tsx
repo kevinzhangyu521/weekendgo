@@ -35,12 +35,12 @@ export default function AdminImportPage() {
       });
       const data = await response.json();
       if (!response.ok) {
-        setError(data?.error ?? "Validate failed.");
+        setError(data?.error ?? "\u6821\u9a8c\u5931\u8d25\u3002");
         return;
       }
       setValidation(data);
     } catch {
-      setError("Validate failed.");
+      setError("\u6821\u9a8c\u5931\u8d25\u3002");
     } finally {
       setLoading(false);
     }
@@ -57,13 +57,13 @@ export default function AdminImportPage() {
       });
       const data = await response.json();
       if (!response.ok) {
-        setError(data?.error ?? "Import failed.");
+        setError(data?.error ?? "\u5bfc\u5165\u5931\u8d25\u3002");
         setExecution(data);
         return;
       }
       setExecution(data);
     } catch {
-      setError("Import failed.");
+      setError("\u5bfc\u5165\u5931\u8d25\u3002");
     } finally {
       setLoading(false);
     }
@@ -72,8 +72,8 @@ export default function AdminImportPage() {
   return (
     <main className="min-h-screen bg-slate-50">
       <section className="mx-auto max-w-3xl px-4 py-8">
-        <h1 className="text-2xl font-bold text-slate-900">CSV Batch Import</h1>
-        <p className="mt-1 text-sm text-slate-600">Upload spots, facilities and photos CSV files, then validate and import.</p>
+        <h1 className="text-2xl font-bold text-slate-900">{"CSV \u6279\u91cf\u5bfc\u5165"}</h1>
+        <p className="mt-1 text-sm text-slate-600">{"\u4e0a\u4f20 spots\u3001facilities \u548c photos CSV \u6587\u4ef6\uff0c\u5148\u6821\u9a8c\u540e\u5bfc\u5165\u3002"}</p>
 
         <form onSubmit={handleValidate} className="mt-6 space-y-4 rounded-xl border border-slate-200 bg-white p-5">
           <label className="block text-sm font-medium text-slate-700">
@@ -95,7 +95,7 @@ export default function AdminImportPage() {
               disabled={!canSubmit || loading}
               className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
             >
-              {loading ? "Validating..." : "Validate"}
+              {loading ? "\u6821\u9a8c\u4e2d..." : "\u6821\u9a8c"}
             </button>
             <button
               type="button"
@@ -103,7 +103,7 @@ export default function AdminImportPage() {
               disabled={!canSubmit || loading}
               className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
             >
-              {loading ? "Importing..." : "Validate + Import"}
+              {loading ? "\u5bfc\u5165\u4e2d..." : "\u6821\u9a8c\u5e76\u5bfc\u5165"}
             </button>
           </div>
         </form>
@@ -112,31 +112,31 @@ export default function AdminImportPage() {
 
         {validation ? (
           <section className="mt-4 rounded-xl border border-slate-200 bg-white p-5">
-            <h2 className="text-sm font-semibold text-slate-900">Validation Result</h2>
+            <h2 className="text-sm font-semibold text-slate-900">{"\u6821\u9a8c\u7ed3\u679c"}</h2>
             <p className="mt-1 text-sm text-slate-600">
               spots: {validation.counts.spots}, facilities: {validation.counts.facilities}, photos: {validation.counts.photos}
             </p>
             <p className={`mt-2 text-sm font-medium ${validation.ok ? "text-emerald-700" : "text-rose-600"}`}>
-              {validation.ok ? "Validation passed" : `Validation failed (${validation.errors.length} errors)`}
+              {validation.ok ? "\u6821\u9a8c\u901a\u8fc7" : `\u6821\u9a8c\u5931\u8d25\uff08${validation.errors.length} \u4e2a\u9519\u8bef\uff09`}
             </p>
           </section>
         ) : null}
 
         {execution ? (
           <section className="mt-4 rounded-xl border border-slate-200 bg-white p-5">
-            <h2 className="text-sm font-semibold text-slate-900">Import Result</h2>
+            <h2 className="text-sm font-semibold text-slate-900">{"\u5bfc\u5165\u7ed3\u679c"}</h2>
             <p className={`mt-2 text-sm font-medium ${execution.ok ? "text-emerald-700" : "text-rose-600"}`}>
-              {execution.ok ? "Import succeeded" : "Import failed"}
+              {execution.ok ? "\u5bfc\u5165\u6210\u529f" : "\u5bfc\u5165\u5931\u8d25"}
             </p>
             <p className="mt-1 text-sm text-slate-600">
-              Inserted spots: {execution.inserted.spots}, facilities: {execution.inserted.facilities}, spot_facilities:{" "}
+              {"\u5df2\u5199\u5165 spots\uff1a"}{execution.inserted.spots}, facilities: {execution.inserted.facilities}, spot_facilities:{" "}
               {execution.inserted.spotFacilities}, photos: {execution.inserted.photos}
             </p>
             {execution.errors.length > 0 ? (
               <ul className="mt-2 list-disc pl-5 text-xs text-rose-700">
                 {execution.errors.slice(0, 20).map((err, idx) => (
                   <li key={`${err.file}-${err.row}-${idx}`}>
-                    {err.file} row {err.row}: {err.message}
+                    {err.file} {"\u7b2c"} {err.row} {"\u884c\uff1a"}{err.message}
                   </li>
                 ))}
               </ul>

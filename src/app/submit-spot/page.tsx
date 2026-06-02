@@ -41,7 +41,7 @@ export default function SubmitSpotPage() {
       cacheControl: "3600",
       upsert: false
     });
-    if (uploadError) throw uploadError;
+    if (uploadError) throw new Error("\u56fe\u7247\u4e0a\u4f20\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002");
 
     const { data } = supabase.storage.from("spot-submission-photos").getPublicUrl(path);
     return data.publicUrl;
@@ -112,14 +112,15 @@ export default function SubmitSpotPage() {
       };
 
       const { error: insertError } = await supabase.from("spot_submissions").insert(payload);
-      if (insertError) throw insertError;
+      if (insertError) throw new Error("\u63d0\u4ea4\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002");
 
       formElement.reset();
       setSubmitted(true);
       setMessage("\u63d0\u4ea4\u6210\u529f\uff0c\u7ba1\u7406\u5458\u5ba1\u6838\u901a\u8fc7\u540e\u4f1a\u51fa\u73b0\u5728\u76ee\u7684\u5730\u5217\u8868\u3002");
       window.setTimeout(() => router.push("/"), 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "\u63d0\u4ea4\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002");
+      const message = err instanceof Error && /[\u4e00-\u9fa5]/.test(err.message) ? err.message : "\u63d0\u4ea4\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002";
+      setError(message);
     } finally {
       setLoading(false);
     }

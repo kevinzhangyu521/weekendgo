@@ -50,7 +50,7 @@ export function FavoriteButton({ destinationId, size = "md", className = "" }: P
         setIsFavorite(Boolean(data));
       } catch {
         if (!mounted) return;
-        setErrorText("Unable to load favorite status.");
+        setErrorText("\u6536\u85cf\u72b6\u6001\u52a0\u8f7d\u5931\u8d25\u3002");
       } finally {
         if (mounted) setLoading(false);
       }
@@ -73,7 +73,7 @@ export function FavoriteButton({ destinationId, size = "md", className = "" }: P
 
       if (!user) {
         setIsLoggedIn(false);
-        setErrorText("Please sign in to save favorites.");
+        setErrorText("\u8bf7\u5148\u767b\u5f55\u518d\u6536\u85cf\u3002");
         return;
       }
 
@@ -97,7 +97,7 @@ export function FavoriteButton({ destinationId, size = "md", className = "" }: P
         setIsFavorite(true);
       }
     } catch {
-      setErrorText("Save failed. Please try again.");
+      setErrorText("\u4fdd\u5b58\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002");
     } finally {
       setSaving(false);
     }
@@ -112,8 +112,8 @@ export function FavoriteButton({ destinationId, size = "md", className = "" }: P
         type="button"
         onClick={toggleFavorite}
         disabled={loading || saving}
-        aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
-        title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+        aria-label={isFavorite ? "\u53d6\u6d88\u6536\u85cf" : "\u52a0\u5165\u6536\u85cf"}
+        title={isFavorite ? "\u53d6\u6d88\u6536\u85cf" : "\u52a0\u5165\u6536\u85cf"}
         className={`${buttonSize} inline-flex items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 disabled:opacity-50 ${
           isFavorite ? "text-rose-600" : ""
         }`}
@@ -123,7 +123,7 @@ export function FavoriteButton({ destinationId, size = "md", className = "" }: P
       {errorText ? <p className="mt-1 text-xs text-rose-600">{errorText}</p> : null}
       {!isLoggedIn && !loading ? (
         <Link href={`/login?next=${encodeURIComponent(pathname || "/")}`} className="mt-1 inline-flex text-xs text-emerald-700 hover:underline">
-          Sign in to save
+          {"\u767b\u5f55\u540e\u6536\u85cf"}
         </Link>
       ) : null}
     </div>

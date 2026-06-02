@@ -42,7 +42,7 @@ export function LoginForm({ locale }: Props) {
       });
 
       if (signInError) {
-        setError(signInError.message);
+        setError(text.loginFailed);
         return;
       }
 
@@ -59,7 +59,7 @@ export function LoginForm({ locale }: Props) {
     setMessage("");
     const { error: signOutError } = await supabase.auth.signOut();
     if (signOutError) {
-      setError(signOutError.message);
+      setError(text.loginFailed);
       return;
     }
     setMessage(text.signedOut);
@@ -69,7 +69,7 @@ export function LoginForm({ locale }: Props) {
   return (
     <main className="min-h-screen bg-slate-50">
       <section className="mx-auto flex max-w-md flex-col px-4 py-10 md:px-0">
-        <p className="text-sm text-slate-500">WeekendGo Account</p>
+        <p className="text-sm text-slate-500">WeekendGo {"\u8d26\u53f7"}</p>
         <h1 className="mt-1 text-2xl font-bold text-slate-900">{text.title}</h1>
         <p className="mt-2 text-sm text-slate-600">
           {text.subtitle}
@@ -77,7 +77,7 @@ export function LoginForm({ locale }: Props) {
 
         <form onSubmit={onSubmit} className="mt-6 space-y-3 rounded-xl border border-slate-200 bg-white p-4">
           <label className="text-sm font-medium text-slate-700" htmlFor="email">
-            Email
+            {"\u90ae\u7bb1"}
           </label>
           <div className="flex items-center gap-2 rounded-lg border border-slate-200 px-3">
             <Mail className="h-4 w-4 text-slate-500" />

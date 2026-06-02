@@ -29,8 +29,8 @@ const difficultyLabelMap = {
 } as const;
 
 function formatDistance(distanceKm: number, isZh: boolean) {
-  if (!distanceKm || distanceKm <= 0) return isZh ? "\u8ddd\u79bb\u5f85\u8865\u5145" : "Distance TBD";
-  return isZh ? `\u8ddd\u79bb ${distanceKm}km` : `${distanceKm}km away`;
+  if (!distanceKm || distanceKm <= 0) return "\u8ddd\u79bb\u5f85\u8865\u5145";
+  return `\u8ddd\u79bb ${distanceKm}km`;
 }
 
 export default async function DestinationsPage({
@@ -39,7 +39,7 @@ export default async function DestinationsPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const locale = await getLocale();
-  const isZh = locale === "zh";
+  const isZh = true;
   const params = await searchParams;
   const filters = parseFilters(params);
   const list = await getFilteredDestinations(filters);
@@ -67,7 +67,7 @@ export default async function DestinationsPage({
                   filters.scenario === value ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-700"
                 }`}
               >
-                {isZh ? label.zh : label.en}
+                {label.zh}
               </Link>
             ))}
           </div>
@@ -81,7 +81,7 @@ export default async function DestinationsPage({
                   filters.difficulty === value ? "bg-slate-800 text-white" : "bg-slate-100 text-slate-700"
                 }`}
               >
-                {isZh ? label.zh : label.en}
+                {label.zh}
               </Link>
             ))}
           </div>
@@ -95,7 +95,7 @@ export default async function DestinationsPage({
                   filters.maxDistanceKm === km ? "bg-sky-600 text-white" : "bg-slate-100 text-slate-700"
                 }`}
               >
-                {isZh ? `${km}km\u5185` : `Within ${km}km`}
+                {km}km{"\u5185"}
               </Link>
             ))}
           </div>
@@ -120,7 +120,7 @@ export default async function DestinationsPage({
           </div>
         </div>
 
-        <div className="mb-3 text-sm text-slate-600">{isZh ? `\u7ed3\u679c\uff1a${list.length}` : `Results: ${list.length}`}</div>
+        <div className="mb-3 text-sm text-slate-600">{"\u7ed3\u679c\uff1a"}{list.length}</div>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {list.map((item) => (
@@ -153,13 +153,13 @@ export default async function DestinationsPage({
                 <div className="flex items-center gap-4 border-t border-slate-100 pt-3 text-xs text-slate-600">
                   <span className="inline-flex items-center gap-1">
                     <Car className="h-3.5 w-3.5" />
-                    {isZh ? (item.hasParking ? "\u53ef\u505c\u8f66" : "\u505c\u8f66\u4e00\u822c") : item.hasParking ? "Parking" : "Limited Parking"}
+                    {item.hasParking ? "\u53ef\u505c\u8f66" : "\u505c\u8f66\u4e00\u822c"}
                   </span>
                   <span className="inline-flex items-center gap-1">
                     <Bath className="h-3.5 w-3.5" />
-                    {isZh ? (item.hasToilet ? "\u6709\u5395\u6240" : "\u5395\u6240\u8f83\u5c11") : item.hasToilet ? "Toilet" : "Limited Toilet"}
+                    {item.hasToilet ? "\u6709\u5395\u6240" : "\u5395\u6240\u8f83\u5c11"}
                   </span>
-                  <span>{isZh ? `${item.minKidAge}\u5c81+` : `${item.minKidAge}+ years`}</span>
+                  <span>{item.minKidAge}{"\u5c81+"}</span>
                 </div>
               </div>
             </article>

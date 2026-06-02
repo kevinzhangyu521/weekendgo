@@ -1,7 +1,7 @@
 import type { Locale } from "./config";
 
 function byLocale(locale: Locale, en: string, zh: string) {
-  return locale === "zh" ? zh : en;
+  return zh;
 }
 
 export function getLoginMessages(locale: Locale) {

@@ -106,7 +106,7 @@ export async function executeImport(
   if (spotsError) {
     return {
       ok: false,
-      errors: [{ file: "spots", row: 0, message: spotsError.message }],
+      errors: [{ file: "spots", row: 0, message: "spots \u5199\u5165\u5931\u8d25\uff0c\u8bf7\u68c0\u67e5\u8868\u6743\u9650\u548c CSV \u5185\u5bb9\u3002" }],
       counts: validation.counts,
       inserted: { spots: 0, facilities: 0, spotFacilities: 0, photos: 0 }
     };
@@ -119,7 +119,7 @@ export async function executeImport(
   if (destinationsError) {
     return {
       ok: false,
-      errors: [{ file: "spots", row: 0, message: `destinations sync failed: ${destinationsError.message}` }],
+      errors: [{ file: "spots", row: 0, message: "\u76ee\u7684\u5730\u540c\u6b65\u5931\u8d25\uff0c\u8bf7\u68c0\u67e5 CSV \u5185\u5bb9\u548c\u6570\u636e\u5e93\u6743\u9650\u3002" }],
       counts: validation.counts,
       inserted: { spots: spotPayload.length, facilities: 0, spotFacilities: 0, photos: 0 }
     };
@@ -129,7 +129,7 @@ export async function executeImport(
   if (spotsFetchError || !spotRows) {
     return {
       ok: false,
-      errors: [{ file: "spots", row: 0, message: spotsFetchError?.message ?? "failed to fetch spots" }],
+      errors: [{ file: "spots", row: 0, message: "\u8bfb\u53d6 spots \u6570\u636e\u5931\u8d25\u3002" }],
       counts: validation.counts,
       inserted: { spots: spotPayload.length, facilities: 0, spotFacilities: 0, photos: 0 }
     };
@@ -153,7 +153,7 @@ export async function executeImport(
   if (facilitiesError) {
     return {
       ok: false,
-      errors: [{ file: "facilities", row: 0, message: facilitiesError.message }],
+      errors: [{ file: "facilities", row: 0, message: "facilities \u5199\u5165\u5931\u8d25\uff0c\u8bf7\u68c0\u67e5\u8868\u6743\u9650\u548c CSV \u5185\u5bb9\u3002" }],
       counts: validation.counts,
       inserted: { spots: spotPayload.length, facilities: 0, spotFacilities: 0, photos: 0 }
     };
@@ -163,7 +163,7 @@ export async function executeImport(
   if (facilityFetchError || !facilityRows) {
     return {
       ok: false,
-      errors: [{ file: "facilities", row: 0, message: facilityFetchError?.message ?? "failed to fetch facilities" }],
+      errors: [{ file: "facilities", row: 0, message: "\u8bfb\u53d6 facilities \u6570\u636e\u5931\u8d25\u3002" }],
       counts: validation.counts,
       inserted: { spots: spotPayload.length, facilities: facilityDictionary.length, spotFacilities: 0, photos: 0 }
     };
@@ -186,7 +186,7 @@ export async function executeImport(
     if (spotFacilityError) {
       return {
         ok: false,
-        errors: [{ file: "facilities", row: 0, message: spotFacilityError.message }],
+        errors: [{ file: "facilities", row: 0, message: "\u5730\u70b9\u548c\u8bbe\u65bd\u5173\u8054\u5931\u8d25\u3002" }],
         counts: validation.counts,
         inserted: { spots: spotPayload.length, facilities: facilityDictionary.length, spotFacilities: 0, photos: 0 }
       };
@@ -220,7 +220,7 @@ export async function executeImport(
     if (photosError) {
       return {
         ok: false,
-        errors: [{ file: "photos", row: 0, message: photosError.message }],
+        errors: [{ file: "photos", row: 0, message: "photos \u5199\u5165\u5931\u8d25\uff0c\u8bf7\u68c0\u67e5\u56fe\u7247 URL \u548c CSV \u5185\u5bb9\u3002" }],
         counts: validation.counts,
         inserted: {
           spots: spotPayload.length,

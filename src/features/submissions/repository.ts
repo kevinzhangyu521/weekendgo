@@ -26,6 +26,23 @@ type SubmissionRow = {
   created_at: string;
 };
 
+function normalizeReviewNote(note: string | null, status: SpotSubmission["status"]) {
+  const normalized = note?.trim().toLowerCase();
+
+  if (!normalized) return null;
+  if (normalized === "rejected") {
+    return "\u672a\u901a\u8fc7\u5ba1\u6838\uff0c\u5efa\u8bae\u8865\u5145\u66f4\u6e05\u6670\u7684\u5730\u70b9\u4fe1\u606f\u3001\u5b89\u5168\u63d0\u793a\u6216\u73b0\u573a\u56fe\u7247\u540e\u518d\u6b21\u63d0\u4ea4\u3002";
+  }
+  if (normalized === "approved") {
+    return "\u5ba1\u6838\u5df2\u901a\u8fc7\uff0c\u5730\u70b9\u5df2\u53d1\u5e03\u5230\u76ee\u7684\u5730\u5217\u8868\u3002";
+  }
+  if (status === "rejected" && /^[a-z\s._-]+$/.test(normalized)) {
+    return "\u672a\u901a\u8fc7\u5ba1\u6838\uff0c\u5efa\u8bae\u8865\u5145\u66f4\u5b8c\u6574\u7684\u5730\u70b9\u4fe1\u606f\u540e\u518d\u6b21\u63d0\u4ea4\u3002";
+  }
+
+  return note;
+}
+
 function normalize(row: SubmissionRow): SpotSubmission {
   return {
     id: row.id,
@@ -48,7 +65,7 @@ function normalize(row: SubmissionRow): SpotSubmission {
     description: row.description,
     descriptionZh: row.description_zh,
     status: row.status,
-    reviewNote: row.review_note,
+    reviewNote: normalizeReviewNote(row.review_note, row.status),
     createdAt: row.created_at
   };
 }
