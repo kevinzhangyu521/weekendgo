@@ -68,15 +68,22 @@ export default function SubmitSpotPage() {
     const description = String(form.get("description") ?? "").trim();
     const descriptionZh = String(form.get("description_zh") ?? "").trim();
 
+    const imageEntry = form.get("image_file");
+    const imageFile = imageEntry instanceof File ? imageEntry : null;
+
     if (!name || !city || !description) {
       setError("\u8bf7\u81f3\u5c11\u586b\u5199\u5730\u70b9\u540d\u79f0\u3001\u57ce\u5e02\u548c\u63a8\u8350\u7406\u7531\u3002");
       setLoading(false);
       return;
     }
 
+    if (!imageFile || imageFile.size === 0) {
+      setError("\u8bf7\u4e0a\u4f20\u4e00\u5f20\u5730\u70b9\u56fe\u7247\u3002");
+      setLoading(false);
+      return;
+    }
+
     try {
-      const imageEntry = form.get("image_file");
-      const imageFile = imageEntry instanceof File ? imageEntry : null;
       const imageUrl = await uploadImage(user.id, imageFile);
 
       const payload = {
@@ -139,23 +146,23 @@ export default function SubmitSpotPage() {
 
         <form onSubmit={handleSubmit} className="mt-5 space-y-4 rounded-xl border border-slate-200 bg-white p-5">
           <div className="grid gap-3 md:grid-cols-2">
-            <label className="text-sm font-medium text-slate-700">
+            <label className="text-sm font-bold text-slate-900">
               {"\u5730\u70b9\u540d\u79f0 *"}
               <input name="name" required className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
             </label>
-            <label className="text-sm font-medium text-slate-700">
+            <label className="text-sm font-bold text-slate-900">
               {"\u57ce\u5e02 *"}
               <input name="city" required className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
             </label>
           </div>
 
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm font-bold text-slate-900">
             {"\u5730\u5740/\u5b9a\u4f4d\u8bf4\u660e"}
             <input name="address" className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
           </label>
 
           <div className="grid gap-3 md:grid-cols-3">
-            <label className="text-sm font-medium text-slate-700">
+            <label className="text-sm font-bold text-slate-900">
               {"\u573a\u666f"}
               <select name="scenario" className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm">
                 {scenarios.map((item) => (
@@ -165,7 +172,7 @@ export default function SubmitSpotPage() {
                 ))}
               </select>
             </label>
-            <label className="text-sm font-medium text-slate-700">
+            <label className="text-sm font-bold text-slate-900">
               {"\u96be\u5ea6"}
               <select name="difficulty" className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm">
                 <option value="easy">{"\u4f4e\u96be\u5ea6"}</option>
@@ -173,7 +180,7 @@ export default function SubmitSpotPage() {
                 <option value="hard">{"\u9ad8\u96be\u5ea6"}</option>
               </select>
             </label>
-            <label className="text-sm font-medium text-slate-700">
+            <label className="text-sm font-bold text-slate-900">
               {"\u98ce\u9669"}
               <select name="safety" className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm">
                 <option value="low_risk">{"\u4f4e\u98ce\u9669"}</option>
@@ -184,19 +191,19 @@ export default function SubmitSpotPage() {
           </div>
 
           <div className="grid gap-3 md:grid-cols-4">
-            <label className="text-sm font-medium text-slate-700">
+            <label className="text-sm font-bold text-slate-900">
               {"\u7eac\u5ea6"}
               <input name="latitude" type="number" step="0.000001" className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
             </label>
-            <label className="text-sm font-medium text-slate-700">
+            <label className="text-sm font-bold text-slate-900">
               {"\u7ecf\u5ea6"}
               <input name="longitude" type="number" step="0.000001" className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
             </label>
-            <label className="text-sm font-medium text-slate-700">
+            <label className="text-sm font-bold text-slate-900">
               {"\u8ddd\u79bb(km)"}
               <input name="distance_km" type="number" min="0" className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
             </label>
-            <label className="text-sm font-medium text-slate-700">
+            <label className="text-sm font-bold text-slate-900">
               {"\u9002\u5408\u5e74\u9f84"}
               <input name="min_kid_age" type="number" min="0" className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
             </label>
@@ -213,16 +220,16 @@ export default function SubmitSpotPage() {
             </label>
           </div>
 
-          <label className="block text-sm font-medium text-slate-700">
-            {"\u4e0a\u4f20\u56fe\u7247"}
-            <input name="image_file" type="file" accept="image/*" className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+          <label className="block text-sm font-bold text-slate-900">
+            {"\u4e0a\u4f20\u56fe\u7247 *"}
+            <input name="image_file" type="file" accept="image/*" required className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
           </label>
 
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm font-bold text-slate-900">
             {"\u63a8\u8350\u7406\u7531/\u5b89\u5168\u63d0\u793a *"}
             <textarea name="description" required rows={4} className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
           </label>
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm font-bold text-slate-900">
             {"\u8865\u5145\u8bf4\u660e"}
             <textarea name="description_zh" rows={3} className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
           </label>
