@@ -15,7 +15,16 @@ type PlanRow = {
 type PlanItemRow = {
   id: string;
   sort_order: number;
-  destination: {
+  destination: PlanItemDestinationRow | null;
+};
+
+type PlanItemQueryRow = {
+  id: string;
+  sort_order: number;
+  destination: PlanItemDestinationRow | PlanItemDestinationRow[] | null;
+};
+
+type PlanItemDestinationRow = {
     id: string;
     name: string;
     name_zh: string | null;
@@ -34,7 +43,6 @@ type PlanItemRow = {
     image: string | null;
     description: string | null;
     description_zh: string | null;
-  } | null;
 };
 
 function normalizeDestination(row: PlanItemRow["destination"]): DestinationItem | null {
@@ -59,6 +67,17 @@ function normalizeDestination(row: PlanItemRow["destination"]): DestinationItem 
     description: row.description ?? "",
     descriptionZh: row.description_zh
   };
+}
+
+function normalizePlanItemRows(rows: PlanItemQueryRow[] | null): PlanDetail["items"] {
+  return (rows ?? []).map((row) => {
+    const destination = Array.isArray(row.destination) ? (row.destination[0] ?? null) : row.destination;
+    return {
+      id: row.id,
+      sortOrder: row.sort_order,
+      destination: normalizeDestination(destination)
+    };
+  });
 }
 
 export async function getMyPlans(): Promise<PlanSummary[]> {
@@ -129,11 +148,7 @@ export async function getMyPlanById(planId: string): Promise<PlanDetail | null> 
     isPublic: (plan as PlanRow).is_public,
     shareSlug: (plan as PlanRow).share_slug,
     notes: (plan as PlanRow).notes ?? "",
-    items: ((items ?? []) as PlanItemRow[]).map((row) => ({
-      id: row.id,
-      sortOrder: row.sort_order,
-      destination: normalizeDestination(row.destination)
-    }))
+    items: normalizePlanItemRows((items ?? []) as unknown as PlanItemQueryRow[])
   };
 }
 
@@ -164,10 +179,6 @@ export async function getPublicPlanBySlug(shareSlug: string): Promise<PlanDetail
     isPublic: (plan as PlanRow).is_public,
     shareSlug: (plan as PlanRow).share_slug,
     notes: (plan as PlanRow).notes ?? "",
-    items: ((items ?? []) as PlanItemRow[]).map((row) => ({
-      id: row.id,
-      sortOrder: row.sort_order,
-      destination: normalizeDestination(row.destination)
-    }))
+    items: normalizePlanItemRows((items ?? []) as unknown as PlanItemQueryRow[])
   };
 }
