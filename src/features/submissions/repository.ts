@@ -23,6 +23,8 @@ type SubmissionRow = {
   description_zh: string | null;
   status: SpotSubmission["status"];
   review_note: string | null;
+  is_locked: boolean | null;
+  deleted_at: string | null;
   created_at: string;
 };
 
@@ -66,18 +68,22 @@ function normalize(row: SubmissionRow): SpotSubmission {
     descriptionZh: row.description_zh,
     status: row.status,
     reviewNote: normalizeReviewNote(row.review_note, row.status),
+    isLocked: Boolean(row.is_locked),
+    deletedAt: row.deleted_at,
     createdAt: row.created_at
   };
 }
+
+const submissionSelect =
+  "id,user_id,name,name_zh,city,city_zh,latitude,longitude,address,scenario,difficulty,safety,distance_km,min_kid_age,has_parking,has_toilet,image_url,description,description_zh,status,review_note,is_locked,deleted_at,created_at";
 
 export async function getPendingSubmissions(): Promise<SpotSubmission[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("spot_submissions")
-    .select(
-      "id,user_id,name,name_zh,city,city_zh,latitude,longitude,address,scenario,difficulty,safety,distance_km,min_kid_age,has_parking,has_toilet,image_url,description,description_zh,status,review_note,created_at"
-    )
+    .select(submissionSelect)
     .eq("status", "pending")
+    .is("deleted_at", null)
     .order("created_at", { ascending: true });
 
   if (error || !data) return [];
@@ -94,9 +100,7 @@ export async function getMySubmissions(): Promise<SpotSubmission[]> {
 
   const { data, error } = await supabase
     .from("spot_submissions")
-    .select(
-      "id,user_id,name,name_zh,city,city_zh,latitude,longitude,address,scenario,difficulty,safety,distance_km,min_kid_age,has_parking,has_toilet,image_url,description,description_zh,status,review_note,created_at"
-    )
+    .select(submissionSelect)
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 

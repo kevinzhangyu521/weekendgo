@@ -1,6 +1,9 @@
 import Link from "next/link";
+import { Lock, RotateCcw, Trash2, Unlock } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getMySubmissions } from "@/features/submissions/repository";
+import type { SpotSubmission } from "@/features/submissions/types";
+import { deleteSubmission, lockSubmission, restoreSubmission, unlockSubmission } from "./actions";
 
 const statusMap = {
   pending: {
@@ -19,6 +22,81 @@ const statusMap = {
     message: "\u8fd9\u6761\u63a8\u8350\u6682\u672a\u901a\u8fc7\u5ba1\u6838\uff0c\u8bf7\u67e5\u770b\u7ba1\u7406\u5458\u53cd\u9988\u3002"
   }
 } as const;
+
+function SubmissionCard({ item, deleted = false }: { item: SpotSubmission; deleted?: boolean }) {
+  const status = statusMap[item.status];
+
+  return (
+    <article className={`rounded-xl border bg-white p-5 shadow-sm ${deleted ? "border-slate-200 opacity-80" : "border-slate-200"}`}>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-xs text-slate-500">{item.createdAt}</p>
+          <h2 className="mt-1 text-lg font-semibold text-slate-900">{item.nameZh || item.name}</h2>
+          <p className="mt-1 text-sm text-slate-600">{item.cityZh || item.city}</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {item.isLocked ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">
+              <Lock className="h-3.5 w-3.5" />
+              {"\u5df2\u9501\u5b9a"}
+            </span>
+          ) : null}
+          {deleted ? (
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200">{"\u5df2\u5220\u9664"}</span>
+          ) : (
+            <span className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${status.className}`}>{status.label}</span>
+          )}
+        </div>
+      </div>
+
+      <p className="mt-3 text-sm text-slate-700">{deleted ? "\u8fd9\u6761\u6295\u7a3f\u5df2\u79fb\u5230\u5df2\u5220\u9664\u5217\u8868\uff0c\u4ecd\u53ef\u4ee5\u6062\u590d\u3002" : status.message}</p>
+      {item.status === "rejected" && !deleted ? (
+        <div className="mt-3 rounded-lg border border-rose-100 bg-rose-50 p-3 text-sm text-rose-700">
+          <p className="font-semibold">{"\u7ba1\u7406\u5458\u53cd\u9988"}</p>
+          <p className="mt-1">{item.reviewNote || "\u672a\u586b\u5199\u5177\u4f53\u539f\u56e0\uff0c\u53ef\u4fee\u6539\u4fe1\u606f\u540e\u518d\u6b21\u63d0\u4ea4\u3002"}</p>
+        </div>
+      ) : null}
+      {item.status === "approved" && !deleted ? (
+        <Link href="/destinations" className="mt-3 inline-flex text-sm font-medium text-emerald-700 hover:underline">
+          {"\u53bb\u76ee\u7684\u5730\u5217\u8868\u67e5\u770b"}
+        </Link>
+      ) : null}
+
+      <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
+        {deleted ? (
+          <form action={restoreSubmission}>
+            <input type="hidden" name="id" value={item.id} />
+            <button className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-emerald-700">
+              <RotateCcw className="h-4 w-4" />
+              {"\u6062\u590d\u6295\u7a3f"}
+            </button>
+          </form>
+        ) : (
+          <>
+            <form action={item.isLocked ? unlockSubmission : lockSubmission}>
+              <input type="hidden" name="id" value={item.id} />
+              <button className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700">
+                {item.isLocked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                {item.isLocked ? "\u89e3\u9501" : "\u9501\u5b9a"}
+              </button>
+            </form>
+            <form action={deleteSubmission}>
+              <input type="hidden" name="id" value={item.id} />
+              <button
+                disabled={item.isLocked}
+                className="inline-flex items-center gap-1 rounded-lg border border-rose-200 bg-white px-3 py-2 text-sm font-medium text-rose-700 disabled:cursor-not-allowed disabled:opacity-40"
+                title={item.isLocked ? "\u5df2\u9501\u5b9a\u7684\u6295\u7a3f\u9700\u5148\u89e3\u9501\u624d\u80fd\u5220\u9664" : "\u79fb\u5230\u5df2\u5220\u9664\u5217\u8868"}
+              >
+                <Trash2 className="h-4 w-4" />
+                {"\u79fb\u5230\u5df2\u5220\u9664"}
+              </button>
+            </form>
+          </>
+        )}
+      </div>
+    </article>
+  );
+}
 
 export default async function MySubmissionsPage() {
   const supabase = await createClient();
@@ -43,54 +121,42 @@ export default async function MySubmissionsPage() {
   }
 
   const submissions = await getMySubmissions();
+  const activeSubmissions = submissions.filter((item) => !item.deletedAt);
+  const deletedSubmissions = submissions.filter((item) => item.deletedAt);
 
   return (
     <main className="min-h-screen bg-slate-50">
       <section className="mx-auto max-w-4xl px-4 py-6 md:px-6">
         <p className="text-sm text-slate-500">WeekendGo</p>
         <h1 className="mt-1 text-2xl font-bold text-slate-900">{"\u6211\u7684\u6295\u7a3f"}</h1>
-        <p className="mt-2 text-sm text-slate-600">{"\u8fd9\u91cc\u4f1a\u663e\u793a\u4f60\u63a8\u8350\u5730\u70b9\u7684\u5ba1\u6838\u8fdb\u5ea6\u548c\u7ba1\u7406\u5458\u53cd\u9988\u3002"}</p>
+        <p className="mt-2 text-sm text-slate-600">{"\u8fd9\u91cc\u4f1a\u663e\u793a\u4f60\u63a8\u8350\u5730\u70b9\u7684\u5ba1\u6838\u8fdb\u5ea6\u3001\u7ba1\u7406\u5458\u53cd\u9988\uff0c\u4e5f\u53ef\u4ee5\u9501\u5b9a\u6216\u79fb\u52a8\u5230\u5df2\u5220\u9664\u5217\u8868\u3002"}</p>
 
-        {submissions.length === 0 ? (
+        {activeSubmissions.length === 0 ? (
           <div className="mt-5 rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-600">
-            <p className="font-medium text-slate-900">{"\u8fd8\u6ca1\u6709\u6295\u7a3f\u3002"}</p>
+            <p className="font-medium text-slate-900">{"\u8fd8\u6ca1\u6709\u6709\u6548\u6295\u7a3f\u3002"}</p>
             <Link href="/submit-spot" className="mt-3 inline-flex rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">
               {"\u53bb\u63a8\u8350\u5730\u70b9"}
             </Link>
           </div>
         ) : (
           <div className="mt-5 space-y-4">
-            {submissions.map((item) => {
-              const status = statusMap[item.status];
-
-              return (
-                <article key={item.id} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <p className="text-xs text-slate-500">{item.createdAt}</p>
-                      <h2 className="mt-1 text-lg font-semibold text-slate-900">{item.nameZh || item.name}</h2>
-                      <p className="mt-1 text-sm text-slate-600">{item.cityZh || item.city}</p>
-                    </div>
-                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${status.className}`}>{status.label}</span>
-                  </div>
-
-                  <p className="mt-3 text-sm text-slate-700">{status.message}</p>
-                  {item.status === "rejected" ? (
-                    <div className="mt-3 rounded-lg border border-rose-100 bg-rose-50 p-3 text-sm text-rose-700">
-                      <p className="font-semibold">{"\u7ba1\u7406\u5458\u53cd\u9988"}</p>
-                      <p className="mt-1">{item.reviewNote || "\u672a\u586b\u5199\u5177\u4f53\u539f\u56e0\uff0c\u53ef\u4fee\u6539\u4fe1\u606f\u540e\u518d\u6b21\u63d0\u4ea4\u3002"}</p>
-                    </div>
-                  ) : null}
-                  {item.status === "approved" ? (
-                    <Link href="/destinations" className="mt-3 inline-flex text-sm font-medium text-emerald-700 hover:underline">
-                      {"\u53bb\u76ee\u7684\u5730\u5217\u8868\u67e5\u770b"}
-                    </Link>
-                  ) : null}
-                </article>
-              );
-            })}
+            {activeSubmissions.map((item) => (
+              <SubmissionCard key={item.id} item={item} />
+            ))}
           </div>
         )}
+
+        {deletedSubmissions.length > 0 ? (
+          <section className="mt-8">
+            <h2 className="text-base font-bold text-slate-900">{"\u5df2\u5220\u9664\u6295\u7a3f"}</h2>
+            <p className="mt-1 text-sm text-slate-600">{"\u8fd9\u4e9b\u6295\u7a3f\u6ca1\u6709\u6c38\u4e45\u5220\u9664\uff0c\u4f60\u53ef\u4ee5\u968f\u65f6\u6062\u590d\u3002"}</p>
+            <div className="mt-4 space-y-4">
+              {deletedSubmissions.map((item) => (
+                <SubmissionCard key={item.id} item={item} deleted />
+              ))}
+            </div>
+          </section>
+        ) : null}
       </section>
     </main>
   );

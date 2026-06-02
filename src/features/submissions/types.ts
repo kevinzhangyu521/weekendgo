@@ -22,5 +22,7 @@ export type SpotSubmission = {
   descriptionZh: string | null;
   status: "pending" | "approved" | "rejected";
   reviewNote: string | null;
+  isLocked: boolean;
+  deletedAt: string | null;
   createdAt: string;
 };
