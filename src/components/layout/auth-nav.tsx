@@ -45,6 +45,11 @@ export async function AuthNav() {
                 {pick(locale, "My Submissions", "\u6211\u7684\u6295\u7a3f")}
               </Link>
             ) : null}
+            {user ? (
+              <Link href="/profile" className="hover:text-slate-900">
+                {"\u6211\u7684\u8d44\u6599"}
+              </Link>
+            ) : null}
             {isAdmin ? (
               <Link href="/admin/submissions" className="font-medium text-emerald-700 hover:text-emerald-800">
                 {pick(locale, "Review", "\u5ba1\u6838\u6295\u7a3f")}
