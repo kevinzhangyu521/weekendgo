@@ -66,3 +66,23 @@ export async function getPendingSubmissions(): Promise<SpotSubmission[]> {
   if (error || !data) return [];
   return (data as SubmissionRow[]).map(normalize);
 }
+
+export async function getMySubmissions(): Promise<SpotSubmission[]> {
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from("spot_submissions")
+    .select(
+      "id,user_id,name,name_zh,city,city_zh,latitude,longitude,address,scenario,difficulty,safety,distance_km,min_kid_age,has_parking,has_toilet,image_url,description,description_zh,status,review_note,created_at"
+    )
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error || !data) return [];
+  return (data as SubmissionRow[]).map(normalize);
+}

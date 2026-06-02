@@ -54,18 +54,19 @@ export async function approveSubmission(formData: FormData) {
       status: "approved",
       reviewed_by: user.id,
       reviewed_at: new Date().toISOString(),
-      review_note: "approved"
+      review_note: "\u5ba1\u6838\u5df2\u901a\u8fc7\uff0c\u5730\u70b9\u5df2\u53d1\u5e03\u5230\u76ee\u7684\u5730\u5217\u8868\u3002"
     })
     .eq("id", id);
 
   revalidatePath("/admin/submissions");
+  revalidatePath("/my-submissions");
   revalidatePath("/destinations");
   revalidatePath("/map");
 }
 
 export async function rejectSubmission(formData: FormData) {
   const id = String(formData.get("id") ?? "");
-  const note = String(formData.get("review_note") ?? "").trim() || "rejected";
+  const note = String(formData.get("review_note") ?? "").trim() || "\u672a\u901a\u8fc7\u5ba1\u6838\uff0c\u5efa\u8bae\u8865\u5145\u66f4\u6e05\u6670\u7684\u5730\u70b9\u4fe1\u606f\u3001\u5b89\u5168\u63d0\u793a\u6216\u73b0\u573a\u56fe\u7247\u540e\u518d\u6b21\u63d0\u4ea4\u3002";
   if (!id) return;
 
   const supabase = await createClient();
@@ -85,4 +86,5 @@ export async function rejectSubmission(formData: FormData) {
     .eq("id", id);
 
   revalidatePath("/admin/submissions");
+  revalidatePath("/my-submissions");
 }
