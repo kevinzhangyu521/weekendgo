@@ -2,6 +2,25 @@ import { CheckCircle2, XCircle } from "lucide-react";
 import { approveSubmission, rejectSubmission } from "./actions";
 import { getPendingSubmissions } from "@/features/submissions/repository";
 
+const scenarioLabelMap = {
+  camping: "\u9732\u8425",
+  creek: "\u6eaf\u6eaa",
+  hiking: "\u5f92\u6b65",
+  picnic: "\u91ce\u9910"
+} as const;
+
+const difficultyLabelMap = {
+  easy: "\u4f4e\u96be\u5ea6",
+  moderate: "\u4e2d\u96be\u5ea6",
+  hard: "\u9ad8\u96be\u5ea6"
+} as const;
+
+const safetyLabelMap = {
+  low_risk: "\u4f4e\u98ce\u9669",
+  medium_risk: "\u4e2d\u98ce\u9669",
+  high_risk: "\u9ad8\u98ce\u9669"
+} as const;
+
 export default async function AdminSubmissionsPage() {
   const submissions = await getPendingSubmissions();
 
@@ -12,7 +31,9 @@ export default async function AdminSubmissionsPage() {
         <h1 className="mt-1 text-2xl font-bold text-slate-900">地点投稿审核</h1>
 
         {submissions.length === 0 ? (
-          <div className="mt-5 rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-600">暂无待审核投稿。</div>
+          <div className="mt-5 rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-600">
+            暂无待审核投稿。
+          </div>
         ) : (
           <div className="mt-5 space-y-4">
             {submissions.map((item) => (
@@ -22,7 +43,7 @@ export default async function AdminSubmissionsPage() {
                     <p className="text-xs text-slate-500">{item.createdAt}</p>
                     <h2 className="mt-1 text-lg font-semibold text-slate-900">{item.nameZh || item.name}</h2>
                     <p className="mt-1 text-sm text-slate-600">
-                      {item.cityZh || item.city} - {item.scenario} - {item.difficulty} - {item.safety}
+                      {item.cityZh || item.city} - {scenarioLabelMap[item.scenario]} - {difficultyLabelMap[item.difficulty]} - {safetyLabelMap[item.safety]}
                     </p>
                     {item.address ? <p className="mt-1 text-sm text-slate-600">地址：{item.address}</p> : null}
                   </div>
