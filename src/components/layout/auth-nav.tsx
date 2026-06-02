@@ -51,9 +51,14 @@ export async function AuthNav() {
               </Link>
             ) : null}
             {isAdmin ? (
-              <Link href="/admin/submissions" className="font-medium text-emerald-700 hover:text-emerald-800">
-                {pick(locale, "Review", "\u5ba1\u6838\u6295\u7a3f")}
-              </Link>
+              <>
+                <Link href="/admin/submissions" className="font-medium text-emerald-700 hover:text-emerald-800">
+                  {pick(locale, "Review", "\u5ba1\u6838\u6295\u7a3f")}
+                </Link>
+                <Link href="/admin/destinations" className="font-medium text-emerald-700 hover:text-emerald-800">
+                  {"\u76ee\u7684\u5730\u7ba1\u7406"}
+                </Link>
+              </>
             ) : null}
           </nav>
         </div>
