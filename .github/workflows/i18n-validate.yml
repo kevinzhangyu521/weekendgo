@@ -1,0 +1,38 @@
+name: I18N Validate
+
+on:
+  pull_request:
+    paths:
+      - "outputs/destinations_i18n_template.csv"
+      - "work/tools/validate_i18n_csv.mjs"
+      - "work/tools/release_i18n_preflight.mjs"
+      - "package.json"
+      - ".github/workflows/i18n-validate.yml"
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Run i18n validation
+        run: npm run i18n:validate
+
+      - name: Upload validation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: i18n-validation-report
+          path: outputs/destinations_i18n_validation_report.md

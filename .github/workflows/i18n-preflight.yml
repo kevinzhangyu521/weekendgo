@@ -1,0 +1,64 @@
+name: I18N Preflight
+
+on:
+  workflow_dispatch:
+    inputs:
+      csv_path:
+        description: "Path to i18n CSV file"
+        required: true
+        default: "outputs/destinations_i18n_template.csv"
+      report_path:
+        description: "Validation report output path"
+        required: true
+        default: "outputs/destinations_i18n_validation_report.md"
+      dry_run_sql_path:
+        description: "Dry-run SQL output path"
+        required: true
+        default: "outputs/destinations_i18n_dry_run.sql"
+      checklist_path:
+        description: "Release checklist output path"
+        required: true
+        default: "outputs/destinations_i18n_release_checklist.md"
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Run i18n preflight
+        run: >
+          node work/tools/release_i18n_preflight.mjs
+          "${{ github.event.inputs.csv_path }}"
+          "${{ github.event.inputs.report_path }}"
+          "${{ github.event.inputs.dry_run_sql_path }}"
+          "${{ github.event.inputs.checklist_path }}"
+
+      - name: Upload validation report
+        uses: actions/upload-artifact@v4
+        with:
+          name: i18n-preflight-validation-report
+          path: ${{ github.event.inputs.report_path }}
+
+      - name: Upload dry-run sql
+        uses: actions/upload-artifact@v4
+        with:
+          name: i18n-preflight-dry-run-sql
+          path: ${{ github.event.inputs.dry_run_sql_path }}
+
+      - name: Upload release checklist
+        uses: actions/upload-artifact@v4
+        with:
+          name: i18n-preflight-release-checklist
+          path: ${{ github.event.inputs.checklist_path }}

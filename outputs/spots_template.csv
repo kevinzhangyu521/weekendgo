@@ -1,0 +1,3 @@
+external_id,name,name_zh,city,city_zh,lat,lng,scenario,difficulty,safety,distance_km,description,description_zh
+spot-001,Qingxi Family Creek,清溪谷亲子溯溪,Hangzhou,杭州,30.2741,120.1551,creek,easy,low_risk,42,Family-friendly creek with shallow water.,浅水溯溪，适合亲子。
+spot-002,Pine Lake Campground,松林湖畔营地,Suzhou,苏州,31.2989,120.5853,camping,easy,low_risk,68,Beginner-friendly campsite with toilets.,设施完善，适合新手露营。

@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #f8faf9;
+  --text: #1f2937;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+@media print {
+  header,
+  .no-print {
+    display: none !important;
+  }
+
+  main {
+    min-height: auto !important;
+    background: #ffffff !important;
+  }
+
+  a {
+    color: #111827 !important;
+    text-decoration: none !important;
+  }
+
+  .print-card {
+    border-color: #d1d5db !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

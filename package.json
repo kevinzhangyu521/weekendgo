@@ -1,0 +1,38 @@
+{
+  "name": "weekendgo",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "i18n:validate": "node work/tools/validate_i18n_csv.mjs outputs/destinations_i18n_template.csv outputs/destinations_i18n_validation_report.md",
+    "i18n:preflight": "node work/tools/release_i18n_preflight.mjs outputs/destinations_i18n_template.csv outputs/destinations_i18n_validation_report.md outputs/destinations_i18n_dry_run.sql outputs/destinations_i18n_release_checklist.md"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.5.2",
+    "@supabase/supabase-js": "^2.50.0",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.511.0",
+    "mapbox-gl": "^3.13.0",
+    "next": "^15.5.19",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "tailwind-merge": "^3.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.21",
+    "@types/react": "^19.1.6",
+    "@types/react-dom": "^19.1.5",
+    "@tailwindcss/postcss": "^4.1.8",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^9.27.0",
+    "eslint-config-next": "15.0.0",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^4.1.8",
+    "typescript": "^5.8.3"
+  }
+}
