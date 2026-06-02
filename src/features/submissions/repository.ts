@@ -108,6 +108,28 @@ export async function getMySubmissions(): Promise<SpotSubmission[]> {
   return (data as SubmissionRow[]).map(normalize);
 }
 
+export async function getEditableSubmission(id: string): Promise<SpotSubmission | null> {
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) return null;
+
+  const { data, error } = await supabase
+    .from("spot_submissions")
+    .select(submissionSelect)
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  const item = normalize(data as SubmissionRow);
+  if (item.isLocked || item.status === "approved") return null;
+  return item;
+}
+
 export async function purgeExpiredDeletedSubmissions() {
   const supabase = await createClient();
   const {

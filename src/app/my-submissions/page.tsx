@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Lock, RotateCcw, Trash2, Unlock } from "lucide-react";
+import { Lock, Pencil, RotateCcw, Trash2, Unlock } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getMySubmissions, purgeExpiredDeletedSubmissions } from "@/features/submissions/repository";
 import type { SpotSubmission } from "@/features/submissions/types";
@@ -40,6 +40,7 @@ function getDeleteCountdown(deletedAt: string | null) {
 
 function SubmissionCard({ item, deleted = false }: { item: SpotSubmission; deleted?: boolean }) {
   const status = statusMap[item.status];
+  const canEdit = !deleted && !item.isLocked && item.status !== "approved";
 
   return (
     <article className={`rounded-xl border bg-white p-5 shadow-sm ${deleted ? "border-slate-200 opacity-80" : "border-slate-200"}`}>
@@ -90,6 +91,12 @@ function SubmissionCard({ item, deleted = false }: { item: SpotSubmission; delet
           </form>
         ) : (
           <>
+            {canEdit ? (
+              <Link href={`/my-submissions/${item.id}/edit`} className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-emerald-700">
+                <Pencil className="h-4 w-4" />
+                {"\u4fee\u6539\u6295\u7a3f"}
+              </Link>
+            ) : null}
             <form action={item.isLocked ? unlockSubmission : lockSubmission}>
               <input type="hidden" name="id" value={item.id} />
               <button className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700">
