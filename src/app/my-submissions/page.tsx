@@ -152,7 +152,7 @@ export default async function MySubmissionsPage() {
   return (
     <main className="min-h-screen bg-slate-50">
       <section className="mx-auto max-w-4xl px-4 py-6 md:px-6">
-        <p className="text-sm text-slate-500">WeekendGo</p>
+        <p className="text-sm text-slate-500">{"\u6816\u7f8e\u5730"}</p>
         <h1 className="mt-1 text-2xl font-bold text-slate-900">{"\u6211\u7684\u6295\u7a3f"}</h1>
         <p className="mt-2 text-sm text-slate-600">{"\u8fd9\u91cc\u4f1a\u663e\u793a\u4f60\u63a8\u8350\u5730\u70b9\u7684\u5ba1\u6838\u8fdb\u5ea6\u3001\u7ba1\u7406\u5458\u53cd\u9988\uff0c\u4e5f\u53ef\u4ee5\u9501\u5b9a\u6216\u79fb\u52a8\u5230\u5df2\u5220\u9664\u5217\u8868\u3002"}</p>
 

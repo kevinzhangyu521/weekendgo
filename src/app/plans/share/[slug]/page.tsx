@@ -62,7 +62,7 @@ export default async function SharedPlanPage({
         ) : null}
 
         <div className="mb-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm print-card">
-          <p className="text-sm font-medium text-emerald-700">{pick(locale, "WeekendGo Shared Plan", "WeekendGo \u5206\u4eab\u8ba1\u5212")}</p>
+          <p className="text-sm font-medium text-emerald-700">{pick(locale, "\u6816\u7f8e\u5730 Shared Plan", "\u6816\u7f8e\u5730\u5206\u4eab\u8ba1\u5212")}</p>
           <h1 className="mt-1 text-2xl font-bold text-slate-900">{plan.title}</h1>
 
           <div className={`mt-3 grid gap-2 text-sm text-slate-600 ${cardView ? "grid-cols-2" : "md:grid-cols-3"}`}>

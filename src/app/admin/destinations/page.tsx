@@ -28,7 +28,7 @@ export default async function AdminDestinationsPage({
   return (
     <main className="min-h-screen bg-slate-50">
       <section className="mx-auto max-w-6xl px-4 py-6 md:px-6">
-        <p className="text-sm text-slate-500">WeekendGo Admin</p>
+        <p className="text-sm text-slate-500">{"\u6816\u7f8e\u5730 Admin"}</p>
         <h1 className="mt-1 text-2xl font-bold text-slate-900">{"\u76ee\u7684\u5730\u7ba1\u7406"}</h1>
         <p className="mt-2 text-sm text-slate-600">{"\u7ba1\u7406\u5168\u7ad9\u5df2\u53d1\u5e03\u7684\u76ee\u7684\u5730\u8d44\u6599\uff0c\u5305\u62ec\u7528\u6237\u6295\u7a3f\u5ba1\u6838\u901a\u8fc7\u540e\u7684\u5730\u70b9\u3002"}</p>
 

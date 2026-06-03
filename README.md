@@ -1,6 +1,6 @@
-# WeekendGo
+# 栖美地
 
-WeekendGo (周末去哪儿) is a family outdoor discovery and planning app for users aged 25-40, focused on camping, stream tracing, hiking, and picnic scenarios.
+栖美地是面向亲子家庭的周末户外目的地推荐平台，聚焦露营、溯溪、徒步和野餐场景。
 
 ## Tech Stack
 
@@ -37,13 +37,14 @@ npm run dev
 
 ## Current Scope
 
-- Home page MVP (hero + scenario entry + recommendations)
+- Home page MVP with scenario entry and personalized recommendations
 - Destination list/detail with favorites
-- Plan creation/editing + public share page
+- Plan creation/editing and public share page
 - Supabase client/server utilities
 - Mapbox token setup utility
 - EN/ZH locale switching
 - CSV batch import tool for `spots`/`facilities`/`photos`
+- Admin destination review and management
 
 ## CSV Import Tool
 
@@ -68,37 +69,17 @@ Run translation validation:
 npm run i18n:validate
 ```
 
-Run preflight (validation + dry-run SQL + release checklist):
+Run preflight:
 
 ```bash
 npm run i18n:preflight
 ```
-
-## I18N Message Conventions
-
-- Shared client-side interaction messages are centralized in:
-  - `src/lib/i18n/messages.ts`
-- Use message factories instead of inline `isZh ? ... : ...` strings:
-  - `getLoginMessages(locale)`
-  - `getAddToPlanMessages(locale)`
-  - `getPlanEditorMessages(locale)`
-- Presenter helpers for destination labels are in:
-  - `src/features/destinations/presenter.ts`
-- Presenter helper for plan status labels is in:
-  - `src/features/plans/presenter.ts`
 
 ## CI Workflows
 
 - `I18N Validate`
   - Runs on pull requests when i18n-relevant files change.
   - Executes `npm run i18n:validate`.
-  - Uploads validation report artifact.
-
-- `I18N Preflight` (manual)
+- `I18N Preflight`
   - Trigger from GitHub Actions via `workflow_dispatch`.
-  - Accepts input paths for CSV/report/dry-run SQL/checklist.
   - Executes `work/tools/release_i18n_preflight.mjs`.
-  - Uploads three artifacts:
-    - validation report
-    - dry-run SQL
-    - release checklist

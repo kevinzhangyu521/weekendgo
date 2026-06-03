@@ -199,7 +199,7 @@ export function PlanEditor({ plan, locale }: Props) {
 
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 34px sans-serif";
-    ctx.fillText("WeekendGo Shared Plan", 110, 130);
+    ctx.fillText("\u6816\u7f8e\u5730\u5206\u4eab\u8ba1\u5212", 110, 130);
 
     ctx.font = "bold 52px sans-serif";
     const title = plan.title.length > 28 ? `${plan.title.slice(0, 28)}...` : plan.title;

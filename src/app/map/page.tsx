@@ -24,7 +24,7 @@ export default async function MapPage({
       <section className="mx-auto max-w-7xl px-4 py-6 md:px-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-sm text-slate-500">WeekendGo</p>
+            <p className="text-sm text-slate-500">{"\u6816\u7f8e\u5730"}</p>
             <h1 className="inline-flex items-center gap-2 text-2xl font-bold text-slate-900">
               <MapPinned className="h-6 w-6 text-emerald-700" />
               {pick(locale, "Map Explorer", "\u5730\u56fe\u63a2\u7d22")}

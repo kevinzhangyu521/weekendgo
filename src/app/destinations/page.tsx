@@ -52,7 +52,7 @@ export default async function DestinationsPage({
     <main className="min-h-screen bg-slate-50">
       <section className="mx-auto max-w-6xl px-4 py-6 md:px-6">
         <div className="mb-5">
-          <p className="text-sm text-slate-500">{pick(locale, "WeekendGo Destinations", "WeekendGo \u76ee\u7684\u5730")}</p>
+          <p className="text-sm text-slate-500">{pick(locale, "\u6816\u7f8e\u5730 Destinations", "\u6816\u7f8e\u5730\u76ee\u7684\u5730")}</p>
           <h1 className="mt-1 text-2xl font-bold text-slate-900">{pick(locale, "Family-Friendly Weekend Picks", "\u4eb2\u5b50\u5468\u672b\u63a8\u8350")}</h1>
         </div>
 
@@ -125,7 +125,7 @@ export default async function DestinationsPage({
         </div>
 
         <div className="mb-3 text-sm text-slate-600">
-          {pick(locale, "Results", "\u7ed3\u679c")}: {list.length} · {pick(locale, `Distance calculated from ${homeCity}`, `\u8ddd\u79bb\u6309\u5e38\u4f4f\u57ce\u5e02\u300c${homeCity}\u300d\u8ba1\u7b97`)}
+          {pick(locale, "Results", "\u7ed3\u679c")}: {list.length} - {pick(locale, `Distance calculated from ${homeCity}`, `\u8ddd\u79bb\u6309\u5e38\u4f4f\u57ce\u5e02\u300c${homeCity}\u300d\u8ba1\u7b97`)}
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

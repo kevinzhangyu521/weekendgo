@@ -69,7 +69,7 @@ export function LoginForm({ locale }: Props) {
   return (
     <main className="min-h-screen bg-slate-50">
       <section className="mx-auto flex max-w-md flex-col px-4 py-10 md:px-0">
-        <p className="text-sm text-slate-500">WeekendGo {"\u8d26\u53f7"}</p>
+        <p className="text-sm text-slate-500">{"\u6816\u7f8e\u5730\u8d26\u53f7"}</p>
         <h1 className="mt-1 text-2xl font-bold text-slate-900">{text.title}</h1>
         <p className="mt-2 text-sm text-slate-600">
           {text.subtitle}

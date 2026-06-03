@@ -179,7 +179,7 @@ export default function SubmitSpotPage() {
   return (
     <main className="min-h-screen bg-slate-50">
       <section className="mx-auto max-w-3xl px-4 py-6 md:px-6">
-        <p className="text-sm text-slate-500">WeekendGo {"\u5171\u5efa"}</p>
+        <p className="text-sm text-slate-500">{"\u6816\u7f8e\u5730\u5171\u5efa"}</p>
         <h1 className="mt-1 text-2xl font-bold text-slate-900">{"\u63a8\u8350\u4e00\u4e2a\u4eb2\u5b50\u6237\u5916\u5730\u70b9"}</h1>
         <p className="mt-2 text-sm text-slate-600">{"\u63d0\u4ea4\u540e\u4f1a\u8fdb\u5165\u5ba1\u6838\uff0c\u5ba1\u6838\u901a\u8fc7\u624d\u4f1a\u5c55\u793a\u7ed9\u5176\u4ed6\u5bb6\u5ead\u3002"}</p>
 
