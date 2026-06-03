@@ -12,6 +12,17 @@ type Props = {
   locale: Locale;
 };
 
+type AuthAction = "login" | "signup" | "signout";
+
+function translateAuthError(message: string) {
+  const lower = message.toLowerCase();
+  if (lower.includes("invalid login credentials")) return "邮箱或密码不正确，请检查后再试。";
+  if (lower.includes("email not confirmed")) return "账号还没有完成邮箱确认，请先去邮箱完成确认。";
+  if (lower.includes("already registered") || lower.includes("user already registered")) return "这个邮箱已经注册过，请直接登录。";
+  if (lower.includes("password")) return "密码不符合要求，请至少填写 6 位。";
+  return message;
+}
+
 export function LoginForm({ locale }: Props) {
   const text = getLoginMessages(locale);
   const router = useRouter();
@@ -21,7 +32,7 @@ export function LoginForm({ locale }: Props) {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loadingAction, setLoadingAction] = useState<"login" | "signup" | "signout" | null>(null);
+  const [loadingAction, setLoadingAction] = useState<AuthAction | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -30,32 +41,44 @@ export function LoginForm({ locale }: Props) {
     setMessage("");
   }
 
-  function validatePassword() {
+  function validateFields() {
+    const emailValue = email.trim();
+    if (!emailValue) {
+      setError("请先填写邮箱。");
+      return null;
+    }
+    if (!emailValue.includes("@")) {
+      setError("请填写正确的邮箱地址。");
+      return null;
+    }
+    if (!password) {
+      setError("请先填写密码。");
+      return null;
+    }
     if (password.length < 6) {
       setError("密码至少需要 6 位。");
-      return false;
+      return null;
     }
-    return true;
+    return { email: emailValue, password };
   }
 
   async function login(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!email || !validatePassword()) return;
+    resetFeedback();
+    const fields = validateFields();
+    if (!fields) return;
 
     setLoadingAction("login");
-    resetFeedback();
 
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+      const { error: signInError } = await supabase.auth.signInWithPassword(fields);
 
       if (signInError) {
-        setError(`登录失败：${signInError.message}`);
+        setError(`登录失败：${translateAuthError(signInError.message)}`);
         return;
       }
 
+      setMessage("登录成功，正在进入网站...");
       router.push(next);
       router.refresh();
     } catch (err) {
@@ -67,29 +90,28 @@ export function LoginForm({ locale }: Props) {
   }
 
   async function signUp() {
-    if (!email || !validatePassword()) return;
+    resetFeedback();
+    const fields = validateFields();
+    if (!fields) return;
 
     setLoadingAction("signup");
-    resetFeedback();
 
     try {
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password
-      });
+      const { data, error: signUpError } = await supabase.auth.signUp(fields);
 
       if (signUpError) {
-        setError(`注册失败：${signUpError.message}`);
+        setError(`注册失败：${translateAuthError(signUpError.message)}`);
         return;
       }
 
       if (data.session) {
+        setMessage("注册成功，正在进入网站...");
         router.push(next);
         router.refresh();
         return;
       }
 
-      setMessage("注册成功，请按页面提示继续登录。");
+      setMessage("注册成功。如果页面没有自动登录，请返回登录按钮再登录一次。");
     } catch (err) {
       const detail = err instanceof Error ? err.message : "请稍后再试。";
       setError(`注册失败：${detail}`);
@@ -106,7 +128,7 @@ export function LoginForm({ locale }: Props) {
     setLoadingAction(null);
 
     if (signOutError) {
-      setError(`退出登录失败：${signOutError.message}`);
+      setError(`退出登录失败：${translateAuthError(signOutError.message)}`);
       return;
     }
 
@@ -119,9 +141,7 @@ export function LoginForm({ locale }: Props) {
       <section className="mx-auto flex max-w-md flex-col px-4 py-10 md:px-0">
         <p className="text-sm text-slate-500">{"栖美地账号"}</p>
         <h1 className="mt-1 text-2xl font-bold text-slate-900">{"邮箱密码登录"}</h1>
-        <p className="mt-2 text-sm text-slate-600">
-          {"使用邮箱和密码登录栖美地，不需要再去邮箱点击登录链接。"}
-        </p>
+        <p className="mt-2 text-sm text-slate-600">{"使用邮箱和密码登录栖美地，不需要再去邮箱点击登录链接。"}</p>
 
         <form onSubmit={login} className="mt-6 space-y-3 rounded-xl border border-slate-200 bg-white p-4">
           <label className="text-sm font-bold text-slate-900" htmlFor="email">
@@ -132,7 +152,6 @@ export function LoginForm({ locale }: Props) {
             <input
               id="email"
               type="email"
-              required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               placeholder="you@example.com"
@@ -148,8 +167,6 @@ export function LoginForm({ locale }: Props) {
             <input
               id="password"
               type="password"
-              required
-              minLength={6}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder="至少 6 位"
