@@ -15,6 +15,13 @@ function formatDistance(distanceKm: number) {
   return `${distanceKm}km`;
 }
 
+function formatRegion(item: { province?: string | null; provinceZh?: string | null; city: string; cityZh?: string | null }) {
+  const province = item.provinceZh || item.province || "";
+  const city = item.cityZh || item.city;
+  if (!province || province === city) return city;
+  return `${province} ${city}`;
+}
+
 export default async function AdminDestinationsPage({
   searchParams
 }: {
@@ -52,7 +59,7 @@ export default async function AdminDestinationsPage({
                     <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">{item.source}</span>
                   </div>
                   <p className="mt-1 text-sm text-slate-600">
-                    {item.cityZh || item.city} - {scenarioLabelMap[item.scenario]} - {formatDistance(item.distanceKm)}
+                    {formatRegion(item)} - {scenarioLabelMap[item.scenario]} - {formatDistance(item.distanceKm)}
                   </p>
                   <p className="mt-1 line-clamp-1 text-sm text-slate-500">{item.descriptionZh || item.description}</p>
                 </div>

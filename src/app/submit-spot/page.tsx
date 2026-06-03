@@ -75,14 +75,15 @@ export default function SubmitSpotPage() {
     }
 
     const name = String(form.get("name") ?? "").trim();
+    const province = String(form.get("province") ?? "").trim();
     const city = String(form.get("city") ?? "").trim();
     const description = String(form.get("description") ?? "").trim();
     const descriptionZh = String(form.get("description_zh") ?? "").trim();
     const imageEntry = form.get("image_file");
     const imageFile = imageEntry instanceof File ? imageEntry : null;
 
-    if (!name || !city || !description) {
-      setError("\u8bf7\u81f3\u5c11\u586b\u5199\u5730\u70b9\u540d\u79f0\u3001\u57ce\u5e02\u548c\u63a8\u8350\u7406\u7531\u3002");
+    if (!name || !province || !city || !description) {
+      setError("\u8bf7\u81f3\u5c11\u586b\u5199\u5730\u70b9\u540d\u79f0\u3001\u7701\u4efd\u3001\u57ce\u5e02\u548c\u63a8\u8350\u7406\u7531\u3002");
       setLoading(false);
       return;
     }
@@ -100,6 +101,8 @@ export default function SubmitSpotPage() {
         user_id: user.id,
         name,
         name_zh: name,
+        province,
+        province_zh: province,
         city,
         city_zh: city,
         address: address.trim() || null,
@@ -205,10 +208,14 @@ export default function SubmitSpotPage() {
               <h2 className={sectionTitleClass}>{"\u57fa\u672c\u4fe1\u606f"}</h2>
               <p className={sectionHintClass}>{"\u5148\u8bf4\u6e05\u8fd9\u662f\u54ea\u91cc\uff0c\u65b9\u4fbf\u7ba1\u7406\u5458\u6838\u5bf9\u5730\u70b9\u3002"}</p>
             </div>
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="grid gap-3 md:grid-cols-3">
               <label className={labelClass}>
                 {"\u5730\u70b9\u540d\u79f0 *"}
                 <input name="name" required placeholder={"\u4f8b\u5982\uff1a\u6e05\u6eaa\u8c37\u4eb2\u5b50\u6eaf\u6eaa"} className={inputClass} />
+              </label>
+              <label className={labelClass}>
+                {"\u7701\u4efd *"}
+                <input name="province" required placeholder={"\u4f8b\u5982\uff1a\u6e56\u5317"} className={inputClass} />
               </label>
               <label className={labelClass}>
                 {"\u57ce\u5e02 *"}

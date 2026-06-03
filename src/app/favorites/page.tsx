@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Bath, Car, Heart, Star } from "lucide-react";
-import { destinationCity, destinationName, destinationScenario } from "@/features/destinations/presenter";
+import { destinationName, destinationRegion, destinationScenario } from "@/features/destinations/presenter";
 import { getMyFavoriteDestinations } from "@/features/destinations/repository";
 import { getMyProfile } from "@/features/profiles/repository";
 import { DEFAULT_HOME_CITY, withDistanceFromCity } from "@/lib/geo/distance";
@@ -59,7 +59,7 @@ export default async function FavoritesPage() {
                   </div>
 
                   <h2 className="text-base font-semibold text-slate-900">{destinationName(item, locale)}</h2>
-                  <p className="text-sm text-slate-600">{destinationCity(item, locale)} - {formatDistance(item.distanceKm, locale)}</p>
+                  <p className="text-sm text-slate-600">{destinationRegion(item, locale)} - {formatDistance(item.distanceKm, locale)}</p>
 
                   <div className="flex items-center gap-4 border-t border-slate-100 pt-3 text-xs text-slate-600">
                     <span className="inline-flex items-center gap-1">

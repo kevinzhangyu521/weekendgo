@@ -28,6 +28,8 @@ export async function approveSubmission(formData: FormData) {
       external_id: externalId,
       name: submission.name,
       name_zh: submission.name_zh,
+      province: submission.province,
+      province_zh: submission.province_zh,
       city: submission.city,
       city_zh: submission.city_zh,
       latitude: submission.latitude ?? 0,

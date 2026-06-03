@@ -8,6 +8,8 @@ export type SpotCsvRow = {
   external_id: string;
   name: string;
   name_zh?: string;
+  province?: string;
+  province_zh?: string;
   city: string;
   city_zh?: string;
   lat: string;

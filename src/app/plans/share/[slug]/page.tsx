@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CalendarDays, MapPinned, Route, Share2, Star } from "lucide-react";
-import { destinationCity, destinationName, destinationScenario } from "@/features/destinations/presenter";
+import { destinationName, destinationRegion, destinationScenario } from "@/features/destinations/presenter";
 import { getPublicPlanBySlug } from "@/features/plans/repository";
 import type { PlanDetail } from "@/features/plans/types";
 import { DEFAULT_HOME_CITY, withDistanceFromCity } from "@/lib/geo/distance";
@@ -114,7 +114,7 @@ export default async function SharedPlanPage({
                         </span>
                       </div>
                       <p className="mt-1 text-sm text-slate-600">
-                        {destinationCity(item.destination, locale)} - {formatDistance(item.destination.distanceKm, locale)}
+                        {destinationRegion(item.destination, locale)} - {formatDistance(item.destination.distanceKm, locale)}
                       </p>
                       <p className="mt-1 inline-flex items-center gap-1 text-xs text-slate-600">
                         <MapPinned className="h-3.5 w-3.5" />

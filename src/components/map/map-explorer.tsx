@@ -20,7 +20,10 @@ function displayName(item: DestinationItem) {
 }
 
 function displayCity(item: DestinationItem) {
-  return item.cityZh || item.city;
+  const province = item.provinceZh || item.province || "";
+  const city = item.cityZh || item.city;
+  if (!province || province === city) return city;
+  return `${province} ${city}`;
 }
 
 function formatDistance(distanceKm: number) {

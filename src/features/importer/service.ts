@@ -13,6 +13,14 @@ function toBool(v?: string) {
   return String(v ?? "").toLowerCase() === "true" || v === "1";
 }
 
+function provinceFromRow(row: SpotCsvRow) {
+  return row.province || row.city;
+}
+
+function provinceZhFromRow(row: SpotCsvRow) {
+  return row.province_zh || row.province || row.city_zh || row.city;
+}
+
 function buildDestinationPayload(spots: SpotCsvRow[], facilities: FacilityCsvRow[], photos: PhotoCsvRow[]) {
   const facilitiesBySpot = new Map<string, Set<string>>();
   facilities.forEach((row) => {
@@ -35,6 +43,8 @@ function buildDestinationPayload(spots: SpotCsvRow[], facilities: FacilityCsvRow
       external_id: row.external_id,
       name: row.name,
       name_zh: row.name_zh || null,
+      province: provinceFromRow(row),
+      province_zh: provinceZhFromRow(row),
       city: row.city,
       city_zh: row.city_zh || null,
       latitude: Number(row.lat),
@@ -89,6 +99,8 @@ export async function executeImport(
     external_id: row.external_id,
     name: row.name,
     name_zh: row.name_zh || null,
+    province: provinceFromRow(row),
+    province_zh: provinceZhFromRow(row),
     city: row.city,
     city_zh: row.city_zh || null,
     lat: Number(row.lat),

@@ -36,10 +36,14 @@ export default async function EditSubmissionPage({
 
           <section className="space-y-3">
             <h2 className="text-base font-bold text-slate-900">{"\u57fa\u672c\u4fe1\u606f"}</h2>
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="grid gap-3 md:grid-cols-3">
               <label className={labelClass}>
                 {"\u5730\u70b9\u540d\u79f0 *"}
                 <input name="name" required defaultValue={item.nameZh || item.name} className={inputClass} />
+              </label>
+              <label className={labelClass}>
+                {"\u7701\u4efd *"}
+                <input name="province" required defaultValue={item.provinceZh || item.province || ""} className={inputClass} />
               </label>
               <label className={labelClass}>
                 {"\u57ce\u5e02 *"}

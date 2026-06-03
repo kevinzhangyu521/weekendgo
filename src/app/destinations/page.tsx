@@ -3,10 +3,10 @@ import { Bath, Car, SlidersHorizontal, Star } from "lucide-react";
 import { FavoriteButton } from "@/components/favorites/favorite-button";
 import { filterDestinations, parseFilters } from "@/features/destinations/filter";
 import {
-  destinationCity,
   destinationDescription,
   destinationDifficultyShort,
   destinationName,
+  destinationRegion,
   destinationSafety,
   destinationScenario
 } from "@/features/destinations/presenter";
@@ -153,7 +153,7 @@ export default async function DestinationsPage({
                 </h2>
                 <p className="line-clamp-2 text-sm text-slate-600">{destinationDescription(item, locale)}</p>
                 <p className="text-sm text-slate-600">
-                  {destinationCity(item, locale)} - {formatDistance(item.distanceKm, locale)} - {destinationDifficultyShort(item, locale)} - {destinationSafety(item, locale)}
+                  {destinationRegion(item, locale)} - {formatDistance(item.distanceKm, locale)} - {destinationDifficultyShort(item, locale)} - {destinationSafety(item, locale)}
                 </p>
 
                 <div className="flex items-center gap-4 border-t border-slate-100 pt-3 text-xs text-slate-600">

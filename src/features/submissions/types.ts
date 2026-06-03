@@ -5,6 +5,8 @@ export type SpotSubmission = {
   userId: string;
   name: string;
   nameZh: string | null;
+  province: string | null;
+  provinceZh: string | null;
   city: string;
   cityZh: string | null;
   latitude: number | null;

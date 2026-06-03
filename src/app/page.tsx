@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { Bath, Car, Footprints, Sandwich, ShieldCheck, Star, Tent, Waves } from "lucide-react";
 import {
-  destinationCity,
   destinationDescription,
   destinationDifficultyShort,
   destinationName,
+  destinationRegion,
   destinationSafety,
   destinationScenario
 } from "@/features/destinations/presenter";
@@ -277,7 +277,7 @@ export default async function HomePage() {
                 <p className="line-clamp-2 text-sm text-slate-600">{destinationDescription(item, locale)}</p>
 
                 <p className="text-sm text-slate-600">
-                  {destinationCity(item, locale)} - {formatDistance(item.distanceKm, locale)} - {destinationDifficultyShort(item, locale)} - {destinationSafety(item, locale)}
+                  {destinationRegion(item, locale)} - {formatDistance(item.distanceKm, locale)} - {destinationDifficultyShort(item, locale)} - {destinationSafety(item, locale)}
                 </p>
 
                 <div className="flex flex-wrap gap-2">

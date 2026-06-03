@@ -34,6 +34,17 @@ export function destinationCity(item: DestinationItem, locale: Locale) {
   return locale === "zh" ? item.cityZh || item.city : item.city;
 }
 
+export function destinationProvince(item: DestinationItem, locale: Locale) {
+  return locale === "zh" ? item.provinceZh || item.province || "" : item.province || "";
+}
+
+export function destinationRegion(item: DestinationItem, locale: Locale) {
+  const province = destinationProvince(item, locale);
+  const city = destinationCity(item, locale);
+  if (!province || province === city) return city;
+  return `${province} ${city}`;
+}
+
 export function destinationDescription(item: DestinationItem, locale: Locale) {
   return locale === "zh" ? item.descriptionZh || item.description : item.description;
 }

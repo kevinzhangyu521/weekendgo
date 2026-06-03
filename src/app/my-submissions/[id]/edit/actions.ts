@@ -34,18 +34,21 @@ export async function updateSubmission(formData: FormData) {
   if (!user) redirect(`/login?next=/my-submissions/${id}/edit`);
 
   const name = String(formData.get("name") ?? "").trim();
+  const province = String(formData.get("province") ?? "").trim();
   const city = String(formData.get("city") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   const descriptionZh = String(formData.get("description_zh") ?? "").trim();
   const imageEntry = formData.get("image_file");
   const imageFile = imageEntry instanceof File ? imageEntry : null;
 
-  if (!name || !city || !description) return;
+  if (!name || !province || !city || !description) return;
 
   const imageUrl = await uploadImage(user.id, imageFile);
   const payload = {
     name,
     name_zh: name,
+    province,
+    province_zh: province,
     city,
     city_zh: city,
     address: String(formData.get("address") ?? "").trim() || null,

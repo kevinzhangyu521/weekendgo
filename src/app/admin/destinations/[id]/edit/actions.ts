@@ -36,12 +36,13 @@ export async function saveDestination(_state: UpdateDestinationState, formData: 
   if (!isAdmin) return { ok: false, message: "\u4f60\u6ca1\u6709\u7ba1\u7406\u5458\u6743\u9650\u3002" };
 
   const name = String(formData.get("name") ?? "").trim();
+  const province = String(formData.get("province") ?? "").trim();
   const city = String(formData.get("city") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   const imageEntry = formData.get("image_file");
   const imageFile = imageEntry instanceof File ? imageEntry : null;
 
-  if (!name || !city || !description) return { ok: false, message: "\u8bf7\u586b\u5199\u540d\u79f0\u3001\u57ce\u5e02\u548c\u63cf\u8ff0\u3002" };
+  if (!name || !province || !city || !description) return { ok: false, message: "\u8bf7\u586b\u5199\u540d\u79f0\u3001\u7701\u4efd\u3001\u57ce\u5e02\u548c\u63cf\u8ff0\u3002" };
   const imageUrl = await uploadImage(imageFile);
 
   const { error } = await supabase
@@ -49,6 +50,8 @@ export async function saveDestination(_state: UpdateDestinationState, formData: 
     .update({
       name,
       name_zh: name,
+      province,
+      province_zh: province,
       city,
       city_zh: city,
       latitude: Number(formData.get("latitude") || "0") || 0,

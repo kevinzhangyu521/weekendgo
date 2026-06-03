@@ -4,10 +4,10 @@ import { Bath, Car, ChevronLeft, MapPinned, ShieldCheck, Star, TentTree } from "
 import { FavoriteButton } from "@/components/favorites/favorite-button";
 import { AddToPlanButton } from "@/components/plans/add-to-plan-button";
 import {
-  destinationCity,
   destinationDescription,
   destinationDifficulty,
   destinationName,
+  destinationRegion,
   destinationSafety,
   destinationScenario
 } from "@/features/destinations/presenter";
@@ -71,8 +71,8 @@ export default async function DestinationDetailPage({
 
             <div className="grid gap-3 text-sm text-slate-700 md:grid-cols-4">
               <div className="rounded-xl bg-slate-50 p-3">
-                <p className="text-xs text-slate-500">{pick(locale, "City", "\u57ce\u5e02")}</p>
-                <p className="mt-1 font-medium">{destinationCity(destination, locale)}</p>
+                <p className="text-xs text-slate-500">{pick(locale, "Region", "\u7701\u5e02")}</p>
+                <p className="mt-1 font-medium">{destinationRegion(destination, locale)}</p>
               </div>
               <div className="rounded-xl bg-slate-50 p-3">
                 <p className="text-xs text-slate-500">{pick(locale, "Distance", "\u8ddd\u79bb")}</p>
@@ -156,7 +156,7 @@ export default async function DestinationDetailPage({
                 <div className="p-3">
                   <p className="text-sm font-medium text-slate-900">{destinationName(item, locale)}</p>
                   <p className="mt-1 text-xs text-slate-600">
-                    {destinationCity(item, locale)} - {formatDistance(item.distanceKm, locale)} - {pick(locale, "Rating", "\u8bc4\u5206")} {item.rating.toFixed(1)}
+                    {destinationRegion(item, locale)} - {formatDistance(item.distanceKm, locale)} - {pick(locale, "Rating", "\u8bc4\u5206")} {item.rating.toFixed(1)}
                   </p>
                 </div>
               </Link>

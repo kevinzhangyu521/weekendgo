@@ -34,7 +34,7 @@ export function EditDestinationForm({ item }: { item: AdminDestination }) {
   const router = useRouter();
   const initialState: UpdateDestinationState = { ok: false, message: "" };
   const [state, formAction] = useActionState(saveDestination, initialState);
-  const [locationText, setLocationText] = useState(`${item.cityZh || item.city} ${item.nameZh || item.name}`.trim());
+  const [locationText, setLocationText] = useState(`${item.provinceZh || item.province || ""} ${item.cityZh || item.city} ${item.nameZh || item.name}`.trim());
   const [latitude, setLatitude] = useState(String(item.latitude || ""));
   const [longitude, setLongitude] = useState(String(item.longitude || ""));
   const [locating, setLocating] = useState(false);
@@ -103,10 +103,14 @@ export function EditDestinationForm({ item }: { item: AdminDestination }) {
 
       <section className="space-y-3">
         <h2 className="text-base font-bold text-slate-900">{"\u57fa\u672c\u4fe1\u606f"}</h2>
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-3">
           <label className={labelClass}>
             {"\u540d\u79f0 *"}
             <input name="name" required defaultValue={item.nameZh || item.name} className={inputClass} />
+          </label>
+          <label className={labelClass}>
+            {"\u7701\u4efd *"}
+            <input name="province" required defaultValue={item.provinceZh || item.province || ""} placeholder={"\u4f8b\u5982\uff1a\u6e56\u5317"} className={inputClass} />
           </label>
           <label className={labelClass}>
             {"\u57ce\u5e02 *"}

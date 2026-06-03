@@ -26,6 +26,13 @@ function formatDistance(distanceKm: number) {
   return `${distanceKm}km`;
 }
 
+function formatRegion(item: { province?: string | null; provinceZh?: string | null; city: string; cityZh?: string | null }) {
+  const province = item.provinceZh || item.province || "";
+  const city = item.cityZh || item.city;
+  if (!province || province === city) return city;
+  return `${province} ${city}`;
+}
+
 export default async function AdminSubmissionsPage() {
   const submissions = await getPendingSubmissions();
 
@@ -49,7 +56,7 @@ export default async function AdminSubmissionsPage() {
                     <p className="text-xs text-slate-500">{item.createdAt}</p>
                     <h2 className="mt-1 text-lg font-semibold text-slate-900">{item.nameZh || item.name}</h2>
                     <p className="mt-1 text-sm text-slate-600">
-                      {item.cityZh || item.city} - {scenarioLabelMap[item.scenario]} - {difficultyLabelMap[item.difficulty]} - {safetyLabelMap[item.safety]}
+                      {formatRegion(item)} - {scenarioLabelMap[item.scenario]} - {difficultyLabelMap[item.difficulty]} - {safetyLabelMap[item.safety]}
                     </p>
                     {item.address ? <p className="mt-1 text-sm text-slate-600">{"\u5730\u5740\uff1a"}{item.address}</p> : null}
                   </div>

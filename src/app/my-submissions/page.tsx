@@ -38,6 +38,13 @@ function getDeleteCountdown(deletedAt: string | null) {
   return `\u5269\u4f59 ${hours} \u5c0f\u65f6 ${minutes} \u5206\u949f`;
 }
 
+function formatRegion(item: SpotSubmission) {
+  const province = item.provinceZh || item.province || "";
+  const city = item.cityZh || item.city;
+  if (!province || province === city) return city;
+  return `${province} ${city}`;
+}
+
 function SubmissionCard({ item, deleted = false }: { item: SpotSubmission; deleted?: boolean }) {
   const status = statusMap[item.status];
   const canEdit = !deleted && !item.isLocked && item.status !== "approved";
@@ -48,7 +55,7 @@ function SubmissionCard({ item, deleted = false }: { item: SpotSubmission; delet
         <div>
           <p className="text-xs text-slate-500">{item.createdAt}</p>
           <h2 className="mt-1 text-lg font-semibold text-slate-900">{item.nameZh || item.name}</h2>
-          <p className="mt-1 text-sm text-slate-600">{item.cityZh || item.city}</p>
+          <p className="mt-1 text-sm text-slate-600">{formatRegion(item)}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {item.isLocked ? (

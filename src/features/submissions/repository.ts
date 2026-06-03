@@ -6,6 +6,8 @@ type SubmissionRow = {
   user_id: string;
   name: string;
   name_zh: string | null;
+  province: string | null;
+  province_zh: string | null;
   city: string;
   city_zh: string | null;
   latitude: number | null;
@@ -51,6 +53,8 @@ function normalize(row: SubmissionRow): SpotSubmission {
     userId: row.user_id,
     name: row.name,
     nameZh: row.name_zh,
+    province: row.province,
+    provinceZh: row.province_zh,
     city: row.city,
     cityZh: row.city_zh,
     latitude: row.latitude,
@@ -75,7 +79,7 @@ function normalize(row: SubmissionRow): SpotSubmission {
 }
 
 const submissionSelect =
-  "id,user_id,name,name_zh,city,city_zh,latitude,longitude,address,scenario,difficulty,safety,distance_km,min_kid_age,has_parking,has_toilet,image_url,description,description_zh,status,review_note,is_locked,deleted_at,created_at";
+  "id,user_id,name,name_zh,province,province_zh,city,city_zh,latitude,longitude,address,scenario,difficulty,safety,distance_km,min_kid_age,has_parking,has_toilet,image_url,description,description_zh,status,review_note,is_locked,deleted_at,created_at";
 
 export async function getPendingSubmissions(): Promise<SpotSubmission[]> {
   const supabase = await createClient();

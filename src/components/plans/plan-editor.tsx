@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/lib/i18n/config";
 import { getPlanEditorMessages } from "@/lib/i18n/messages";
 import { getAmapNavigationUrl } from "@/lib/maps/navigation";
-import { destinationCity, destinationName } from "@/features/destinations/presenter";
+import { destinationName, destinationRegion } from "@/features/destinations/presenter";
 import type { PlanDetail } from "@/features/plans/types";
 
 type Props = {
@@ -318,7 +318,7 @@ export function PlanEditor({ plan, locale }: Props) {
                 <div className="min-w-0">
                   <p className="text-xs text-slate-500">{`${text.stop} ${index + 1}`}</p>
                   <p className="mt-1 text-base font-semibold text-slate-900">{item.destination ? destinationName(item.destination, locale) : text.unknownDestination}</p>
-                  <p className="mt-1 text-sm text-slate-600">{item.destination ? `${destinationCity(item.destination, locale)} - ${formatDistance(item.destination.distanceKm)}` : text.noDetails}</p>
+                  <p className="mt-1 text-sm text-slate-600">{item.destination ? `${destinationRegion(item.destination, locale)} - ${formatDistance(item.destination.distanceKm)}` : text.noDetails}</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 md:justify-end">
                   {item.destination ? (
