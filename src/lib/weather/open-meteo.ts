@@ -8,6 +8,11 @@ type CityCoordinate = {
 type WeatherResult = {
   weather: string;
   wind: string;
+  condition: string;
+  temperature: number | null;
+  windLevel: number | null;
+  windSpeedKmH: number | null;
+  updatedAt: string | null;
   sourceUrl: string;
 };
 
@@ -20,6 +25,7 @@ type GeocodingResult = {
 
 type ForecastResult = {
   current?: {
+    time?: string;
     temperature_2m?: number;
     weather_code?: number;
     wind_speed_10m?: number;
@@ -126,6 +132,11 @@ export async function getCityWeather(city: string, locale: Locale): Promise<Weat
     return {
       weather: temperature === null ? condition : pick(locale, `${condition} ${temperature}C`, `${condition} ${temperature}\u00b0C`),
       wind: windLevel === null ? pick(locale, "Wind updated", "\u98ce\u529b\u5df2\u66f4\u65b0") : pick(locale, `Wind level ${windLevel}`, `\u98ce\u529b ${windLevel}\u7ea7`),
+      condition,
+      temperature,
+      windLevel,
+      windSpeedKmH: typeof current.wind_speed_10m === "number" ? current.wind_speed_10m : null,
+      updatedAt: current.time ?? null,
       sourceUrl
     };
   } catch {
