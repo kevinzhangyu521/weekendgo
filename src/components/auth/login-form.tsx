@@ -7,7 +7,6 @@ import { Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/lib/i18n/config";
 import { getLoginMessages } from "@/lib/i18n/messages";
-import { getSiteUrl } from "@/lib/site-url";
 
 type Props = {
   locale: Locale;
@@ -35,22 +34,19 @@ export function LoginForm({ locale }: Props) {
     setMessage("");
 
     try {
-      const redirectTo = getSiteUrl(`/auth/confirm?next=${encodeURIComponent(next)}`);
       const { error: signInError } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: redirectTo
-        }
+        email
       });
 
       if (signInError) {
-        setError(text.loginFailed);
+        setError(`${text.loginFailed} ${signInError.message}`);
         return;
       }
 
       setMessage(text.magicLinkSent);
-    } catch {
-      setError(text.loginFailed);
+    } catch (err) {
+      const detail = err instanceof Error ? ` ${err.message}` : "";
+      setError(`${text.loginFailed}${detail}`);
     } finally {
       setLoading(false);
     }
@@ -61,7 +57,7 @@ export function LoginForm({ locale }: Props) {
     setMessage("");
     const { error: signOutError } = await supabase.auth.signOut();
     if (signOutError) {
-      setError(text.loginFailed);
+      setError(`${text.loginFailed} ${signOutError.message}`);
       return;
     }
     setMessage(text.signedOut);
@@ -71,15 +67,13 @@ export function LoginForm({ locale }: Props) {
   return (
     <main className="min-h-screen bg-slate-50">
       <section className="mx-auto flex max-w-md flex-col px-4 py-10 md:px-0">
-        <p className="text-sm text-slate-500">{"\u6816\u7f8e\u5730\u8d26\u53f7"}</p>
+        <p className="text-sm text-slate-500">{"栖美地账号"}</p>
         <h1 className="mt-1 text-2xl font-bold text-slate-900">{text.title}</h1>
-        <p className="mt-2 text-sm text-slate-600">
-          {text.subtitle}
-        </p>
+        <p className="mt-2 text-sm text-slate-600">{text.subtitle}</p>
 
         <form onSubmit={onSubmit} className="mt-6 space-y-3 rounded-xl border border-slate-200 bg-white p-4">
           <label className="text-sm font-medium text-slate-700" htmlFor="email">
-            {"\u90ae\u7bb1"}
+            {"邮箱"}
           </label>
           <div className="flex items-center gap-2 rounded-lg border border-slate-200 px-3">
             <Mail className="h-4 w-4 text-slate-500" />
@@ -110,11 +104,7 @@ export function LoginForm({ locale }: Props) {
             {text.signOut}
           </button>
 
-          {authError ? (
-            <p className="text-sm text-rose-600">
-              {"登录链接已失效或没有成功验证，请重新输入邮箱获取新的登录链接。"}
-            </p>
-          ) : null}
+          {authError ? <p className="text-sm text-rose-600">{"登录链接已失效或没有成功验证，请重新输入邮箱获取新的登录链接。"}</p> : null}
           {message ? <p className="text-sm text-emerald-700">{message}</p> : null}
           {error ? <p className="text-sm text-rose-600">{error}</p> : null}
         </form>
