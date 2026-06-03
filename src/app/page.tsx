@@ -1,19 +1,16 @@
 import Link from "next/link";
 import { Bath, Car, Footprints, Sandwich, ShieldCheck, Star, Tent, Waves } from "lucide-react";
+import {
+  destinationCity,
+  destinationDescription,
+  destinationDifficultyShort,
+  destinationName,
+  destinationSafety,
+  destinationScenario
+} from "@/features/destinations/presenter";
+import { getAllDestinations } from "@/features/destinations/repository";
+import type { DestinationItem } from "@/features/destinations/types";
 import { getLocale, pick } from "@/lib/i18n/server";
-
-type Destination = {
-  id: string;
-  title: string;
-  titleZh: string;
-  scene: "Camping" | "Creek" | "Hiking" | "Picnic";
-  distance: string;
-  difficulty: "Easy" | "Moderate" | "Hard";
-  safety: "Low Risk" | "Medium Risk";
-  tags: string[];
-  tagsZh: string[];
-  image: string;
-};
 
 const scenes = [
   { key: "camping", label: "Camping", labelZh: "\u9732\u8425", icon: Tent, color: "bg-amber-100 text-amber-700" },
@@ -22,71 +19,27 @@ const scenes = [
   { key: "picnic", label: "Picnic", labelZh: "\u91ce\u9910", icon: Sandwich, color: "bg-pink-100 text-pink-700" }
 ] as const;
 
-const recommendations: Destination[] = [
-  {
-    id: "d1",
-    title: "Qingxi Family Creek",
-    titleZh: "\u6e05\u6eaa\u8c37\u4eb2\u5b50\u6eaf\u6eaa",
-    scene: "Creek",
-    distance: "42km",
-    difficulty: "Easy",
-    safety: "Low Risk",
-    tags: ["3+ years", "Parking", "Toilet"],
-    tagsZh: ["3\u5c81+\u53cb\u597d", "\u53ef\u505c\u8f66", "\u6709\u6d17\u624b\u95f4"],
-    image: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1400&q=80"
-  },
-  {
-    id: "d2",
-    title: "Pine Lake Campground",
-    titleZh: "\u677e\u6797\u6e56\u7554\u8425\u5730",
-    scene: "Camping",
-    distance: "68km",
-    difficulty: "Easy",
-    safety: "Low Risk",
-    tags: ["Overnight", "Campfire", "Beginner Friendly"],
-    tagsZh: ["\u53ef\u8fc7\u591c", "\u53ef\u8425\u706b", "\u65b0\u624b\u53cb\u597d"],
-    image: "https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?auto=format&fit=crop&w=1400&q=80"
-  },
-  {
-    id: "d3",
-    title: "Yunlan Light Trail Loop",
-    titleZh: "\u4e91\u5c9a\u5c71\u8f7b\u5f92\u6b65\u73af\u7ebf",
-    scene: "Hiking",
-    distance: "36km",
-    difficulty: "Moderate",
-    safety: "Medium Risk",
-    tags: ["6+ years", "Shaded", "2-hour loop"],
-    tagsZh: ["6\u5c81+\u53cb\u597d", "\u6709\u6811\u836b", "2\u5c0f\u65f6\u73af\u7ebf"],
-    image: "https://images.unsplash.com/photo-1464822759844-d150ad6d1d88?auto=format&fit=crop&w=1400&q=80"
-  }
-];
+const fallbackImage = "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1400&q=80";
 
-function pickSceneZh(scene: Destination["scene"]) {
-  return scene === "Camping" ? "\u9732\u8425" : scene === "Creek" ? "\u6eaf\u6eaa" : scene === "Hiking" ? "\u5f92\u6b65" : "\u91ce\u9910";
+function formatDistance(distanceKm: number) {
+  if (!distanceKm || distanceKm <= 0) return "\u8ddd\u79bb\u5f85\u8ba1\u7b97";
+  return `\u8ddd\u79bb ${distanceKm}km`;
 }
 
-function pickDifficultyZh(difficulty: Destination["difficulty"]) {
-  return difficulty === "Easy" ? "\u8f7b\u677e" : difficulty === "Moderate" ? "\u9002\u4e2d" : "\u8fdb\u9636";
-}
-
-function pickSafetyZh(safety: Destination["safety"]) {
-  return safety === "Low Risk" ? "\u4f4e\u98ce\u9669" : "\u4e2d\u98ce\u9669";
-}
-
-function SceneBadge({ scene, zh }: { scene: Destination["scene"]; zh: boolean }) {
-  const colorMap: Record<Destination["scene"], string> = {
-    Camping: "bg-amber-100 text-amber-700",
-    Creek: "bg-sky-100 text-sky-700",
-    Hiking: "bg-orange-100 text-orange-700",
-    Picnic: "bg-pink-100 text-pink-700"
+function SceneBadge({ item, locale }: { item: DestinationItem; locale: "en" | "zh" }) {
+  const colorMap: Record<DestinationItem["scenario"], string> = {
+    camping: "bg-amber-100 text-amber-700",
+    creek: "bg-sky-100 text-sky-700",
+    hiking: "bg-orange-100 text-orange-700",
+    picnic: "bg-pink-100 text-pink-700"
   };
-  const name = zh ? pickSceneZh(scene) : scene;
-  return <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${colorMap[scene]}`}>{name}</span>;
+  return <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${colorMap[item.scenario]}`}>{destinationScenario(item, locale)}</span>;
 }
 
 export default async function HomePage() {
   const locale = await getLocale();
   const zh = locale === "zh";
+  const recommendations = (await getAllDestinations()).slice(0, 6);
 
   return (
     <main className="min-h-screen">
@@ -141,32 +94,44 @@ export default async function HomePage() {
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {recommendations.map((item) => (
-            <article key={item.id} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
-              <div className="h-44 w-full bg-cover bg-center" style={{ backgroundImage: `url('${item.image}')` }} />
+            <Link
+              key={item.id}
+              href={`/destinations/${item.id}`}
+              className="group block overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-xl"
+            >
+              <div className="relative h-44 w-full overflow-hidden">
+                <div
+                  className="absolute inset-0 bg-cover bg-center transition duration-300 group-hover:scale-105"
+                  style={{ backgroundImage: `url('${item.image || fallbackImage}')` }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/35 to-transparent opacity-0 transition group-hover:opacity-100" />
+                <span className="absolute bottom-3 right-3 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-emerald-700 opacity-0 shadow-sm transition group-hover:opacity-100">
+                  {pick(locale, "View detail", "\u67e5\u770b\u8be6\u60c5")}
+                </span>
+              </div>
               <div className="space-y-3 p-4">
                 <div className="flex items-center justify-between">
-                  <SceneBadge scene={item.scene} zh={zh} />
+                  <SceneBadge item={item} locale={locale} />
                   <span className="inline-flex items-center gap-1 text-xs text-slate-500">
                     <Star className="h-3.5 w-3.5 fill-current text-amber-500" />
-                    4.8
+                    {item.rating.toFixed(1)}
                   </span>
                 </div>
 
-                <h3 className="line-clamp-1 text-base font-semibold text-slate-900">{zh ? item.titleZh : item.title}</h3>
+                <h3 className="line-clamp-1 text-base font-semibold text-slate-900 transition group-hover:text-emerald-700">{destinationName(item, locale)}</h3>
+                <p className="line-clamp-2 text-sm text-slate-600">{destinationDescription(item, locale)}</p>
 
                 <p className="text-sm text-slate-600">
-                  {item.distance} - {zh ? pickDifficultyZh(item.difficulty) : item.difficulty} - {zh ? pickSafetyZh(item.safety) : item.safety}
+                  {destinationCity(item, locale)} - {formatDistance(item.distanceKm)} - {destinationDifficultyShort(item, locale)} - {destinationSafety(item, locale)}
                 </p>
 
                 <div className="flex flex-wrap gap-2">
-                  {(zh ? item.tagsZh : item.tags).map((tag) => (
-                    <span key={tag} className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">
-                      {tag}
-                    </span>
-                  ))}
+                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">{item.minKidAge}{pick(locale, "+ years", "\u5c81+")}</span>
+                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">{item.hasParking ? pick(locale, "Parking", "\u53ef\u505c\u8f66") : pick(locale, "Limited parking", "\u505c\u8f66\u4e00\u822c")}</span>
+                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">{item.hasToilet ? pick(locale, "Toilet", "\u6709\u5395\u6240") : pick(locale, "Limited toilet", "\u5395\u6240\u8f83\u5c11")}</span>
                 </div>
 
-                <div className="flex items-center gap-4 border-t border-slate-100 pt-3 text-xs text-slate-600">
+                <div className="flex items-center gap-4 border-t border-slate-100 pt-3 text-xs text-slate-600 transition group-hover:text-slate-700">
                   <span className="inline-flex items-center gap-1">
                     <ShieldCheck className="h-3.5 w-3.5" />
                     {pick(locale, "Safety notes", "\u5b89\u5168\u63d0\u793a")}
@@ -181,7 +146,7 @@ export default async function HomePage() {
                   </span>
                 </div>
               </div>
-            </article>
+            </Link>
           ))}
         </div>
       </section>
