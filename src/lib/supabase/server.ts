@@ -1,13 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import type { ResponseCookie } from "next/dist/compiled/@edge-runtime/cookies";
-
-type CookieToSet = {
-  name: string;
-  value: string;
-  options?: Partial<ResponseCookie>;
-};
-
 export async function createClient() {
   const cookieStore = await cookies();
 
@@ -16,12 +8,8 @@ export async function createClient() {
       getAll() {
         return cookieStore.getAll();
       },
-      setAll(cookiesToSet: CookieToSet[]) {
-        try {
-          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
-        } catch {
-          // Server Components cannot always write refreshed auth cookies; middleware handles the normal refresh path.
-        }
+      setAll() {
+        // Server Components cannot write cookies. Middleware refreshes Supabase auth cookies instead.
       }
     }
   });
