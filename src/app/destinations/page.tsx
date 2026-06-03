@@ -130,9 +130,9 @@ export default async function DestinationsPage({
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {list.map((item) => (
-            <article key={item.id} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
+            <article key={item.id} className="flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
               <Link href={`/destinations/${item.id}`} className="block h-44 bg-cover bg-center" style={{ backgroundImage: `url('${item.image}')` }} />
-              <div className="space-y-3 p-4">
+              <div className="flex flex-1 flex-col space-y-3 p-4">
                 <div className="flex items-center justify-between">
                   <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
                     {destinationScenario(item, locale)}
@@ -156,7 +156,7 @@ export default async function DestinationsPage({
                   {destinationRegion(item, locale)} - {formatDistance(item.distanceKm, locale)} - {destinationDifficultyShort(item, locale)} - {destinationSafety(item, locale)}
                 </p>
 
-                <div className="flex items-center gap-4 border-t border-slate-100 pt-3 text-xs text-slate-600">
+                <div className="mt-auto flex items-center gap-4 border-t border-slate-100 pt-3 text-xs text-slate-600">
                   <span className="inline-flex items-center gap-1">
                     <Car className="h-3.5 w-3.5" />
                     {item.hasParking ? "\u53ef\u505c\u8f66" : "\u505c\u8f66\u4e00\u822c"}

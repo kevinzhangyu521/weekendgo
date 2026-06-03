@@ -150,12 +150,26 @@ function SceneBadge({ item, locale }: { item: DestinationItem; locale: "en" | "z
   return <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${colorMap[item.scenario]}`}>{destinationScenario(item, locale)}</span>;
 }
 
-function getPersonalizedDestinations(allDestinations: DestinationItem[], preferredScenarios: Scenario[]) {
-  if (preferredScenarios.length === 0) return allDestinations.slice(0, 6);
+function isNearHomeCity(item: DestinationItem, homeCity: string) {
+  const cityText = `${item.city} ${item.cityZh ?? ""} ${item.province ?? ""} ${item.provinceZh ?? ""}`;
+  return cityText.includes(homeCity) || cityText.includes("Wuhan");
+}
+
+function sortByHomeCity(items: DestinationItem[], homeCity: string) {
+  return [...items].sort((a, b) => {
+    const aNear = isNearHomeCity(a, homeCity) ? 1 : 0;
+    const bNear = isNearHomeCity(b, homeCity) ? 1 : 0;
+    if (aNear !== bNear) return bNear - aNear;
+    return b.rating - a.rating;
+  });
+}
+
+function getPersonalizedDestinations(allDestinations: DestinationItem[], preferredScenarios: Scenario[], homeCity: string) {
+  if (preferredScenarios.length === 0) return sortByHomeCity(allDestinations, homeCity).slice(0, 6);
 
   const matched = allDestinations.filter((item) => preferredScenarios.includes(item.scenario));
   const fallback = allDestinations.filter((item) => !preferredScenarios.includes(item.scenario));
-  return [...matched, ...fallback].slice(0, 6);
+  return [...sortByHomeCity(matched, homeCity), ...sortByHomeCity(fallback, homeCity)].slice(0, 6);
 }
 
 export default async function HomePage() {
@@ -171,7 +185,7 @@ export default async function HomePage() {
     ...(dynamicWeather ?? {})
   };
   const allDestinations = withDistanceFromCity(await getAllDestinations(), homeCity);
-  const recommendations = getPersonalizedDestinations(allDestinations, preferredScenarios);
+  const recommendations = getPersonalizedDestinations(allDestinations, preferredScenarios, homeCity);
 
   return (
     <main className="min-h-screen">
@@ -252,7 +266,7 @@ export default async function HomePage() {
             <Link
               key={item.id}
               href={`/destinations/${item.id}`}
-              className="group block overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-xl"
+              className="group flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-xl"
             >
               <div className="relative h-44 w-full overflow-hidden">
                 <div
@@ -264,7 +278,7 @@ export default async function HomePage() {
                   {pick(locale, "View detail", "\u67e5\u770b\u8be6\u60c5")}
                 </span>
               </div>
-              <div className="space-y-3 p-4">
+              <div className="flex flex-1 flex-col space-y-3 p-4">
                 <div className="flex items-center justify-between">
                   <SceneBadge item={item} locale={locale} />
                   <span className="inline-flex items-center gap-1 text-xs text-slate-500">
@@ -273,32 +287,36 @@ export default async function HomePage() {
                   </span>
                 </div>
 
-                <h3 className="line-clamp-1 text-base font-semibold text-slate-900 transition group-hover:text-emerald-700">{destinationName(item, locale)}</h3>
-                <p className="line-clamp-2 text-sm text-slate-600">{destinationDescription(item, locale)}</p>
+                <div className="flex-1 space-y-3">
+                  <h3 className="line-clamp-1 text-base font-semibold text-slate-900 transition group-hover:text-emerald-700">{destinationName(item, locale)}</h3>
+                  <p className="line-clamp-2 min-h-10 text-sm text-slate-600">{destinationDescription(item, locale)}</p>
 
-                <p className="text-sm text-slate-600">
-                  {destinationRegion(item, locale)} - {formatDistance(item.distanceKm, locale)} - {destinationDifficultyShort(item, locale)} - {destinationSafety(item, locale)}
-                </p>
-
-                <div className="flex flex-wrap gap-2">
-                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">{item.minKidAge}{pick(locale, "+ years", "\u5c81+")}</span>
-                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">{item.hasParking ? pick(locale, "Parking", "\u53ef\u505c\u8f66") : pick(locale, "Limited parking", "\u505c\u8f66\u4e00\u822c")}</span>
-                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">{item.hasToilet ? pick(locale, "Toilet", "\u6709\u5395\u6240") : pick(locale, "Limited toilet", "\u5395\u6240\u8f83\u5c11")}</span>
+                  <p className="text-sm text-slate-600">
+                    {destinationRegion(item, locale)} - {formatDistance(item.distanceKm, locale)} - {destinationDifficultyShort(item, locale)} - {destinationSafety(item, locale)}
+                  </p>
                 </div>
 
-                <div className="flex items-center gap-4 border-t border-slate-100 pt-3 text-xs text-slate-600 transition group-hover:text-slate-700">
-                  <span className="inline-flex items-center gap-1">
-                    <ShieldCheck className="h-3.5 w-3.5" />
-                    {pick(locale, "Safety notes", "\u5b89\u5168\u63d0\u793a")}
-                  </span>
-                  <span className="inline-flex items-center gap-1">
-                    <Car className="h-3.5 w-3.5" />
-                    {pick(locale, "Parking", "\u505c\u8f66")}
-                  </span>
-                  <span className="inline-flex items-center gap-1">
-                    <Bath className="h-3.5 w-3.5" />
-                    {pick(locale, "Toilet", "\u6d17\u624b\u95f4")}
-                  </span>
+                <div className="mt-auto space-y-3">
+                  <div className="flex min-h-7 flex-wrap gap-2">
+                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">{item.minKidAge}{pick(locale, "+ years", "\u5c81+")}</span>
+                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">{item.hasParking ? pick(locale, "Parking", "\u53ef\u505c\u8f66") : pick(locale, "Limited parking", "\u505c\u8f66\u4e00\u822c")}</span>
+                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">{item.hasToilet ? pick(locale, "Toilet", "\u6709\u5395\u6240") : pick(locale, "Limited toilet", "\u5395\u6240\u8f83\u5c11")}</span>
+                  </div>
+
+                  <div className="flex items-center gap-4 border-t border-slate-100 pt-3 text-xs text-slate-600 transition group-hover:text-slate-700">
+                    <span className="inline-flex items-center gap-1">
+                      <ShieldCheck className="h-3.5 w-3.5" />
+                      {pick(locale, "Safety notes", "\u5b89\u5168\u63d0\u793a")}
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <Car className="h-3.5 w-3.5" />
+                      {pick(locale, "Parking", "\u505c\u8f66")}
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <Bath className="h-3.5 w-3.5" />
+                      {pick(locale, "Toilet", "\u6d17\u624b\u95f4")}
+                    </span>
+                  </div>
                 </div>
               </div>
             </Link>

@@ -1,6 +1,31 @@
 import type { DestinationItem } from "@/features/destinations/types";
 
-export function getAmapNavigationUrl(destination: DestinationItem) {
-  const name = encodeURIComponent(destination.name);
-  return `https://uri.amap.com/navigation?to=${destination.longitude},${destination.latitude},${name}&mode=car&policy=1&src=qimeide`;
+type NavigationOrigin = {
+  latitude: number;
+  longitude: number;
+  name?: string;
+};
+
+function destinationName(destination: DestinationItem) {
+  return destination.nameZh || destination.name;
+}
+
+function locationParam(longitude: number, latitude: number, name: string) {
+  return `${longitude},${latitude},${name}`;
+}
+
+export function getAmapNavigationUrl(destination: DestinationItem, origin?: NavigationOrigin) {
+  const params = new URLSearchParams({
+    to: locationParam(destination.longitude, destination.latitude, destinationName(destination)),
+    mode: "car",
+    policy: "1",
+    src: "qimeide",
+    callnative: "1"
+  });
+
+  if (origin) {
+    params.set("from", locationParam(origin.longitude, origin.latitude, origin.name || "我的位置"));
+  }
+
+  return `https://uri.amap.com/navigation?${params.toString()}`;
 }

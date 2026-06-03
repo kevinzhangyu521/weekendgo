@@ -7,6 +7,7 @@ import { Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/lib/i18n/config";
 import { getLoginMessages } from "@/lib/i18n/messages";
+import { getSiteUrl } from "@/lib/site-url";
 
 type Props = {
   locale: Locale;
@@ -18,6 +19,7 @@ export function LoginForm({ locale }: Props) {
   const searchParams = useSearchParams();
   const supabase = useMemo(() => createClient(), []);
   const next = searchParams.get("next") ?? "/favorites";
+  const authError = searchParams.get("authError");
 
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,7 +35,7 @@ export function LoginForm({ locale }: Props) {
     setMessage("");
 
     try {
-      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
+      const redirectTo = getSiteUrl(`/auth/confirm?next=${encodeURIComponent(next)}`);
       const { error: signInError } = await supabase.auth.signInWithOtp({
         email,
         options: {
@@ -108,6 +110,11 @@ export function LoginForm({ locale }: Props) {
             {text.signOut}
           </button>
 
+          {authError ? (
+            <p className="text-sm text-rose-600">
+              {"登录链接已失效或没有成功验证，请重新输入邮箱获取新的登录链接。"}
+            </p>
+          ) : null}
           {message ? <p className="text-sm text-emerald-700">{message}</p> : null}
           {error ? <p className="text-sm text-rose-600">{error}</p> : null}
         </form>

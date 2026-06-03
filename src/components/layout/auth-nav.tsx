@@ -37,7 +37,7 @@ export async function AuthNav() {
               {pick(locale, "Plans", "\u8ba1\u5212")}
             </Link>
             <Link href="/submit-spot" className="hover:text-slate-900">
-              {pick(locale, "Submit", "\u63a8\u8350\u5730\u70b9")}
+              {pick(locale, "Add Spot", "\u6dfb\u52a0\u63a8\u8350\u5730\u70b9")}
             </Link>
             {user ? (
               <Link href="/my-submissions" className="hover:text-slate-900">

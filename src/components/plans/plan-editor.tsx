@@ -4,10 +4,10 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowDown, ArrowUp, CalendarDays, ImageDown, Link2, Pencil, QrCode, Save, Trash2 } from "lucide-react";
+import { AmapNavigationButton } from "@/components/plans/amap-navigation-button";
 import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/lib/i18n/config";
 import { getPlanEditorMessages } from "@/lib/i18n/messages";
-import { getAmapNavigationUrl } from "@/lib/maps/navigation";
 import { destinationName, destinationRegion } from "@/features/destinations/presenter";
 import type { PlanDetail } from "@/features/plans/types";
 
@@ -322,14 +322,7 @@ export function PlanEditor({ plan, locale }: Props) {
                 </div>
                 <div className="flex flex-wrap items-center gap-2 md:justify-end">
                   {item.destination ? (
-                    <a
-                      href={getAmapNavigationUrl(item.destination)}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex min-h-10 items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white"
-                    >
-                      {text.navigate}
-                    </a>
+                    <AmapNavigationButton destination={item.destination} label={text.navigate} />
                   ) : null}
                   <button type="button" onClick={() => moveItem(index, "up")} disabled={index === 0 || busyItemId === item.id} className="rounded-md border border-slate-200 p-2 text-slate-700 disabled:opacity-40" title={text.moveUp}>
                     <ArrowUp className="h-4 w-4" />
