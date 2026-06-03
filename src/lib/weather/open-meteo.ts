@@ -1,4 +1,5 @@
 import type { Locale } from "@/lib/i18n/config";
+import { getKnownCityCoordinate } from "@/lib/geo/distance";
 
 type CityCoordinate = {
   latitude: number;
@@ -36,23 +37,6 @@ function pick<T>(locale: Locale, en: T, zh: T): T {
   return locale === "zh" ? zh : en;
 }
 
-const knownCityCoordinates: Record<string, CityCoordinate> = {
-  "\u6b66\u6c49": { latitude: 30.5928, longitude: 114.3055 },
-  Wuhan: { latitude: 30.5928, longitude: 114.3055 },
-  "\u4e0a\u6d77": { latitude: 31.2304, longitude: 121.4737 },
-  Shanghai: { latitude: 31.2304, longitude: 121.4737 },
-  "\u5317\u4eac": { latitude: 39.9042, longitude: 116.4074 },
-  Beijing: { latitude: 39.9042, longitude: 116.4074 },
-  "\u676d\u5dde": { latitude: 30.2741, longitude: 120.1551 },
-  Hangzhou: { latitude: 30.2741, longitude: 120.1551 },
-  "\u6210\u90fd": { latitude: 30.5728, longitude: 104.0668 },
-  Chengdu: { latitude: 30.5728, longitude: 104.0668 },
-  "\u5e7f\u5dde": { latitude: 23.1291, longitude: 113.2644 },
-  Guangzhou: { latitude: 23.1291, longitude: 113.2644 },
-  "\u6df1\u5733": { latitude: 22.5431, longitude: 114.0579 },
-  Shenzhen: { latitude: 22.5431, longitude: 114.0579 }
-};
-
 const weatherCodeLabels: Record<number, { en: string; zh: string }> = {
   0: { en: "Clear", zh: "\u6674" },
   1: { en: "Mainly clear", zh: "\u6674\u95f4\u591a\u4e91" },
@@ -73,7 +57,7 @@ const weatherCodeLabels: Record<number, { en: string; zh: string }> = {
 };
 
 async function geocodeCity(city: string): Promise<CityCoordinate | null> {
-  const known = knownCityCoordinates[city];
+  const known = getKnownCityCoordinate(city);
   if (known) return known;
 
   const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=zh&format=json`;

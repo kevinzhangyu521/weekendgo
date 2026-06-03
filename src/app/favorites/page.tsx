@@ -2,16 +2,20 @@ import Link from "next/link";
 import { Bath, Car, Heart, Star } from "lucide-react";
 import { destinationCity, destinationName, destinationScenario } from "@/features/destinations/presenter";
 import { getMyFavoriteDestinations } from "@/features/destinations/repository";
+import { getMyProfile } from "@/features/profiles/repository";
+import { DEFAULT_HOME_CITY, withDistanceFromCity } from "@/lib/geo/distance";
 import { getLocale, pick } from "@/lib/i18n/server";
 
-function formatDistance(distanceKm: number) {
-  if (!distanceKm || distanceKm <= 0) return "\u8ddd\u79bb\u5f85\u8ba1\u7b97";
-  return `${distanceKm}km`;
+function formatDistance(distanceKm: number, locale: "en" | "zh") {
+  if (!distanceKm || distanceKm <= 0) return pick(locale, "Distance pending", "\u8ddd\u79bb\u5f85\u8ba1\u7b97");
+  return pick(locale, `About ${distanceKm}km away`, `\u7ea6 ${distanceKm}km`);
 }
 
 export default async function FavoritesPage() {
   const locale = await getLocale();
-  const list = await getMyFavoriteDestinations();
+  const profile = await getMyProfile();
+  const homeCity = profile?.homeCity?.trim() || DEFAULT_HOME_CITY;
+  const list = withDistanceFromCity(await getMyFavoriteDestinations(), homeCity);
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -55,7 +59,7 @@ export default async function FavoritesPage() {
                   </div>
 
                   <h2 className="text-base font-semibold text-slate-900">{destinationName(item, locale)}</h2>
-                  <p className="text-sm text-slate-600">{destinationCity(item, locale)} - {formatDistance(item.distanceKm)}</p>
+                  <p className="text-sm text-slate-600">{destinationCity(item, locale)} - {formatDistance(item.distanceKm, locale)}</p>
 
                   <div className="flex items-center gap-4 border-t border-slate-100 pt-3 text-xs text-slate-600">
                     <span className="inline-flex items-center gap-1">

@@ -3,12 +3,29 @@ import { notFound } from "next/navigation";
 import { CalendarDays, MapPinned, Route, Share2, Star } from "lucide-react";
 import { destinationCity, destinationName, destinationScenario } from "@/features/destinations/presenter";
 import { getPublicPlanBySlug } from "@/features/plans/repository";
+import type { PlanDetail } from "@/features/plans/types";
+import { DEFAULT_HOME_CITY, withDistanceFromCity } from "@/lib/geo/distance";
 import { getAmapNavigationUrl } from "@/lib/maps/navigation";
 import { getLocale, pick } from "@/lib/i18n/server";
 
-function formatDistance(distanceKm: number) {
-  if (!distanceKm || distanceKm <= 0) return "\u8ddd\u79bb\u5f85\u8ba1\u7b97";
-  return `${distanceKm}km`;
+function formatDistance(distanceKm: number, locale: "en" | "zh") {
+  if (!distanceKm || distanceKm <= 0) return pick(locale, "Distance pending", "\u8ddd\u79bb\u5f85\u8ba1\u7b97");
+  return pick(locale, `About ${distanceKm}km away`, `\u7ea6 ${distanceKm}km`);
+}
+
+function withPlanDistances(plan: PlanDetail): PlanDetail {
+  const destinations = plan.items
+    .map((item) => item.destination)
+    .filter((item): item is NonNullable<PlanDetail["items"][number]["destination"]> => item !== null);
+  const distanceMap = new Map(withDistanceFromCity(destinations, DEFAULT_HOME_CITY).map((item) => [item.id, item]));
+
+  return {
+    ...plan,
+    items: plan.items.map((item) => ({
+      ...item,
+      destination: item.destination ? distanceMap.get(item.destination.id) ?? item.destination : null
+    }))
+  };
 }
 
 export default async function SharedPlanPage({
@@ -23,8 +40,9 @@ export default async function SharedPlanPage({
   const { slug } = await params;
   const query = await searchParams;
   const cardView = String(query.view ?? "") === "card";
-  const plan = await getPublicPlanBySlug(slug);
-  if (!plan) notFound();
+  const rawPlan = await getPublicPlanBySlug(slug);
+  if (!rawPlan) notFound();
+  const plan = withPlanDistances(rawPlan);
 
   return (
     <main className={`min-h-screen bg-slate-50 ${cardView ? "py-8" : ""}`}>
@@ -96,7 +114,7 @@ export default async function SharedPlanPage({
                         </span>
                       </div>
                       <p className="mt-1 text-sm text-slate-600">
-                        {destinationCity(item.destination, locale)} - {formatDistance(item.destination.distanceKm)}
+                        {destinationCity(item.destination, locale)} - {formatDistance(item.destination.distanceKm, locale)}
                       </p>
                       <p className="mt-1 inline-flex items-center gap-1 text-xs text-slate-600">
                         <MapPinned className="h-3.5 w-3.5" />

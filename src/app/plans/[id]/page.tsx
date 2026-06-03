@@ -4,7 +4,25 @@ import { ChevronLeft, Route } from "lucide-react";
 import { PlanEditor } from "@/components/plans/plan-editor";
 import { planStatusLabel } from "@/features/plans/presenter";
 import { getMyPlanById } from "@/features/plans/repository";
+import type { PlanDetail } from "@/features/plans/types";
+import { getMyProfile } from "@/features/profiles/repository";
+import { DEFAULT_HOME_CITY, withDistanceFromCity } from "@/lib/geo/distance";
 import { getLocale, pick } from "@/lib/i18n/server";
+
+function withPlanDistances(plan: PlanDetail, homeCity: string): PlanDetail {
+  const destinations = plan.items
+    .map((item) => item.destination)
+    .filter((item): item is NonNullable<PlanDetail["items"][number]["destination"]> => item !== null);
+  const distanceMap = new Map(withDistanceFromCity(destinations, homeCity).map((item) => [item.id, item]));
+
+  return {
+    ...plan,
+    items: plan.items.map((item) => ({
+      ...item,
+      destination: item.destination ? distanceMap.get(item.destination.id) ?? item.destination : null
+    }))
+  };
+}
 
 export default async function PlanDetailPage({
   params
@@ -13,8 +31,12 @@ export default async function PlanDetailPage({
 }) {
   const locale = await getLocale();
   const { id } = await params;
-  const plan = await getMyPlanById(id);
-  if (!plan) notFound();
+  const rawPlan = await getMyPlanById(id);
+  if (!rawPlan) notFound();
+
+  const profile = await getMyProfile();
+  const homeCity = profile?.homeCity?.trim() || DEFAULT_HOME_CITY;
+  const plan = withPlanDistances(rawPlan, homeCity);
 
   return (
     <main className="min-h-screen bg-slate-50">

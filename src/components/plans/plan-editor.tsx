@@ -22,7 +22,7 @@ function randomSlug() {
 
 function formatDistance(distanceKm: number) {
   if (!distanceKm || distanceKm <= 0) return "\u8ddd\u79bb\u5f85\u8ba1\u7b97";
-  return `${distanceKm}km`;
+  return `\u7ea6 ${distanceKm}km`;
 }
 
 export function PlanEditor({ plan, locale }: Props) {

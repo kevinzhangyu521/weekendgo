@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { MapPinned } from "lucide-react";
 import { MapExplorer } from "@/components/map/map-explorer";
-import { parseFilters } from "@/features/destinations/filter";
-import { getFilteredDestinations } from "@/features/destinations/repository";
+import { filterDestinations, parseFilters } from "@/features/destinations/filter";
+import { getAllDestinations } from "@/features/destinations/repository";
+import { getMyProfile } from "@/features/profiles/repository";
+import { DEFAULT_HOME_CITY, withDistanceFromCity } from "@/lib/geo/distance";
 import { getLocale, pick } from "@/lib/i18n/server";
 
 export default async function MapPage({
@@ -13,7 +15,9 @@ export default async function MapPage({
   const locale = await getLocale();
   const params = await searchParams;
   const filters = parseFilters(params);
-  const items = await getFilteredDestinations(filters);
+  const profile = await getMyProfile();
+  const homeCity = profile?.homeCity?.trim() || DEFAULT_HOME_CITY;
+  const items = filterDestinations(withDistanceFromCity(await getAllDestinations(), homeCity), filters);
 
   return (
     <main className="min-h-screen bg-slate-50">

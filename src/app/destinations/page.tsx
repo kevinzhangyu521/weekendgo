@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Bath, Car, SlidersHorizontal, Star } from "lucide-react";
 import { FavoriteButton } from "@/components/favorites/favorite-button";
-import { parseFilters } from "@/features/destinations/filter";
+import { filterDestinations, parseFilters } from "@/features/destinations/filter";
 import {
   destinationCity,
   destinationDescription,
@@ -10,7 +10,9 @@ import {
   destinationSafety,
   destinationScenario
 } from "@/features/destinations/presenter";
-import { getFilteredDestinations } from "@/features/destinations/repository";
+import { getAllDestinations } from "@/features/destinations/repository";
+import { getMyProfile } from "@/features/profiles/repository";
+import { DEFAULT_HOME_CITY, withDistanceFromCity } from "@/lib/geo/distance";
 import { getLocale, pick } from "@/lib/i18n/server";
 
 const scenarioLabelMap = {
@@ -28,9 +30,9 @@ const difficultyLabelMap = {
   hard: { en: "Hard", zh: "\u9ad8\u96be\u5ea6" }
 } as const;
 
-function formatDistance(distanceKm: number, isZh: boolean) {
-  if (!distanceKm || distanceKm <= 0) return "\u8ddd\u79bb\u5f85\u8865\u5145";
-  return `\u8ddd\u79bb ${distanceKm}km`;
+function formatDistance(distanceKm: number, locale: "en" | "zh") {
+  if (!distanceKm || distanceKm <= 0) return pick(locale, "Distance pending", "\u8ddd\u79bb\u5f85\u8ba1\u7b97");
+  return pick(locale, `About ${distanceKm}km away`, `\u8ddd\u79bb\u5e38\u4f4f\u57ce\u5e02\u7ea6 ${distanceKm}km`);
 }
 
 export default async function DestinationsPage({
@@ -39,10 +41,12 @@ export default async function DestinationsPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const locale = await getLocale();
-  const isZh = true;
   const params = await searchParams;
   const filters = parseFilters(params);
-  const list = await getFilteredDestinations(filters);
+  const profile = await getMyProfile();
+  const homeCity = profile?.homeCity?.trim() || DEFAULT_HOME_CITY;
+  const itemsWithDistance = withDistanceFromCity(await getAllDestinations(), homeCity);
+  const list = filterDestinations(itemsWithDistance, filters);
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -120,7 +124,9 @@ export default async function DestinationsPage({
           </div>
         </div>
 
-        <div className="mb-3 text-sm text-slate-600">{"\u7ed3\u679c\uff1a"}{list.length}</div>
+        <div className="mb-3 text-sm text-slate-600">
+          {pick(locale, "Results", "\u7ed3\u679c")}: {list.length} · {pick(locale, `Distance calculated from ${homeCity}`, `\u8ddd\u79bb\u6309\u5e38\u4f4f\u57ce\u5e02\u300c${homeCity}\u300d\u8ba1\u7b97`)}
+        </div>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {list.map((item) => (
@@ -147,7 +153,7 @@ export default async function DestinationsPage({
                 </h2>
                 <p className="line-clamp-2 text-sm text-slate-600">{destinationDescription(item, locale)}</p>
                 <p className="text-sm text-slate-600">
-                  {destinationCity(item, locale)} - {formatDistance(item.distanceKm, isZh)} - {destinationDifficultyShort(item, locale)} - {destinationSafety(item, locale)}
+                  {destinationCity(item, locale)} - {formatDistance(item.distanceKm, locale)} - {destinationDifficultyShort(item, locale)} - {destinationSafety(item, locale)}
                 </p>
 
                 <div className="flex items-center gap-4 border-t border-slate-100 pt-3 text-xs text-slate-600">

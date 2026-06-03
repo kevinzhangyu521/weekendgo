@@ -12,11 +12,13 @@ import {
   destinationScenario
 } from "@/features/destinations/presenter";
 import { getDestinationById, getRelatedDestinations } from "@/features/destinations/repository";
+import { getMyProfile } from "@/features/profiles/repository";
+import { DEFAULT_HOME_CITY, withDistanceFromCity } from "@/lib/geo/distance";
 import { getLocale, pick } from "@/lib/i18n/server";
 
-function formatDistance(distanceKm: number) {
-  if (!distanceKm || distanceKm <= 0) return "\u8ddd\u79bb\u5f85\u8ba1\u7b97";
-  return `${distanceKm}km`;
+function formatDistance(distanceKm: number, locale: "en" | "zh") {
+  if (!distanceKm || distanceKm <= 0) return pick(locale, "Distance pending", "\u8ddd\u79bb\u5f85\u8ba1\u7b97");
+  return pick(locale, `About ${distanceKm}km away`, `\u7ea6 ${distanceKm}km`);
 }
 
 export default async function DestinationDetailPage({
@@ -27,11 +29,14 @@ export default async function DestinationDetailPage({
   const locale = await getLocale();
   const isZh = locale === "zh";
   const { id } = await params;
-  const destination = await getDestinationById(id);
+  const profile = await getMyProfile();
+  const homeCity = profile?.homeCity?.trim() || DEFAULT_HOME_CITY;
+  const destinationRaw = await getDestinationById(id);
 
-  if (!destination) notFound();
+  if (!destinationRaw) notFound();
 
-  const related = await getRelatedDestinations(destination.id);
+  const [destination] = withDistanceFromCity([destinationRaw], homeCity);
+  const related = withDistanceFromCity(await getRelatedDestinations(destination.id), homeCity);
 
   return (
     <main className="min-h-screen bg-slate-50 pb-12">
@@ -71,7 +76,8 @@ export default async function DestinationDetailPage({
               </div>
               <div className="rounded-xl bg-slate-50 p-3">
                 <p className="text-xs text-slate-500">{pick(locale, "Distance", "\u8ddd\u79bb")}</p>
-                <p className="mt-1 font-medium">{formatDistance(destination.distanceKm)}</p>
+                <p className="mt-1 font-medium">{formatDistance(destination.distanceKm, locale)}</p>
+                <p className="mt-1 text-xs text-slate-500">{pick(locale, `From ${homeCity}`, `\u6309\u5e38\u4f4f\u57ce\u5e02\u300c${homeCity}\u300d\u8ba1\u7b97`)}</p>
               </div>
               <div className="rounded-xl bg-slate-50 p-3">
                 <p className="text-xs text-slate-500">{pick(locale, "Kids Age", "\u5b69\u5b50\u5e74\u9f84")}</p>
@@ -150,7 +156,7 @@ export default async function DestinationDetailPage({
                 <div className="p-3">
                   <p className="text-sm font-medium text-slate-900">{destinationName(item, locale)}</p>
                   <p className="mt-1 text-xs text-slate-600">
-                    {destinationCity(item, locale)} - {formatDistance(item.distanceKm)} - {pick(locale, "Rating", "\u8bc4\u5206")} {item.rating.toFixed(1)}
+                    {destinationCity(item, locale)} - {formatDistance(item.distanceKm, locale)} - {pick(locale, "Rating", "\u8bc4\u5206")} {item.rating.toFixed(1)}
                   </p>
                 </div>
               </Link>

@@ -11,6 +11,7 @@ import {
 import { getAllDestinations } from "@/features/destinations/repository";
 import type { DestinationItem, Scenario } from "@/features/destinations/types";
 import { getMyProfile } from "@/features/profiles/repository";
+import { DEFAULT_HOME_CITY, withDistanceFromCity } from "@/lib/geo/distance";
 import type { Locale } from "@/lib/i18n/config";
 import { getLocale, pick } from "@/lib/i18n/server";
 import { getCityWeather } from "@/lib/weather/open-meteo";
@@ -23,8 +24,6 @@ const scenes = [
 ] as const;
 
 const fallbackImage = "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1400&q=80";
-
-const defaultHomeCity = "\u6b66\u6c49";
 
 const scenarioLabels: Record<Scenario, { en: string; zh: string }> = {
   camping: { en: "Camping", zh: "\u9732\u8425" },
@@ -117,7 +116,7 @@ function getWeekendRange(locale: Locale) {
 }
 
 function getWeekendRecommendation(city: string, preferredScenarios: Scenario[], locale: Locale) {
-  const profile = weatherByCity[city] ?? weatherByCity[defaultHomeCity];
+  const profile = weatherByCity[city] ?? weatherByCity[DEFAULT_HOME_CITY];
   const hasPreference = preferredScenarios.length > 0;
   const matchedScenario = hasPreference ? preferredScenarios[0] : profile.scenario;
   const matchedScenes = hasPreference ? displayScenarios(preferredScenarios, locale) : pick(locale, profile.scenesEn, profile.scenes);
@@ -138,7 +137,7 @@ function getWeekendRecommendation(city: string, preferredScenarios: Scenario[], 
 
 function formatDistance(distanceKm: number, locale: Locale) {
   if (!distanceKm || distanceKm <= 0) return pick(locale, "Distance pending", "\u8ddd\u79bb\u5f85\u8ba1\u7b97");
-  return pick(locale, `${distanceKm}km away`, `\u8ddd\u79bb ${distanceKm}km`);
+  return pick(locale, `About ${distanceKm}km away`, `\u7ea6 ${distanceKm}km`);
 }
 
 function SceneBadge({ item, locale }: { item: DestinationItem; locale: "en" | "zh" }) {
@@ -163,7 +162,7 @@ export default async function HomePage() {
   const locale = await getLocale();
   const zh = locale === "zh";
   const profile = await getMyProfile();
-  const homeCity = profile?.homeCity?.trim() || defaultHomeCity;
+  const homeCity = profile?.homeCity?.trim() || DEFAULT_HOME_CITY;
   const preferredScenarios = profile?.preferredScenarios ?? [];
   const dynamicWeather = await getCityWeather(homeCity, locale);
   const weatherDetailHref = dynamicWeather ? `/weather?city=${encodeURIComponent(homeCity)}` : "";
@@ -171,7 +170,7 @@ export default async function HomePage() {
     ...getWeekendRecommendation(homeCity, preferredScenarios, locale),
     ...(dynamicWeather ?? {})
   };
-  const allDestinations = await getAllDestinations();
+  const allDestinations = withDistanceFromCity(await getAllDestinations(), homeCity);
   const recommendations = getPersonalizedDestinations(allDestinations, preferredScenarios);
 
   return (
