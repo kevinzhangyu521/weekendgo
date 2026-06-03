@@ -25,6 +25,18 @@ const fallbackImage = "https://images.unsplash.com/photo-1469474968028-56623f02e
 
 const defaultHomeCity = "\u6b66\u6c49";
 
+type WeekendProfile = {
+  text: string;
+  textEn: string;
+  temp: number;
+  wind: number;
+  advice: string;
+  adviceEn: string;
+  scenes: string;
+  scenesEn: string;
+  scenario: DestinationItem["scenario"];
+};
+
 const cityNames: Record<string, string> = {
   "\u6b66\u6c49": "Wuhan",
   "\u4e0a\u6d77": "Shanghai",
@@ -35,7 +47,7 @@ const cityNames: Record<string, string> = {
   "\u6df1\u5733": "Shenzhen"
 };
 
-const weatherByCity: Record<string, { text: string; textEn: string; temp: number; wind: number; advice: string; adviceEn: string; scenes: string; scenesEn: string }> = {
+const weatherByCity: Record<string, WeekendProfile> = {
   "\u6b66\u6c49": {
     text: "\u591a\u4e91\u95f4\u6674",
     textEn: "Partly sunny",
@@ -44,7 +56,8 @@ const weatherByCity: Record<string, { text: string; textEn: string; temp: number
     advice: "\u9002\u5408\u91ce\u9910\u548c\u8f7b\u5f92\u6b65",
     adviceEn: "Good for picnic and light hiking",
     scenes: "\u91ce\u9910 / \u5f92\u6b65",
-    scenesEn: "Picnic / Hiking"
+    scenesEn: "Picnic / Hiking",
+    scenario: "picnic"
   },
   "\u4e0a\u6d77": {
     text: "\u9634\u5230\u591a\u4e91",
@@ -54,7 +67,8 @@ const weatherByCity: Record<string, { text: string; textEn: string; temp: number
     advice: "\u9002\u5408\u516c\u56ed\u91ce\u9910\u548c\u77ed\u9014\u5f92\u6b65",
     adviceEn: "Good for parks and short walks",
     scenes: "\u91ce\u9910 / \u5f92\u6b65",
-    scenesEn: "Picnic / Hiking"
+    scenesEn: "Picnic / Hiking",
+    scenario: "picnic"
   },
   "\u676d\u5dde": {
     text: "\u6674\u5230\u591a\u4e91",
@@ -64,7 +78,8 @@ const weatherByCity: Record<string, { text: string; textEn: string; temp: number
     advice: "\u9002\u5408\u5f92\u6b65\u548c\u6eaf\u6eaa\u5468\u8fb9\u6e38",
     adviceEn: "Good for hiking and creek trips",
     scenes: "\u5f92\u6b65 / \u6eaf\u6eaa",
-    scenesEn: "Hiking / Creek"
+    scenesEn: "Hiking / Creek",
+    scenario: "creek"
   }
 };
 
@@ -98,7 +113,8 @@ function getWeekendRecommendation(city: string, locale: Locale) {
     weather: pick(locale, `${profile.textEn} ${profile.temp}C`, `${profile.text} ${profile.temp}\u00b0C`),
     wind: pick(locale, `Wind level ${profile.wind}`, `\u98ce\u529b ${profile.wind}\u7ea7`),
     advice: pick(locale, profile.adviceEn, profile.advice),
-    scenes: pick(locale, profile.scenesEn, profile.scenes)
+    scenes: pick(locale, profile.scenesEn, profile.scenes),
+    href: `/destinations?scenario=${profile.scenario}&difficulty=all&maxDistance=120&needParking=false&needToilet=false`
   };
 }
 
@@ -148,6 +164,19 @@ export default async function HomePage() {
             <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700">{weekend.weather}</span>
             <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700">{weekend.wind}</span>
             <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700">{weekend.advice}</span>
+          </div>
+          <div className="mt-6 flex flex-col gap-3 rounded-xl bg-white/95 p-4 text-slate-800 shadow-sm backdrop-blur md:max-w-2xl md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">{pick(locale, "Recommended plan", "\u63a8\u8350\u73a9\u6cd5")}</p>
+              <p className="mt-1 text-base font-bold text-slate-900">{weekend.scenes}</p>
+              <p className="mt-1 text-sm text-slate-600">{pick(locale, "Tap to see matched family-friendly destinations.", "\u70b9\u51fb\u67e5\u770b\u5339\u914d\u7684\u4eb2\u5b50\u6237\u5916\u76ee\u7684\u5730\u3002")}</p>
+            </div>
+            <Link
+              href={weekend.href}
+              className="inline-flex shrink-0 items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-md"
+            >
+              {pick(locale, "View weekend picks", "\u67e5\u770b\u672c\u5468\u672b\u63a8\u8350")}
+            </Link>
           </div>
         </div>
       </section>
