@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import type { AdminDestination } from "@/features/admin/destinations";
@@ -34,6 +34,12 @@ export function EditDestinationForm({ item }: { item: AdminDestination }) {
   const router = useRouter();
   const initialState: UpdateDestinationState = { ok: false, message: "" };
   const [state, formAction] = useActionState(saveDestination, initialState);
+  const [locationText, setLocationText] = useState(`${item.cityZh || item.city} ${item.nameZh || item.name}`.trim());
+  const [latitude, setLatitude] = useState(String(item.latitude || ""));
+  const [longitude, setLongitude] = useState(String(item.longitude || ""));
+  const [locating, setLocating] = useState(false);
+  const [locationMessage, setLocationMessage] = useState("");
+  const [locationError, setLocationError] = useState("");
 
   useEffect(() => {
     if (!state.ok) return;
@@ -45,6 +51,45 @@ export function EditDestinationForm({ item }: { item: AdminDestination }) {
 
     return () => window.clearTimeout(timer);
   }, [router, state.ok]);
+
+  async function locateByAddress() {
+    const query = locationText.trim();
+    setLocationMessage("");
+    setLocationError("");
+
+    if (!query) {
+      setLocationError("\u8bf7\u5148\u586b\u5199\u5730\u70b9\u5730\u5740\u6216\u5bfc\u822a\u4f4d\u7f6e\u3002");
+      return;
+    }
+
+    const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+    if (!token) {
+      setLocationError("\u7f3a\u5c11 Mapbox Token\uff0c\u6682\u65f6\u65e0\u6cd5\u81ea\u52a8\u5b9a\u4f4d\u3002");
+      return;
+    }
+
+    setLocating(true);
+    try {
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${encodeURIComponent(token)}&limit=1&language=zh`
+      );
+      if (!response.ok) throw new Error("\u5b9a\u4f4d\u670d\u52a1\u8fd4\u56de\u5f02\u5e38\u3002");
+
+      const data = (await response.json()) as { features?: Array<{ center?: [number, number]; place_name?: string }> };
+      const first = data.features?.[0];
+      const center = first?.center;
+      if (!center) throw new Error("\u6ca1\u6709\u627e\u5230\u5339\u914d\u7684\u4f4d\u7f6e\uff0c\u8bf7\u628a\u5730\u5740\u5199\u5f97\u66f4\u5177\u4f53\u3002");
+
+      const [lng, lat] = center;
+      setLongitude(String(Math.round(lng * 1000000) / 1000000));
+      setLatitude(String(Math.round(lat * 1000000) / 1000000));
+      setLocationMessage(`\u5df2\u5b9a\u4f4d\uff1a${first.place_name ?? query}`);
+    } catch (error) {
+      setLocationError(error instanceof Error ? error.message : "\u81ea\u52a8\u5b9a\u4f4d\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002");
+    } finally {
+      setLocating(false);
+    }
+  }
 
   return (
     <form action={formAction} encType="multipart/form-data" className="mt-5 space-y-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -68,6 +113,16 @@ export function EditDestinationForm({ item }: { item: AdminDestination }) {
             <input name="city" required defaultValue={item.cityZh || item.city} className={inputClass} />
           </label>
         </div>
+        <label className={labelClass}>
+          {"\u5730\u70b9\u5730\u5740/\u5bfc\u822a\u4f4d\u7f6e"}
+          <input
+            value={locationText}
+            onChange={(event) => setLocationText(event.target.value)}
+            placeholder={"\u4f8b\u5982\uff1a\u6b66\u6c49 \u4e1c\u6e56\u7eff\u9053 \u68a8\u56ed\u5e7f\u573a"}
+            className={inputClass}
+          />
+          <span className="mt-1 block text-xs font-normal text-slate-500">{"\u7528\u4e8e\u81ea\u52a8\u5b9a\u4f4d\uff0c\u4e0d\u9700\u8981\u76f4\u63a5\u586b\u5199\u7eac\u5ea6\u548c\u7ecf\u5ea6\u3002"}</span>
+        </label>
       </section>
 
       <section className="space-y-3 border-t border-slate-100 pt-5">
@@ -100,15 +155,42 @@ export function EditDestinationForm({ item }: { item: AdminDestination }) {
             </select>
           </label>
         </div>
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-bold text-slate-900">{"\u5730\u56fe\u5b9a\u4f4d"}</p>
+              <p className="mt-1 text-xs text-slate-500">
+                {latitude && longitude ? `\u5df2\u5b9a\u4f4d\uff1a${latitude}, ${longitude}` : "\u6682\u672a\u5b9a\u4f4d\uff0c\u8bf7\u6839\u636e\u5730\u5740\u81ea\u52a8\u5b9a\u4f4d\u3002"}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={locateByAddress}
+              disabled={locating}
+              className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {locating ? "\u5b9a\u4f4d\u4e2d..." : "\u6839\u636e\u5730\u5740\u81ea\u52a8\u5b9a\u4f4d"}
+            </button>
+          </div>
+          {locationMessage ? <p className="mt-2 text-xs font-medium text-emerald-700">{locationMessage}</p> : null}
+          {locationError ? <p className="mt-2 text-xs font-medium text-red-600">{locationError}</p> : null}
+          <input name="latitude" type="hidden" value={latitude} readOnly />
+          <input name="longitude" type="hidden" value={longitude} readOnly />
+          <details className="mt-3">
+            <summary className="cursor-pointer text-xs font-semibold text-slate-600">{"\u9ad8\u7ea7\uff1a\u624b\u52a8\u4fee\u6b63\u5750\u6807"}</summary>
+            <div className="mt-2 grid gap-3 md:grid-cols-2">
+              <label className={labelClass}>
+                {"\u7eac\u5ea6"}
+                <input type="number" step="0.000001" value={latitude} onChange={(event) => setLatitude(event.target.value)} className={inputClass} />
+              </label>
+              <label className={labelClass}>
+                {"\u7ecf\u5ea6"}
+                <input type="number" step="0.000001" value={longitude} onChange={(event) => setLongitude(event.target.value)} className={inputClass} />
+              </label>
+            </div>
+          </details>
+        </div>
         <div className="grid gap-3 md:grid-cols-2">
-          <label className={labelClass}>
-            {"\u7eac\u5ea6"}
-            <input name="latitude" type="number" step="0.000001" defaultValue={item.latitude} className={inputClass} />
-          </label>
-          <label className={labelClass}>
-            {"\u7ecf\u5ea6"}
-            <input name="longitude" type="number" step="0.000001" defaultValue={item.longitude} className={inputClass} />
-          </label>
           <label className={labelClass}>
             {"\u8bc4\u5206"}
             <input name="rating" type="number" min="0" max="5" step="0.1" defaultValue={item.rating} className={inputClass} />

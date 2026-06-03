@@ -31,6 +31,12 @@ export default function SubmitSpotPage() {
   const [submitted, setSubmitted] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [address, setAddress] = useState("");
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
+  const [locating, setLocating] = useState(false);
+  const [locationMessage, setLocationMessage] = useState("");
+  const [locationError, setLocationError] = useState("");
 
   async function uploadImage(userId: string, file: File | null) {
     if (!file || file.size === 0) return null;
@@ -96,7 +102,7 @@ export default function SubmitSpotPage() {
         name_zh: name,
         city,
         city_zh: city,
-        address: String(form.get("address") ?? "").trim() || null,
+        address: address.trim() || null,
         latitude: Number(form.get("latitude") || "0") || null,
         longitude: Number(form.get("longitude") || "0") || null,
         scenario: String(form.get("scenario") ?? "creek"),
@@ -115,6 +121,11 @@ export default function SubmitSpotPage() {
       if (insertError) throw new Error("\u63d0\u4ea4\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002");
 
       formElement.reset();
+      setAddress("");
+      setLatitude("");
+      setLongitude("");
+      setLocationMessage("");
+      setLocationError("");
       setSubmitted(true);
       setMessage("\u63d0\u4ea4\u6210\u529f\uff0c\u7ba1\u7406\u5458\u5ba1\u6838\u901a\u8fc7\u540e\u4f1a\u51fa\u73b0\u5728\u76ee\u7684\u5730\u5217\u8868\u3002");
       window.setTimeout(() => router.push("/"), 2000);
@@ -123,6 +134,45 @@ export default function SubmitSpotPage() {
       setError(message);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function locateByAddress() {
+    const query = address.trim();
+    setLocationMessage("");
+    setLocationError("");
+
+    if (!query) {
+      setLocationError("\u8bf7\u5148\u586b\u5199\u5730\u5740\u6216\u5bfc\u822a\u4f4d\u7f6e\u3002");
+      return;
+    }
+
+    const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+    if (!token) {
+      setLocationError("\u7f3a\u5c11 Mapbox Token\uff0c\u6682\u65f6\u65e0\u6cd5\u81ea\u52a8\u5b9a\u4f4d\u3002");
+      return;
+    }
+
+    setLocating(true);
+    try {
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${encodeURIComponent(token)}&limit=1&language=zh`
+      );
+      if (!response.ok) throw new Error("\u5b9a\u4f4d\u670d\u52a1\u8fd4\u56de\u5f02\u5e38\u3002");
+
+      const data = (await response.json()) as { features?: Array<{ center?: [number, number]; place_name?: string }> };
+      const first = data.features?.[0];
+      const center = first?.center;
+      if (!center) throw new Error("\u6ca1\u6709\u627e\u5230\u5339\u914d\u4f4d\u7f6e\uff0c\u8bf7\u628a\u5730\u5740\u5199\u5f97\u66f4\u5177\u4f53\u3002");
+
+      const [lng, lat] = center;
+      setLongitude(String(Math.round(lng * 1000000) / 1000000));
+      setLatitude(String(Math.round(lat * 1000000) / 1000000));
+      setLocationMessage(`\u5df2\u5b9a\u4f4d\uff1a${first.place_name ?? query}`);
+    } catch (err) {
+      setLocationError(err instanceof Error ? err.message : "\u81ea\u52a8\u5b9a\u4f4d\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002");
+    } finally {
+      setLocating(false);
     }
   }
 
@@ -167,8 +217,34 @@ export default function SubmitSpotPage() {
             </div>
             <label className={labelClass}>
               {"\u5730\u5740/\u5b9a\u4f4d\u8bf4\u660e"}
-              <input name="address" placeholder={"\u53ef\u586b\u5199\u505c\u8f66\u70b9\u3001\u5165\u53e3\u6216\u9644\u8fd1\u5730\u6807"} className={inputClass} />
+              <input
+                name="address"
+                value={address}
+                onChange={(event) => setAddress(event.target.value)}
+                placeholder={"\u53ef\u586b\u5199\u505c\u8f66\u70b9\u3001\u5165\u53e3\u6216\u9644\u8fd1\u5730\u6807"}
+                className={inputClass}
+              />
             </label>
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-bold text-slate-900">{"\u5730\u56fe\u5b9a\u4f4d"}</p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {latitude && longitude ? `\u5df2\u5b9a\u4f4d\uff1a${latitude}, ${longitude}` : "\u586b\u5199\u5730\u5740\u540e\uff0c\u70b9\u51fb\u81ea\u52a8\u5b9a\u4f4d\u3002"}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={locateByAddress}
+                  disabled={locating}
+                  className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {locating ? "\u5b9a\u4f4d\u4e2d..." : "\u81ea\u52a8\u5b9a\u4f4d"}
+                </button>
+              </div>
+              {locationMessage ? <p className="mt-2 text-xs font-medium text-emerald-700">{locationMessage}</p> : null}
+              {locationError ? <p className="mt-2 text-xs font-medium text-red-600">{locationError}</p> : null}
+            </div>
           </section>
 
           <section className="space-y-3 border-t border-slate-100 pt-5">
@@ -205,14 +281,8 @@ export default function SubmitSpotPage() {
               </label>
             </div>
             <div className="grid gap-3 md:grid-cols-3">
-              <label className={labelClass}>
-                {"\u7eac\u5ea6"}
-                <input name="latitude" type="number" step="0.000001" placeholder={"\u53ef\u9009"} className={inputClass} />
-              </label>
-              <label className={labelClass}>
-                {"\u7ecf\u5ea6"}
-                <input name="longitude" type="number" step="0.000001" placeholder={"\u53ef\u9009"} className={inputClass} />
-              </label>
+              <input name="latitude" type="hidden" value={latitude} readOnly />
+              <input name="longitude" type="hidden" value={longitude} readOnly />
               <label className={labelClass}>
                 {"\u9002\u5408\u5e74\u9f84"}
                 <input name="min_kid_age" type="number" min="0" placeholder={"\u4f8b\u5982\uff1a3"} className={inputClass} />
