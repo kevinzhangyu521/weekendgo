@@ -27,5 +27,9 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/login?authError=invalid_link`);
   }
 
+  if (type === "signup") {
+    return NextResponse.redirect(`${origin}/login?confirmed=1`);
+  }
+
   return NextResponse.redirect(`${origin}${next}`);
 }
