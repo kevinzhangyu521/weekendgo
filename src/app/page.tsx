@@ -10,6 +10,8 @@ import {
 } from "@/features/destinations/presenter";
 import { getAllDestinations } from "@/features/destinations/repository";
 import type { DestinationItem } from "@/features/destinations/types";
+import { getMyProfile } from "@/features/profiles/repository";
+import type { Locale } from "@/lib/i18n/config";
 import { getLocale, pick } from "@/lib/i18n/server";
 
 const scenes = [
@@ -21,9 +23,88 @@ const scenes = [
 
 const fallbackImage = "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1400&q=80";
 
-function formatDistance(distanceKm: number) {
-  if (!distanceKm || distanceKm <= 0) return "\u8ddd\u79bb\u5f85\u8ba1\u7b97";
-  return `\u8ddd\u79bb ${distanceKm}km`;
+const defaultHomeCity = "\u6b66\u6c49";
+
+const cityNames: Record<string, string> = {
+  "\u6b66\u6c49": "Wuhan",
+  "\u4e0a\u6d77": "Shanghai",
+  "\u5317\u4eac": "Beijing",
+  "\u676d\u5dde": "Hangzhou",
+  "\u6210\u90fd": "Chengdu",
+  "\u5e7f\u5dde": "Guangzhou",
+  "\u6df1\u5733": "Shenzhen"
+};
+
+const weatherByCity: Record<string, { text: string; textEn: string; temp: number; wind: number; advice: string; adviceEn: string; scenes: string; scenesEn: string }> = {
+  "\u6b66\u6c49": {
+    text: "\u591a\u4e91\u95f4\u6674",
+    textEn: "Partly sunny",
+    temp: 28,
+    wind: 2,
+    advice: "\u9002\u5408\u91ce\u9910\u548c\u8f7b\u5f92\u6b65",
+    adviceEn: "Good for picnic and light hiking",
+    scenes: "\u91ce\u9910 / \u5f92\u6b65",
+    scenesEn: "Picnic / Hiking"
+  },
+  "\u4e0a\u6d77": {
+    text: "\u9634\u5230\u591a\u4e91",
+    textEn: "Cloudy",
+    temp: 26,
+    wind: 3,
+    advice: "\u9002\u5408\u516c\u56ed\u91ce\u9910\u548c\u77ed\u9014\u5f92\u6b65",
+    adviceEn: "Good for parks and short walks",
+    scenes: "\u91ce\u9910 / \u5f92\u6b65",
+    scenesEn: "Picnic / Hiking"
+  },
+  "\u676d\u5dde": {
+    text: "\u6674\u5230\u591a\u4e91",
+    textEn: "Sunny to cloudy",
+    temp: 27,
+    wind: 2,
+    advice: "\u9002\u5408\u5f92\u6b65\u548c\u6eaf\u6eaa\u5468\u8fb9\u6e38",
+    adviceEn: "Good for hiking and creek trips",
+    scenes: "\u5f92\u6b65 / \u6eaf\u6eaa",
+    scenesEn: "Hiking / Creek"
+  }
+};
+
+function displayCity(city: string, locale: Locale) {
+  return pick(locale, cityNames[city] ?? city, city);
+}
+
+function getWeekendRange(locale: Locale) {
+  const now = new Date();
+  const day = now.getDay();
+  const daysUntilSaturday = (6 - day + 7) % 7;
+  const saturday = new Date(now);
+  saturday.setDate(now.getDate() + daysUntilSaturday);
+  const sunday = new Date(saturday);
+  sunday.setDate(saturday.getDate() + 1);
+
+  const formatter = new Intl.DateTimeFormat(locale === "zh" ? "zh-CN" : "en-US", {
+    month: "short",
+    day: "numeric"
+  });
+
+  return `${formatter.format(saturday)} - ${formatter.format(sunday)}`;
+}
+
+function getWeekendRecommendation(city: string, locale: Locale) {
+  const profile = weatherByCity[city] ?? weatherByCity[defaultHomeCity];
+
+  return {
+    city: displayCity(city, locale),
+    dateRange: getWeekendRange(locale),
+    weather: pick(locale, `${profile.textEn} ${profile.temp}C`, `${profile.text} ${profile.temp}\u00b0C`),
+    wind: pick(locale, `Wind level ${profile.wind}`, `\u98ce\u529b ${profile.wind}\u7ea7`),
+    advice: pick(locale, profile.adviceEn, profile.advice),
+    scenes: pick(locale, profile.scenesEn, profile.scenes)
+  };
+}
+
+function formatDistance(distanceKm: number, locale: Locale) {
+  if (!distanceKm || distanceKm <= 0) return pick(locale, "Distance pending", "\u8ddd\u79bb\u5f85\u8ba1\u7b97");
+  return pick(locale, `${distanceKm}km away`, `\u8ddd\u79bb ${distanceKm}km`);
 }
 
 function SceneBadge({ item, locale }: { item: DestinationItem; locale: "en" | "zh" }) {
@@ -39,6 +120,9 @@ function SceneBadge({ item, locale }: { item: DestinationItem; locale: "en" | "z
 export default async function HomePage() {
   const locale = await getLocale();
   const zh = locale === "zh";
+  const profile = await getMyProfile();
+  const homeCity = profile?.homeCity?.trim() || defaultHomeCity;
+  const weekend = getWeekendRecommendation(homeCity, locale);
   const recommendations = (await getAllDestinations()).slice(0, 6);
 
   return (
@@ -51,17 +135,19 @@ export default async function HomePage() {
               "linear-gradient(rgba(15,23,42,.45), rgba(15,23,42,.35)), url('https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1800&q=80')"
           }}
         >
-          <p className="text-sm text-emerald-100">{pick(locale, "This Weekend", "\u672c\u5468\u672b\u63a8\u8350")}</p>
+          <p className="text-sm font-medium text-emerald-100">
+            {pick(locale, "This Weekend", "\u672c\u5468\u672b\u63a8\u8350")} - {weekend.city} - {weekend.dateRange}
+          </p>
           <h1 className="mt-2 max-w-xl text-2xl font-bold leading-tight text-white md:text-4xl">
-            {pick(locale, "Find safe outdoor picks for your family in under 2 hours", "2\u5c0f\u65f6\u5185\u627e\u5230\u9002\u5408\u4eb2\u5b50\u5bb6\u5ead\u7684\u5b89\u5fc3\u6237\u5916\u76ee\u7684\u5730")}
+            {pick(locale, `Family-friendly outdoor picks near ${weekend.city}`, `${weekend.city}\u5468\u8fb9\u4eb2\u5b50\u6237\u5916\u63a8\u8350`)}
           </h1>
           <p className="mt-3 max-w-2xl text-sm text-slate-100 md:text-base">
-            {pick(locale, "Curated by family needs: easier routes, practical facilities, and lower risk options.", "\u5df2\u6309\u4eb2\u5b50\u9700\u6c42\u7b5b\u9009\uff1a\u4f4e\u96be\u5ea6\u3001\u8bbe\u65bd\u5b8c\u5584\u3001\u98ce\u9669\u53ef\u63a7\u3002")}
+            {pick(locale, `Based on your home city and weekend conditions, we suggest ${weekend.scenes}. ${weekend.advice}.`, `\u5df2\u6839\u636e\u4f60\u7684\u5e38\u4f4f\u57ce\u5e02\u548c\u672c\u5468\u672b\u60c5\u51b5\u63a8\u8350\uff1a${weekend.scenes}\u3002${weekend.advice}\u3002`)}
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
-            <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700">{pick(locale, "Sunny 25C", "\u6674 25\u00b0C")}</span>
-            <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700">{pick(locale, "Wind Level 2", "\u98ce\u529b 2\u7ea7")}</span>
-            <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700">{pick(locale, "Good for outdoors", "\u9002\u5408\u6237\u5916")}</span>
+            <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700">{weekend.weather}</span>
+            <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700">{weekend.wind}</span>
+            <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700">{weekend.advice}</span>
           </div>
         </div>
       </section>
@@ -122,7 +208,7 @@ export default async function HomePage() {
                 <p className="line-clamp-2 text-sm text-slate-600">{destinationDescription(item, locale)}</p>
 
                 <p className="text-sm text-slate-600">
-                  {destinationCity(item, locale)} - {formatDistance(item.distanceKm)} - {destinationDifficultyShort(item, locale)} - {destinationSafety(item, locale)}
+                  {destinationCity(item, locale)} - {formatDistance(item.distanceKm, locale)} - {destinationDifficultyShort(item, locale)} - {destinationSafety(item, locale)}
                 </p>
 
                 <div className="flex flex-wrap gap-2">
