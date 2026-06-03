@@ -8,6 +8,7 @@ type CityCoordinate = {
 type WeatherResult = {
   weather: string;
   wind: string;
+  sourceUrl: string;
 };
 
 type GeocodingResult = {
@@ -108,7 +109,8 @@ export async function getCityWeather(city: string, locale: Locale): Promise<Weat
       timezone: "auto"
     });
 
-    const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params.toString()}`, {
+    const sourceUrl = `https://api.open-meteo.com/v1/forecast?${params.toString()}`;
+    const response = await fetch(sourceUrl, {
       next: { revalidate: 3600 }
     });
     if (!response.ok) return null;
@@ -123,7 +125,8 @@ export async function getCityWeather(city: string, locale: Locale): Promise<Weat
 
     return {
       weather: temperature === null ? condition : pick(locale, `${condition} ${temperature}C`, `${condition} ${temperature}\u00b0C`),
-      wind: windLevel === null ? pick(locale, "Wind updated", "\u98ce\u529b\u5df2\u66f4\u65b0") : pick(locale, `Wind level ${windLevel}`, `\u98ce\u529b ${windLevel}\u7ea7`)
+      wind: windLevel === null ? pick(locale, "Wind updated", "\u98ce\u529b\u5df2\u66f4\u65b0") : pick(locale, `Wind level ${windLevel}`, `\u98ce\u529b ${windLevel}\u7ea7`),
+      sourceUrl
     };
   } catch {
     return null;

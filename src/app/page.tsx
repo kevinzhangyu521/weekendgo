@@ -166,6 +166,7 @@ export default async function HomePage() {
   const homeCity = profile?.homeCity?.trim() || defaultHomeCity;
   const preferredScenarios = profile?.preferredScenarios ?? [];
   const dynamicWeather = await getCityWeather(homeCity, locale);
+  const weatherSourceUrl = dynamicWeather?.sourceUrl;
   const weekend = {
     ...getWeekendRecommendation(homeCity, preferredScenarios, locale),
     ...(dynamicWeather ?? {})
@@ -197,6 +198,16 @@ export default async function HomePage() {
             <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700">{weekend.wind}</span>
             <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700">{weekend.advice}</span>
           </div>
+          {weatherSourceUrl ? (
+            <a
+              href={weatherSourceUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 inline-flex text-xs font-medium text-emerald-100 underline-offset-4 hover:text-white hover:underline"
+            >
+              {pick(locale, "View live weather source", "\u67e5\u770b\u5b9e\u65f6\u5929\u6c14\u6570\u636e\u6e90")}
+            </a>
+          ) : null}
           <div className="mt-6 flex flex-col gap-3 rounded-xl bg-white/95 p-4 text-slate-800 shadow-sm backdrop-blur md:max-w-2xl md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">{pick(locale, "Recommended plan", "\u63a8\u8350\u73a9\u6cd5")}</p>
