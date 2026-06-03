@@ -13,6 +13,7 @@ import type { DestinationItem, Scenario } from "@/features/destinations/types";
 import { getMyProfile } from "@/features/profiles/repository";
 import type { Locale } from "@/lib/i18n/config";
 import { getLocale, pick } from "@/lib/i18n/server";
+import { getCityWeather } from "@/lib/weather/open-meteo";
 
 const scenes = [
   { key: "camping", label: "Camping", labelZh: "\u9732\u8425", icon: Tent, color: "bg-amber-100 text-amber-700" },
@@ -164,7 +165,11 @@ export default async function HomePage() {
   const profile = await getMyProfile();
   const homeCity = profile?.homeCity?.trim() || defaultHomeCity;
   const preferredScenarios = profile?.preferredScenarios ?? [];
-  const weekend = getWeekendRecommendation(homeCity, preferredScenarios, locale);
+  const dynamicWeather = await getCityWeather(homeCity, locale);
+  const weekend = {
+    ...getWeekendRecommendation(homeCity, preferredScenarios, locale),
+    ...(dynamicWeather ?? {})
+  };
   const allDestinations = await getAllDestinations();
   const recommendations = getPersonalizedDestinations(allDestinations, preferredScenarios);
 
