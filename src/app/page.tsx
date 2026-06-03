@@ -9,7 +9,7 @@ import {
   destinationScenario
 } from "@/features/destinations/presenter";
 import { getAllDestinations } from "@/features/destinations/repository";
-import type { DestinationItem } from "@/features/destinations/types";
+import type { DestinationItem, Scenario } from "@/features/destinations/types";
 import { getMyProfile } from "@/features/profiles/repository";
 import type { Locale } from "@/lib/i18n/config";
 import { getLocale, pick } from "@/lib/i18n/server";
@@ -24,6 +24,13 @@ const scenes = [
 const fallbackImage = "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1400&q=80";
 
 const defaultHomeCity = "\u6b66\u6c49";
+
+const scenarioLabels: Record<Scenario, { en: string; zh: string }> = {
+  camping: { en: "Camping", zh: "\u9732\u8425" },
+  creek: { en: "Creek", zh: "\u6eaf\u6eaa" },
+  hiking: { en: "Hiking", zh: "\u5f92\u6b65" },
+  picnic: { en: "Picnic", zh: "\u91ce\u9910" }
+};
 
 type WeekendProfile = {
   text: string;
@@ -87,6 +94,10 @@ function displayCity(city: string, locale: Locale) {
   return pick(locale, cityNames[city] ?? city, city);
 }
 
+function displayScenarios(scenarios: Scenario[], locale: Locale) {
+  return scenarios.map((scenario) => pick(locale, scenarioLabels[scenario].en, scenarioLabels[scenario].zh)).join(" / ");
+}
+
 function getWeekendRange(locale: Locale) {
   const now = new Date();
   const day = now.getDay();
@@ -104,17 +115,23 @@ function getWeekendRange(locale: Locale) {
   return `${formatter.format(saturday)} - ${formatter.format(sunday)}`;
 }
 
-function getWeekendRecommendation(city: string, locale: Locale) {
+function getWeekendRecommendation(city: string, preferredScenarios: Scenario[], locale: Locale) {
   const profile = weatherByCity[city] ?? weatherByCity[defaultHomeCity];
+  const hasPreference = preferredScenarios.length > 0;
+  const matchedScenario = hasPreference ? preferredScenarios[0] : profile.scenario;
+  const matchedScenes = hasPreference ? displayScenarios(preferredScenarios, locale) : pick(locale, profile.scenesEn, profile.scenes);
 
   return {
     city: displayCity(city, locale),
     dateRange: getWeekendRange(locale),
     weather: pick(locale, `${profile.textEn} ${profile.temp}C`, `${profile.text} ${profile.temp}\u00b0C`),
     wind: pick(locale, `Wind level ${profile.wind}`, `\u98ce\u529b ${profile.wind}\u7ea7`),
-    advice: pick(locale, profile.adviceEn, profile.advice),
-    scenes: pick(locale, profile.scenesEn, profile.scenes),
-    href: `/destinations?scenario=${profile.scenario}&difficulty=all&maxDistance=120&needParking=false&needToilet=false`
+    advice: hasPreference
+      ? pick(locale, "Matched with your saved outdoor preferences", "\u5df2\u6839\u636e\u4f60\u5728\u8d44\u6599\u91cc\u9009\u62e9\u7684\u504f\u597d\u573a\u666f\u5339\u914d")
+      : pick(locale, profile.adviceEn, profile.advice),
+    source: hasPreference ? pick(locale, "Based on your profile preferences", "\u6839\u636e\u4f60\u7684\u8d44\u6599\u504f\u597d\u63a8\u8350") : pick(locale, "Based on city and weekend conditions", "\u6839\u636e\u57ce\u5e02\u548c\u672c\u5468\u672b\u60c5\u51b5\u63a8\u8350"),
+    scenes: matchedScenes,
+    href: `/destinations?scenario=${matchedScenario}&difficulty=all&maxDistance=120&needParking=false&needToilet=false`
   };
 }
 
@@ -133,13 +150,23 @@ function SceneBadge({ item, locale }: { item: DestinationItem; locale: "en" | "z
   return <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${colorMap[item.scenario]}`}>{destinationScenario(item, locale)}</span>;
 }
 
+function getPersonalizedDestinations(allDestinations: DestinationItem[], preferredScenarios: Scenario[]) {
+  if (preferredScenarios.length === 0) return allDestinations.slice(0, 6);
+
+  const matched = allDestinations.filter((item) => preferredScenarios.includes(item.scenario));
+  const fallback = allDestinations.filter((item) => !preferredScenarios.includes(item.scenario));
+  return [...matched, ...fallback].slice(0, 6);
+}
+
 export default async function HomePage() {
   const locale = await getLocale();
   const zh = locale === "zh";
   const profile = await getMyProfile();
   const homeCity = profile?.homeCity?.trim() || defaultHomeCity;
-  const weekend = getWeekendRecommendation(homeCity, locale);
-  const recommendations = (await getAllDestinations()).slice(0, 6);
+  const preferredScenarios = profile?.preferredScenarios ?? [];
+  const weekend = getWeekendRecommendation(homeCity, preferredScenarios, locale);
+  const allDestinations = await getAllDestinations();
+  const recommendations = getPersonalizedDestinations(allDestinations, preferredScenarios);
 
   return (
     <main className="min-h-screen">
@@ -158,7 +185,7 @@ export default async function HomePage() {
             {pick(locale, `Family-friendly outdoor picks near ${weekend.city}`, `${weekend.city}\u5468\u8fb9\u4eb2\u5b50\u6237\u5916\u63a8\u8350`)}
           </h1>
           <p className="mt-3 max-w-2xl text-sm text-slate-100 md:text-base">
-            {pick(locale, `Based on your home city and weekend conditions, we suggest ${weekend.scenes}. ${weekend.advice}.`, `\u5df2\u6839\u636e\u4f60\u7684\u5e38\u4f4f\u57ce\u5e02\u548c\u672c\u5468\u672b\u60c5\u51b5\u63a8\u8350\uff1a${weekend.scenes}\u3002${weekend.advice}\u3002`)}
+            {pick(locale, `${weekend.source}: ${weekend.scenes}. ${weekend.advice}.`, `${weekend.source}\uff1a${weekend.scenes}\u3002${weekend.advice}\u3002`)}
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
             <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700">{weekend.weather}</span>
@@ -169,7 +196,7 @@ export default async function HomePage() {
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">{pick(locale, "Recommended plan", "\u63a8\u8350\u73a9\u6cd5")}</p>
               <p className="mt-1 text-base font-bold text-slate-900">{weekend.scenes}</p>
-              <p className="mt-1 text-sm text-slate-600">{pick(locale, "Tap to see matched family-friendly destinations.", "\u70b9\u51fb\u67e5\u770b\u5339\u914d\u7684\u4eb2\u5b50\u6237\u5916\u76ee\u7684\u5730\u3002")}</p>
+              <p className="mt-1 text-sm text-slate-600">{weekend.source}{pick(locale, ". Tap to see matched family-friendly destinations.", "\u3002\u70b9\u51fb\u67e5\u770b\u5339\u914d\u7684\u4eb2\u5b50\u6237\u5916\u76ee\u7684\u5730\u3002")}</p>
             </div>
             <Link
               href={weekend.href}
