@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { MapPinned } from "lucide-react";
-import { MapExplorer } from "@/components/map/map-explorer";
+import { MapExplorerLoader } from "@/components/map/map-explorer-loader";
 import { filterDestinations, parseFilters } from "@/features/destinations/filter";
 import { getAllDestinations } from "@/features/destinations/repository";
 import { getMyProfile } from "@/features/profiles/repository";
@@ -12,12 +12,15 @@ export default async function MapPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const locale = await getLocale();
-  const params = await searchParams;
+  const [locale, params, profile, destinations] = await Promise.all([
+    getLocale(),
+    searchParams,
+    getMyProfile(),
+    getAllDestinations()
+  ]);
   const filters = parseFilters(params);
-  const profile = await getMyProfile();
   const homeCity = profile?.homeCity?.trim() || DEFAULT_HOME_CITY;
-  const items = filterDestinations(withDistanceFromCity(await getAllDestinations(), homeCity), filters);
+  const items = filterDestinations(withDistanceFromCity(destinations, homeCity), filters);
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -40,7 +43,7 @@ export default async function MapPage({
           </div>
         </div>
 
-        <MapExplorer items={items} locale={locale} />
+        <MapExplorerLoader items={items} locale={locale} />
       </section>
     </main>
   );
