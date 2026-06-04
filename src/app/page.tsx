@@ -176,9 +176,8 @@ function getPersonalizedDestinations(allDestinations: DestinationItem[], preferr
 }
 
 export default async function HomePage() {
-  const locale = await getLocale();
+  const [locale, profile, rawDestinations] = await Promise.all([getLocale(), getMyProfile(), getAllDestinations()]);
   const zh = locale === "zh";
-  const profile = await getMyProfile();
   const homeCity = profile?.homeCity?.trim() || DEFAULT_HOME_CITY;
   const preferredScenarios = profile?.preferredScenarios ?? [];
   const dynamicWeather = await getCityWeather(homeCity, locale);
@@ -187,7 +186,7 @@ export default async function HomePage() {
     ...getWeekendRecommendation(homeCity, preferredScenarios, locale),
     ...(dynamicWeather ?? {})
   };
-  const allDestinations = withDistanceFromCity(await getAllDestinations(), homeCity);
+  const allDestinations = withDistanceFromCity(rawDestinations, homeCity);
   const recommendations = getPersonalizedDestinations(allDestinations, preferredScenarios, homeCity);
 
   return (

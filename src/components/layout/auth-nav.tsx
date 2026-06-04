@@ -1,23 +1,17 @@
 import Link from "next/link";
 import { BrandLogo } from "@/components/brand/brand-logo";
-import { createClient } from "@/lib/supabase/server";
-import { getLocale, pick } from "@/lib/i18n/server";
+import { pick } from "@/lib/i18n/server";
+import type { Locale } from "@/lib/i18n/config";
 import { LocaleSwitcher } from "@/components/i18n/locale-switcher";
 import { AuthNavClient } from "./auth-nav-client";
 
-export async function AuthNav() {
-  const locale = await getLocale();
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
-  let isAdmin = false;
+type Props = {
+  locale: Locale;
+  email: string | null;
+  isAdmin: boolean;
+};
 
-  if (user) {
-    const { data } = await supabase.from("admin_users").select("user_id").eq("user_id", user.id).maybeSingle();
-    isAdmin = Boolean(data);
-  }
-
+export function AuthNav({ locale, email, isAdmin }: Props) {
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 md:px-6">
@@ -39,12 +33,12 @@ export async function AuthNav() {
             <Link href="/submit-spot" className="hover:text-slate-900">
               {pick(locale, "Add Spot", "\u6dfb\u52a0\u63a8\u8350\u5730\u70b9")}
             </Link>
-            {user ? (
+            {email ? (
               <Link href="/my-submissions" className="hover:text-slate-900">
                 {pick(locale, "My Submissions", "\u6211\u7684\u6295\u7a3f")}
               </Link>
             ) : null}
-            {user ? (
+            {email ? (
               <Link href="/profile" className="hover:text-slate-900">
                 {"\u6211\u7684\u8d44\u6599"}
               </Link>
@@ -64,7 +58,7 @@ export async function AuthNav() {
 
         <div className="flex items-center gap-2">
           <LocaleSwitcher locale={locale} />
-          <AuthNavClient locale={locale} initialEmail={user?.email ?? null} initialIsAdmin={isAdmin} />
+          <AuthNavClient locale={locale} initialEmail={email} initialIsAdmin={isAdmin} />
         </div>
       </div>
     </header>

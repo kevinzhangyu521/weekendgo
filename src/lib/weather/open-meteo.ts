@@ -33,6 +33,14 @@ type ForecastResult = {
   };
 };
 
+type NextFetchInit = RequestInit & {
+  next?: {
+    revalidate?: number;
+  };
+};
+
+const WEATHER_FETCH_TIMEOUT_MS = 1200;
+
 function pick<T>(locale: Locale, en: T, zh: T): T {
   return locale === "zh" ? zh : en;
 }
@@ -56,12 +64,26 @@ const weatherCodeLabels: Record<number, { en: string; zh: string }> = {
   95: { en: "Thunderstorm", zh: "\u96f7\u9635\u96e8" }
 };
 
+async function fetchWithTimeout(url: string, init: NextFetchInit = {}) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), WEATHER_FETCH_TIMEOUT_MS);
+
+  try {
+    return await fetch(url, {
+      ...init,
+      signal: controller.signal
+    });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function geocodeCity(city: string): Promise<CityCoordinate | null> {
   const known = getKnownCityCoordinate(city);
   if (known) return known;
 
   const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=zh&format=json`;
-  const response = await fetch(url, { next: { revalidate: 86400 } });
+  const response = await fetchWithTimeout(url, { next: { revalidate: 86400 } });
   if (!response.ok) return null;
 
   const data = (await response.json()) as GeocodingResult;
@@ -100,7 +122,7 @@ export async function getCityWeather(city: string, locale: Locale): Promise<Weat
     });
 
     const sourceUrl = `https://api.open-meteo.com/v1/forecast?${params.toString()}`;
-    const response = await fetch(sourceUrl, {
+    const response = await fetchWithTimeout(sourceUrl, {
       next: { revalidate: 3600 }
     });
     if (!response.ok) return null;

@@ -40,11 +40,17 @@ export default async function RootLayout({
   const {
     data: { user }
   } = await supabase.auth.getUser();
+  let isAdmin = false;
+
+  if (user) {
+    const { data } = await supabase.from("admin_users").select("user_id").eq("user_id", user.id).maybeSingle();
+    isAdmin = Boolean(data);
+  }
 
   return (
     <html lang="zh-CN">
       <body className="bg-slate-50 pb-16 text-slate-800 antialiased md:pb-0">
-        <AuthNav />
+        <AuthNav locale={locale} email={user?.email ?? null} isAdmin={isAdmin} />
         {children}
         <InstallPrompt />
         <MobileTabBar locale={locale} isSignedIn={Boolean(user)} />

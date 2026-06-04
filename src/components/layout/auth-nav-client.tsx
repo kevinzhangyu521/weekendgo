@@ -22,15 +22,15 @@ type NavItem = {
 
 const navItems: Record<Locale, NavItem[]> = {
   zh: [
-    { href: "/destinations", label: "目的地" },
-    { href: "/map", label: "地图" },
-    { href: "/favorites", label: "收藏" },
-    { href: "/plans", label: "我的计划" },
-    { href: "/submit-spot", label: "添加推荐地点" },
-    { href: "/my-submissions", label: "我的投稿", authOnly: true },
-    { href: "/profile", label: "我的资料", authOnly: true },
-    { href: "/admin/submissions", label: "审核投稿", adminOnly: true },
-    { href: "/admin/destinations", label: "目的地管理", adminOnly: true }
+    { href: "/destinations", label: "\u76ee\u7684\u5730" },
+    { href: "/map", label: "\u5730\u56fe" },
+    { href: "/favorites", label: "\u6536\u85cf" },
+    { href: "/plans", label: "\u6211\u7684\u8ba1\u5212" },
+    { href: "/submit-spot", label: "\u6dfb\u52a0\u63a8\u8350\u5730\u70b9" },
+    { href: "/my-submissions", label: "\u6211\u7684\u6295\u7a3f", authOnly: true },
+    { href: "/profile", label: "\u6211\u7684\u8d44\u6599", authOnly: true },
+    { href: "/admin/submissions", label: "\u5ba1\u6838\u6295\u7a3f", adminOnly: true },
+    { href: "/admin/destinations", label: "\u76ee\u7684\u5730\u7ba1\u7406", adminOnly: true }
   ],
   en: [
     { href: "/destinations", label: "Destinations" },
@@ -54,28 +54,20 @@ export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
   const [loading, setLoading] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  async function syncSession() {
-    const {
-      data: { user }
-    } = await supabase.auth.getUser();
-
-    setEmail(user?.email ?? null);
-
-    if (!user) {
-      setIsAdmin(false);
-      return;
-    }
-
-    const { data } = await supabase.from("admin_users").select("user_id").eq("user_id", user.id).maybeSingle();
-    setIsAdmin(Boolean(data));
-  }
-
   useEffect(() => {
-    void syncSession();
     const {
       data: { subscription }
-    } = supabase.auth.onAuthStateChange((event) => {
-      void syncSession();
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const user = session?.user ?? null;
+      setEmail(user?.email ?? null);
+
+      if (!user) {
+        setIsAdmin(false);
+      } else {
+        const { data } = await supabase.from("admin_users").select("user_id").eq("user_id", user.id).maybeSingle();
+        setIsAdmin(Boolean(data));
+      }
+
       if (event === "SIGNED_IN" || event === "SIGNED_OUT") router.refresh();
     });
 
@@ -106,7 +98,7 @@ export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
         type="button"
         onClick={() => setMenuOpen((value) => !value)}
         className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white p-2 text-slate-700 md:hidden"
-        aria-label={menuOpen ? "关闭菜单" : "打开菜单"}
+        aria-label={menuOpen ? "\u5173\u95ed\u83dc\u5355" : "\u6253\u5f00\u83dc\u5355"}
       >
         {menuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
       </button>
@@ -120,15 +112,12 @@ export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
             disabled={loading}
             className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-50 disabled:opacity-60"
           >
-            {locale === "zh" ? "退出" : "Sign out"}
+            {locale === "zh" ? "\u9000\u51fa" : "Sign out"}
           </button>
         </div>
       ) : (
-        <Link
-          href={loginHref}
-          className="rounded-full bg-emerald-600 px-3 py-1.5 font-medium text-white hover:bg-emerald-700"
-        >
-          {locale === "zh" ? "登录" : "Sign in"}
+        <Link href={loginHref} className="rounded-full bg-emerald-600 px-3 py-1.5 font-medium text-white hover:bg-emerald-700">
+          {locale === "zh" ? "\u767b\u5f55" : "Sign in"}
         </Link>
       )}
 
