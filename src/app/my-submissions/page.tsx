@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Lock, Pencil, RotateCcw, Trash2, Unlock } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { getMyNotifications } from "@/features/notifications/repository";
 import { getMySubmissions, purgeExpiredDeletedSubmissions } from "@/features/submissions/repository";
 import type { SpotSubmission } from "@/features/submissions/types";
 import { deleteSubmission, lockSubmission, restoreSubmission, unlockSubmission } from "./actions";
@@ -153,6 +154,7 @@ export default async function MySubmissionsPage() {
 
   await purgeExpiredDeletedSubmissions();
   const submissions = await getMySubmissions();
+  const notifications = await getMyNotifications(3);
   const activeSubmissions = submissions.filter((item) => !item.deletedAt);
   const deletedSubmissions = submissions.filter((item) => item.deletedAt);
 
@@ -162,6 +164,18 @@ export default async function MySubmissionsPage() {
         <p className="text-sm text-slate-500">{"\u6816\u7f8e\u5730"}</p>
         <h1 className="mt-1 text-2xl font-bold text-slate-900">{"\u6211\u7684\u6295\u7a3f"}</h1>
         <p className="mt-2 text-sm text-slate-600">{"\u8fd9\u91cc\u4f1a\u663e\u793a\u4f60\u63a8\u8350\u5730\u70b9\u7684\u5ba1\u6838\u8fdb\u5ea6\u3001\u7ba1\u7406\u5458\u53cd\u9988\uff0c\u4e5f\u53ef\u4ee5\u9501\u5b9a\u6216\u79fb\u52a8\u5230\u5df2\u5220\u9664\u5217\u8868\u3002"}</p>
+
+        {notifications.length > 0 ? (
+          <section className="mt-5 space-y-2 rounded-xl border border-emerald-100 bg-emerald-50 p-4">
+            <h2 className="text-sm font-bold text-emerald-900">{"最新通知"}</h2>
+            {notifications.map((item) => (
+              <div key={item.id} className="rounded-lg bg-white/80 p-3 text-sm text-slate-700">
+                <p className="font-semibold text-slate-900">{item.title}</p>
+                <p className="mt-1">{item.body}</p>
+              </div>
+            ))}
+          </section>
+        ) : null}
 
         {activeSubmissions.length === 0 ? (
           <div className="mt-5 rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-600">

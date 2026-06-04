@@ -56,9 +56,17 @@ export async function approveSubmission(formData: FormData) {
       status: "approved",
       reviewed_by: user.id,
       reviewed_at: new Date().toISOString(),
-      review_note: "\u5ba1\u6838\u5df2\u901a\u8fc7\uff0c\u5730\u70b9\u5df2\u53d1\u5e03\u5230\u76ee\u7684\u5730\u5217\u8868\u3002"
+      review_note: "审核已通过，地点已发布到目的地列表。"
     })
     .eq("id", id);
+
+  await supabase.from("user_notifications").insert({
+    user_id: submission.user_id,
+    type: "submission_approved",
+    title: "推荐地点审核通过",
+    body: `你推荐的「${submission.name_zh || submission.name}」已审核通过，地点已发布到目的地列表。`,
+    href: "/my-submissions"
+  });
 
   revalidatePath("/admin/submissions");
   revalidatePath("/my-submissions");
@@ -68,7 +76,9 @@ export async function approveSubmission(formData: FormData) {
 
 export async function rejectSubmission(formData: FormData) {
   const id = String(formData.get("id") ?? "");
-  const note = String(formData.get("review_note") ?? "").trim() || "\u672a\u901a\u8fc7\u5ba1\u6838\uff0c\u5efa\u8bae\u8865\u5145\u66f4\u6e05\u6670\u7684\u5730\u70b9\u4fe1\u606f\u3001\u5b89\u5168\u63d0\u793a\u6216\u73b0\u573a\u56fe\u7247\u540e\u518d\u6b21\u63d0\u4ea4\u3002";
+  const note =
+    String(formData.get("review_note") ?? "").trim() ||
+    "未通过审核，建议补充更清晰的地点信息、安全提示或现场图片后再次提交。";
   if (!id) return;
 
   const supabase = await createClient();
@@ -86,6 +96,22 @@ export async function rejectSubmission(formData: FormData) {
       review_note: note
     })
     .eq("id", id);
+
+  const { data: submission } = await supabase
+    .from("spot_submissions")
+    .select("user_id,name,name_zh")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (submission) {
+    await supabase.from("user_notifications").insert({
+      user_id: submission.user_id,
+      type: "submission_rejected",
+      title: "推荐地点未通过审核",
+      body: `你推荐的「${submission.name_zh || submission.name}」暂未通过审核。原因：${note}`,
+      href: "/my-submissions"
+    });
+  }
 
   revalidatePath("/admin/submissions");
   revalidatePath("/my-submissions");
