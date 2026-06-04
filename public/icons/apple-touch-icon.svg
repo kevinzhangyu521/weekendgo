@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 180 180" role="img" aria-label="栖美地">
+  <rect width="180" height="180" rx="38" fill="#059669"/>
+  <circle cx="54" cy="54" r="17" fill="#bbf7d0"/>
+  <path d="M28 124 74 74l28 32 19-23 32 41H28Z" fill="#ecfdf5"/>
+  <path d="M40 136h100" stroke="#bbf7d0" stroke-width="9" stroke-linecap="round"/>
+  <text x="90" y="162" text-anchor="middle" font-size="28" font-weight="700" font-family="Arial, sans-serif" fill="#ffffff">栖</text>
+</svg>
