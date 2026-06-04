@@ -64,7 +64,7 @@ export function AddToPlanButton({ destinationId, locale }: Props) {
           .from("weekend_plans")
           .insert({
             user_id: user.id,
-            title: "我的周末计划",
+            title: "\u6211\u7684\u5468\u672b\u8ba1\u5212",
             plan_date: nextDate,
             status: "draft"
           })
@@ -84,7 +84,7 @@ export function AddToPlanButton({ destinationId, locale }: Props) {
         .maybeSingle();
       if (existingItemError) throw existingItemError;
       if (existingItem) {
-        setMessage(locale === "zh" ? "这个地点已经在你的计划里。" : "This destination is already in your plan.");
+        setMessage(text.alreadyInPlan);
         return;
       }
 

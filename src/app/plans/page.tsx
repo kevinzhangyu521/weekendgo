@@ -6,8 +6,7 @@ import { displayPlanTitle } from "@/features/plans/title";
 import { getLocale, pick } from "@/lib/i18n/server";
 
 export default async function PlansPage() {
-  const locale = await getLocale();
-  const plans = await getMyPlans();
+  const [locale, plans] = await Promise.all([getLocale(), getMyPlans()]);
 
   return (
     <main className="min-h-screen bg-slate-50">

@@ -23,6 +23,7 @@ export function getAddToPlanMessages(locale: Locale) {
   return {
     needSignIn: byLocale(locale, "Please sign in to add to a plan.", "\u8bf7\u5148\u767b\u5f55\u518d\u52a0\u5165\u8ba1\u5212\u3002"),
     added: byLocale(locale, "Added to your weekend plan.", "\u5df2\u52a0\u5165\u4f60\u7684\u5468\u672b\u8ba1\u5212\u3002"),
+    alreadyInPlan: byLocale(locale, "This destination is already in your plan.", "\u8fd9\u4e2a\u5730\u70b9\u5df2\u7ecf\u5728\u4f60\u7684\u8ba1\u5212\u91cc\u3002"),
     addFailed: byLocale(locale, "Add to plan failed. Please try again.", "\u6dfb\u52a0\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002"),
     adding: byLocale(locale, "Adding...", "\u6dfb\u52a0\u4e2d..."),
     addToPlan: byLocale(locale, "Add to plan", "\u52a0\u5165\u8ba1\u5212"),

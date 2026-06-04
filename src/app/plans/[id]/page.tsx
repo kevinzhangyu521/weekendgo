@@ -30,12 +30,10 @@ export default async function PlanDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const locale = await getLocale();
-  const { id } = await params;
-  const rawPlan = await getMyPlanById(id);
+  const [locale, { id }] = await Promise.all([getLocale(), params]);
+  const [rawPlan, profile] = await Promise.all([getMyPlanById(id), getMyProfile()]);
   if (!rawPlan) notFound();
 
-  const profile = await getMyProfile();
   const homeCity = profile?.homeCity?.trim() || DEFAULT_HOME_CITY;
   const plan = withPlanDistances(rawPlan, homeCity);
 

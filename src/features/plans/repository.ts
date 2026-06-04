@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { hasSupabaseAuthCookie } from "@/lib/supabase/auth-cookie";
 import type { DestinationItem } from "@/features/destinations/types";
 import type { PlanDetail, PlanSummary } from "./types";
 
@@ -85,6 +86,8 @@ function normalizePlanItemRows(rows: PlanItemQueryRow[] | null): PlanDetail["ite
 }
 
 export async function getMyPlans(): Promise<PlanSummary[]> {
+  if (!(await hasSupabaseAuthCookie())) return [];
+
   const supabase = await createClient();
   const {
     data: { user }
@@ -121,6 +124,8 @@ export async function getMyPlans(): Promise<PlanSummary[]> {
 }
 
 export async function getMyPlanById(planId: string): Promise<PlanDetail | null> {
+  if (!(await hasSupabaseAuthCookie())) return null;
+
   const supabase = await createClient();
   const {
     data: { user }
