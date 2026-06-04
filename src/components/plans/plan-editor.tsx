@@ -200,31 +200,32 @@ export function PlanEditor({ plan, locale }: Props) {
 
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 34px sans-serif";
-    ctx.fillText("\u6816\u7f8e\u5730\u5206\u4eab\u8ba1\u5212", 110, 130);
+    ctx.fillText(locale === "zh" ? "\u6816\u7f8e\u5730\u5206\u4eab\u8ba1\u5212" : "Qimeide Shared Plan", 110, 130);
 
     ctx.font = "bold 52px sans-serif";
-    const title = plan.title.length > 28 ? `${plan.title.slice(0, 28)}...` : plan.title;
+    const displayTitle = displayPlanTitle(plan.title);
+    const title = displayTitle.length > 28 ? `${displayTitle.slice(0, 28)}...` : displayTitle;
     ctx.fillText(title, 110, 205);
 
     ctx.font = "26px sans-serif";
     ctx.fillStyle = "#d1fae5";
-    ctx.fillText(`Date: ${plan.planDate}   Stops: ${plan.items.length}`, 110, 250);
+    ctx.fillText(locale === "zh" ? `\u65e5\u671f\uff1a${plan.planDate}   \u7ad9\u70b9\uff1a${plan.items.length}` : `Date: ${plan.planDate}   Stops: ${plan.items.length}`, 110, 250);
 
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 24px sans-serif";
-    ctx.fillText("Route Preview", 110, 310);
+    ctx.fillText(locale === "zh" ? "\u8def\u7ebf\u9884\u89c8" : "Route Preview", 110, 310);
 
     ctx.font = "22px sans-serif";
     const previewStops = plan.items.slice(0, 5);
     previewStops.forEach((item, idx) => {
-      const label = item.destination ? destinationName(item.destination, locale) : "Unknown destination";
+      const label = item.destination ? destinationName(item.destination, locale) : text.unknownDestination;
       const safe = label.length > 36 ? `${label.slice(0, 36)}...` : label;
       ctx.fillText(`${idx + 1}. ${safe}`, 120, 355 + idx * 45);
     });
 
     ctx.fillStyle = "#86efac";
     ctx.font = "20px sans-serif";
-    ctx.fillText("Open QR in plan editor to share the live link", 110, 550);
+    ctx.fillText(locale === "zh" ? "\u5728\u8ba1\u5212\u9875\u751f\u6210 QR \u540e\u5373\u53ef\u5206\u4eab\u5b9e\u65f6\u94fe\u63a5" : "Open QR in plan editor to share the live link", 110, 550);
 
     const data = canvas.toDataURL("image/png");
     const a = document.createElement("a");
