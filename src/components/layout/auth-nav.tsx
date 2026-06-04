@@ -64,7 +64,7 @@ export async function AuthNav() {
 
         <div className="flex items-center gap-2">
           <LocaleSwitcher locale={locale} />
-          <AuthNavClient locale={locale} initialEmail={user?.email ?? null} />
+          <AuthNavClient locale={locale} initialEmail={user?.email ?? null} initialIsAdmin={isAdmin} />
         </div>
       </div>
     </header>
