@@ -2,6 +2,7 @@ import { destinationMockData } from "./mock-data";
 import { filterDestinations } from "./filter";
 import type { DestinationFilters, DestinationItem } from "./types";
 import { createClient } from "@/lib/supabase/server";
+import { hasSupabaseAuthCookie } from "@/lib/supabase/auth-cookie";
 import { createPublicClient } from "@/lib/supabase/public";
 import { unstable_cache } from "next/cache";
 
@@ -117,6 +118,7 @@ export async function getRelatedDestinations(id: string, limit = 3): Promise<Des
 
 export async function getMyFavoriteDestinations(): Promise<DestinationItem[]> {
   if (!hasSupabaseEnv()) return [];
+  if (!(await hasSupabaseAuthCookie())) return [];
 
   try {
     const supabase = await createClient();

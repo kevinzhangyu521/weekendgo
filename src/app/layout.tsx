@@ -3,6 +3,7 @@ import { AuthNav } from "@/components/layout/auth-nav";
 import { MobileTabBar } from "@/components/layout/mobile-tab-bar";
 import { InstallPrompt } from "@/components/pwa/install-prompt";
 import { getLocale } from "@/lib/i18n/server";
+import { hasSupabaseAuthCookie } from "@/lib/supabase/auth-cookie";
 import { createClient } from "@/lib/supabase/server";
 import "./globals.css";
 
@@ -36,13 +37,14 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const locale = await getLocale();
-  const supabase = await createClient();
+  const hasAuthCookie = await hasSupabaseAuthCookie();
+  const supabase = hasAuthCookie ? await createClient() : null;
   const {
     data: { user }
-  } = await supabase.auth.getUser();
+  } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
   let isAdmin = false;
 
-  if (user) {
+  if (user && supabase) {
     const { data } = await supabase.from("admin_users").select("user_id").eq("user_id", user.id).maybeSingle();
     isAdmin = Boolean(data);
   }

@@ -23,6 +23,7 @@ import { getMyProfile } from "@/features/profiles/repository";
 import { getDestinationReviewsForUser } from "@/features/reviews/repository";
 import { DEFAULT_HOME_CITY, withDistanceFromCity } from "@/lib/geo/distance";
 import { getLocale, pick } from "@/lib/i18n/server";
+import { hasSupabaseAuthCookie } from "@/lib/supabase/auth-cookie";
 import { createClient } from "@/lib/supabase/server";
 
 const fallbackImage = "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1400&q=80";
@@ -39,14 +40,15 @@ export default async function DestinationDetailPage({
 }) {
   const [locale, { id }] = await Promise.all([getLocale(), params]);
   const isZh = locale === "zh";
-  const supabase = await createClient();
+  const hasAuthCookie = await hasSupabaseAuthCookie();
+  const supabase = hasAuthCookie ? await createClient() : null;
   const [
     {
       data: { user }
     },
     profile,
     allDestinationsRaw
-  ] = await Promise.all([supabase.auth.getUser(), getMyProfile(), getAllDestinations()]);
+  ] = await Promise.all([supabase ? supabase.auth.getUser() : Promise.resolve({ data: { user: null } }), getMyProfile(), getAllDestinations()]);
   const homeCity = profile?.homeCity?.trim() || DEFAULT_HOME_CITY;
   const destinationRaw = allDestinationsRaw.find((item) => item.id === id) ?? null;
 

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { hasSupabaseAuthCookie } from "@/lib/supabase/auth-cookie";
 import type { Scenario } from "@/features/destinations/types";
 import type { UserProfile } from "./types";
 
@@ -18,6 +19,8 @@ function normalizeScenarios(values: FormDataEntryValue[]) {
 }
 
 export async function getMyProfile(): Promise<UserProfile | null> {
+  if (!(await hasSupabaseAuthCookie())) return null;
+
   const supabase = await createClient();
   const {
     data: { user }
