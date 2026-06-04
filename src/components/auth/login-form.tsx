@@ -180,6 +180,9 @@ export function LoginForm({ locale, initialEmail }: Props) {
               <Link href={next} className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white">
                 {"继续使用网站"}
               </Link>
+              <Link href="/reset-password" className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-emerald-700">
+                {"修改密码"}
+              </Link>
               <button
                 type="button"
                 onClick={signOut}
@@ -233,6 +236,10 @@ export function LoginForm({ locale, initialEmail }: Props) {
           >
             {loadingAction === "login" ? "登录中..." : "登录"}
           </button>
+
+          <Link href="/reset-password" className="block text-center text-sm text-emerald-700 hover:underline">
+            {"忘记密码？"}
+          </Link>
 
           <button
             type="button"
