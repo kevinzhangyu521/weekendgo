@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { requireAdmin } from "@/features/admin/permissions";
 
 export type UpdateDestinationState = {
@@ -72,6 +72,7 @@ export async function saveDestination(_state: UpdateDestinationState, formData: 
 
   if (error) return { ok: false, message: `\u4fdd\u5b58\u5931\u8d25\uff1a${error.message}` };
 
+  revalidateTag("destinations");
   revalidatePath("/admin/destinations");
   revalidatePath(`/admin/destinations/${id}/edit`);
   revalidatePath("/destinations");

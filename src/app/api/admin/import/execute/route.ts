@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { executeImport, parseAndValidateCsv } from "@/features/importer/service";
 
@@ -26,5 +27,6 @@ export async function POST(request: Request) {
 
   const result = await executeImport(parsed.rows.spots, parsed.rows.facilities, parsed.rows.photos);
   if (!result.ok) return NextResponse.json(result, { status: 400 });
+  revalidateTag("destinations");
   return NextResponse.json(result);
 }

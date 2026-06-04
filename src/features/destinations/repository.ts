@@ -2,6 +2,8 @@ import { destinationMockData } from "./mock-data";
 import { filterDestinations } from "./filter";
 import type { DestinationFilters, DestinationItem } from "./types";
 import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
+import { unstable_cache } from "next/cache";
 
 type DestinationRow = {
   id: string;
@@ -57,27 +59,19 @@ function normalizeRow(row: DestinationRow): DestinationItem | null {
   };
 }
 
-async function fetchSupabaseDestinations(filters?: DestinationFilters): Promise<DestinationItem[] | null> {
+const destinationSelectFields =
+  "id,name,name_zh,province,province_zh,city,city_zh,latitude,longitude,scenario,distance_km,difficulty,safety,rating,has_parking,has_toilet,min_kid_age,image,description,description_zh";
+
+async function fetchPublicSupabaseDestinations(): Promise<DestinationItem[] | null> {
   if (!hasSupabaseEnv()) return null;
 
   try {
-    const supabase = await createClient();
-    let query = supabase
+    const supabase = createPublicClient();
+    const { data, error } = await supabase
       .from("destinations")
-      .select(
-        "id,name,name_zh,province,province_zh,city,city_zh,latitude,longitude,scenario,distance_km,difficulty,safety,rating,has_parking,has_toilet,min_kid_age,image,description,description_zh"
-      )
-      .order("rating", { ascending: false });
-
-    if (filters) {
-      if (filters.scenario !== "all") query = query.eq("scenario", filters.scenario);
-      if (filters.difficulty !== "all") query = query.eq("difficulty", filters.difficulty);
-      query = query.lte("distance_km", filters.maxDistanceKm);
-      if (filters.needParking) query = query.eq("has_parking", true);
-      if (filters.needToilet) query = query.eq("has_toilet", true);
-    }
-
-    const { data, error } = await query.limit(120);
+      .select(destinationSelectFields)
+      .order("rating", { ascending: false })
+      .limit(120);
 
     if (error || !data) return null;
 
@@ -87,16 +81,23 @@ async function fetchSupabaseDestinations(filters?: DestinationFilters): Promise<
   }
 }
 
+const getCachedPublicDestinations = unstable_cache(
+  async () => fetchPublicSupabaseDestinations(),
+  ["public-destinations-v1"],
+  {
+    revalidate: 300,
+    tags: ["destinations"]
+  }
+);
+
 export async function getAllDestinations(): Promise<DestinationItem[]> {
-  const fromSupabase = await fetchSupabaseDestinations();
+  const fromSupabase = await getCachedPublicDestinations();
   if (fromSupabase && fromSupabase.length > 0) return fromSupabase;
   return destinationMockData;
 }
 
 export async function getFilteredDestinations(filters: DestinationFilters): Promise<DestinationItem[]> {
-  const fromSupabase = await fetchSupabaseDestinations(filters);
-  if (fromSupabase) return fromSupabase;
-  return filterDestinations(destinationMockData, filters);
+  return filterDestinations(await getAllDestinations(), filters);
 }
 
 export async function getDestinationById(id: string): Promise<DestinationItem | null> {
@@ -136,9 +137,7 @@ export async function getMyFavoriteDestinations(): Promise<DestinationItem[]> {
 
     const { data: destinationRows, error: destinationError } = await supabase
       .from("destinations")
-      .select(
-        "id,name,name_zh,province,province_zh,city,city_zh,latitude,longitude,scenario,distance_km,difficulty,safety,rating,has_parking,has_toilet,min_kid_age,image,description,description_zh"
-      )
+      .select(destinationSelectFields)
       .in("id", ids);
 
     if (destinationError || !destinationRows) return [];
