@@ -80,8 +80,7 @@ export function LoginForm({ locale, initialEmail }: Props) {
         return;
       }
 
-      setMessage("登录成功，正在进入网站...");
-      router.push(next);
+      router.replace("/");
       router.refresh();
     } catch (err) {
       const detail = err instanceof Error ? err.message : "请稍后再试。";
@@ -107,8 +106,7 @@ export function LoginForm({ locale, initialEmail }: Props) {
       }
 
       if (data.session) {
-        setMessage("注册成功，正在进入网站...");
-        router.push(next);
+        router.replace("/");
         router.refresh();
         return;
       }
