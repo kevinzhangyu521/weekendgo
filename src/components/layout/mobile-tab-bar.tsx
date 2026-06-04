@@ -15,14 +15,14 @@ const labels = {
     home: "首页",
     destinations: "目的地",
     map: "地图",
-    plans: "计划",
+    plans: "我的计划",
     mine: "我的"
   },
   en: {
     home: "Home",
     destinations: "Places",
     map: "Map",
-    plans: "Plans",
+    plans: "My Plans",
     mine: "Me"
   }
 };

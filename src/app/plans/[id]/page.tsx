@@ -4,6 +4,7 @@ import { ChevronLeft, Route } from "lucide-react";
 import { PlanEditor } from "@/components/plans/plan-editor";
 import { planStatusLabel } from "@/features/plans/presenter";
 import { getMyPlanById } from "@/features/plans/repository";
+import { displayPlanTitle } from "@/features/plans/title";
 import type { PlanDetail } from "@/features/plans/types";
 import { getMyProfile } from "@/features/profiles/repository";
 import { DEFAULT_HOME_CITY, withDistanceFromCity } from "@/lib/geo/distance";
@@ -47,7 +48,7 @@ export default async function PlanDetailPage({
         </Link>
 
         <div className="mb-4 rounded-xl border border-slate-200 bg-white p-5">
-          <h1 className="text-2xl font-bold text-slate-900">{plan.title}</h1>
+          <h1 className="text-2xl font-bold text-slate-900">{displayPlanTitle(plan.title)}</h1>
           <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-slate-600">
             <span>{plan.planDate}</span>
             <span className="rounded-full bg-slate-100 px-2 py-1 text-xs">{planStatusLabel(plan.status, locale)}</span>

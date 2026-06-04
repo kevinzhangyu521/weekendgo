@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/lib/i18n/config";
 import { getPlanEditorMessages } from "@/lib/i18n/messages";
 import { destinationName, destinationRegion } from "@/features/destinations/presenter";
+import { displayPlanTitle } from "@/features/plans/title";
 import type { PlanDetail } from "@/features/plans/types";
 
 type Props = {
@@ -29,7 +30,7 @@ export function PlanEditor({ plan, locale }: Props) {
   const text = getPlanEditorMessages(locale);
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
-  const [title, setTitle] = useState(plan.title);
+  const [title, setTitle] = useState(displayPlanTitle(plan.title));
   const [planDate, setPlanDate] = useState(plan.planDate);
   const [savingMeta, setSavingMeta] = useState(false);
   const [busyItemId, setBusyItemId] = useState<string | null>(null);

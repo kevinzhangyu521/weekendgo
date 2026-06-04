@@ -64,7 +64,7 @@ export function AddToPlanButton({ destinationId, locale }: Props) {
           .from("weekend_plans")
           .insert({
             user_id: user.id,
-            title: "My Weekend Plan",
+            title: "我的周末计划",
             plan_date: nextDate,
             status: "draft"
           })
@@ -76,6 +76,18 @@ export function AddToPlanButton({ destinationId, locale }: Props) {
         planId = newPlan.id as string;
       }
 
+      const { data: existingItem, error: existingItemError } = await supabase
+        .from("plan_items")
+        .select("id")
+        .eq("plan_id", planId)
+        .eq("destination_id", destinationId)
+        .maybeSingle();
+      if (existingItemError) throw existingItemError;
+      if (existingItem) {
+        setMessage(locale === "zh" ? "这个地点已经在你的计划里。" : "This destination is already in your plan.");
+        return;
+      }
+
       const { data: itemRows } = await supabase
         .from("plan_items")
         .select("id,sort_order")
@@ -84,13 +96,12 @@ export function AddToPlanButton({ destinationId, locale }: Props) {
         .limit(1);
 
       const nextSort = (itemRows?.[0]?.sort_order ?? -1) + 1;
-      const { error: insertError } = await supabase.from("plan_items").upsert(
+      const { error: insertError } = await supabase.from("plan_items").insert(
         {
           plan_id: planId,
           destination_id: destinationId,
           sort_order: nextSort
-        },
-        { onConflict: "plan_id,destination_id" }
+        }
       );
       if (insertError) throw insertError;
 

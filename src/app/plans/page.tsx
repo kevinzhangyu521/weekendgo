@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CalendarDays, Route } from "lucide-react";
 import { planStatusLabel } from "@/features/plans/presenter";
 import { getMyPlans } from "@/features/plans/repository";
+import { displayPlanTitle } from "@/features/plans/title";
 import { getLocale, pick } from "@/lib/i18n/server";
 
 export default async function PlansPage() {
@@ -35,7 +36,7 @@ export default async function PlansPage() {
                 href={`/plans/${plan.id}`}
                 className="block rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md"
               >
-                <p className="text-base font-semibold text-slate-900">{plan.title}</p>
+                <p className="text-base font-semibold text-slate-900">{displayPlanTitle(plan.title)}</p>
                 <p className="mt-1 text-sm text-slate-600">{plan.planDate}</p>
                 <div className="mt-3 flex items-center justify-between text-xs text-slate-600">
                   <span className="inline-flex items-center gap-1">
