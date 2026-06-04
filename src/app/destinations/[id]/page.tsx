@@ -1,8 +1,9 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AlertTriangle, Backpack, Bath, Car, ChevronLeft, Clock, MapPinned, ShieldCheck, Star, TentTree, Users } from "lucide-react";
 import { FavoriteButton } from "@/components/favorites/favorite-button";
 import { AddToPlanButton } from "@/components/plans/add-to-plan-button";
+import { ReviewForm } from "@/components/reviews/review-form";
 import {
   destinationDescription,
   destinationBestFor,
@@ -19,8 +20,10 @@ import {
 } from "@/features/destinations/presenter";
 import { getDestinationById, getRelatedDestinations } from "@/features/destinations/repository";
 import { getMyProfile } from "@/features/profiles/repository";
+import { getDestinationReviews, getMyDestinationReview } from "@/features/reviews/repository";
 import { DEFAULT_HOME_CITY, withDistanceFromCity } from "@/lib/geo/distance";
 import { getLocale, pick } from "@/lib/i18n/server";
+import { createClient } from "@/lib/supabase/server";
 
 function formatDistance(distanceKm: number, locale: "en" | "zh") {
   if (!distanceKm || distanceKm <= 0) return pick(locale, "Distance pending", "\u8ddd\u79bb\u5f85\u8ba1\u7b97");
@@ -35,6 +38,10 @@ export default async function DestinationDetailPage({
   const locale = await getLocale();
   const isZh = locale === "zh";
   const { id } = await params;
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
   const profile = await getMyProfile();
   const homeCity = profile?.homeCity?.trim() || DEFAULT_HOME_CITY;
   const destinationRaw = await getDestinationById(id);
@@ -45,6 +52,8 @@ export default async function DestinationDetailPage({
   const related = withDistanceFromCity(await getRelatedDestinations(destination.id), homeCity);
   const decisionTags = destinationDecisionTags(destination, locale);
   const packingList = destinationPackingList(destination, locale);
+  const reviews = await getDestinationReviews(destination.id);
+  const myReview = await getMyDestinationReview(destination.id);
 
   return (
     <main className="min-h-screen bg-slate-50 pb-12">
@@ -182,6 +191,45 @@ export default async function DestinationDetailPage({
                 {item}
               </div>
             ))}
+          </div>
+        </section>
+
+        <section className="mt-5 rounded-xl border border-slate-200 bg-white p-4">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 className="text-base font-semibold text-slate-900">{pick(locale, "Real Family Experiences", "\u771f\u5b9e\u4eb2\u5b50\u4f53\u9a8c")}</h2>
+              <p className="mt-1 text-sm text-slate-600">{pick(locale, "Short notes from families who have been there.", "\u6765\u81ea\u7528\u6237\u7684\u771f\u5b9e\u6e38\u73a9\u53cd\u9988\uff0c\u5e2e\u52a9\u522b\u7684\u5bb6\u5ead\u5c11\u8e29\u5751\u3002")}</p>
+            </div>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+              {pick(locale, `${reviews.length} reviews`, `${reviews.length} \u6761\u4f53\u9a8c`)}
+            </span>
+          </div>
+
+          <ReviewForm destinationId={destination.id} initialReview={myReview} isSignedIn={Boolean(user)} />
+
+          <div className="mt-4 space-y-3">
+            {reviews.length === 0 ? (
+              <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-600">
+                {pick(locale, "No real experiences yet. Be the first family to share.", "\u6682\u65e0\u771f\u5b9e\u4f53\u9a8c\uff0c\u4f60\u53ef\u4ee5\u6210\u4e3a\u7b2c\u4e00\u4e2a\u5206\u4eab\u7684\u5bb6\u5ead\u3002")}
+              </div>
+            ) : (
+              reviews.map((review) => (
+                <article key={review.id} className="rounded-xl bg-slate-50 p-4 text-sm text-slate-700">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="inline-flex items-center gap-1 text-amber-500">
+                      {Array.from({ length: 5 }).map((_, index) => (
+                        <Star key={index} className={`h-4 w-4 ${index < review.rating ? "fill-current" : "text-slate-300"}`} />
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                      {review.isMine ? <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-emerald-700">{"\u6211\u7684\u4f53\u9a8c"}</span> : null}
+                      {review.visitDate ? <span>{review.visitDate}</span> : null}
+                    </div>
+                  </div>
+                  <p className="mt-2 leading-6">{review.content}</p>
+                </article>
+              ))
+            )}
           </div>
         </section>
 
