@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AuthNav } from "@/components/layout/auth-nav";
 import { MobileTabBar } from "@/components/layout/mobile-tab-bar";
+import { InstallPrompt } from "@/components/pwa/install-prompt";
 import { getLocale } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import "./globals.css";
@@ -17,10 +18,15 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
       { url: "/icons/icon-192.svg", sizes: "192x192", type: "image/svg+xml" },
       { url: "/icons/icon-512.svg", sizes: "512x512", type: "image/svg+xml" }
     ],
-    apple: [{ url: "/icons/apple-touch-icon.svg", sizes: "180x180", type: "image/svg+xml" }]
+    apple: [
+      { url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+      { url: "/icons/apple-touch-icon.svg", sizes: "180x180", type: "image/svg+xml" }
+    ]
   }
 };
 
@@ -40,6 +46,7 @@ export default async function RootLayout({
       <body className="bg-slate-50 pb-16 text-slate-800 antialiased md:pb-0">
         <AuthNav />
         {children}
+        <InstallPrompt />
         <MobileTabBar locale={locale} isSignedIn={Boolean(user)} />
       </body>
     </html>
