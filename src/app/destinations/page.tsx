@@ -13,7 +13,7 @@ import {
   destinationSafety,
   destinationScenario
 } from "@/features/destinations/presenter";
-import { getAllDestinations } from "@/features/destinations/repository";
+import { getAllDestinations, getMyFavoriteDestinationIds } from "@/features/destinations/repository";
 import { getMyProfile } from "@/features/profiles/repository";
 import { DEFAULT_HOME_CITY, withDistanceFromCity } from "@/lib/geo/distance";
 import { getLocale, pick } from "@/lib/i18n/server";
@@ -45,11 +45,18 @@ export default async function DestinationsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const [locale, params, profile, rawDestinations] = await Promise.all([getLocale(), searchParams, getMyProfile(), getAllDestinations()]);
+  const [locale, params, profile, rawDestinations, favoriteIds] = await Promise.all([
+    getLocale(),
+    searchParams,
+    getMyProfile(),
+    getAllDestinations(),
+    getMyFavoriteDestinationIds()
+  ]);
   const filters = parseFilters(params);
   const homeCity = profile?.homeCity?.trim() || DEFAULT_HOME_CITY;
   const itemsWithDistance = withDistanceFromCity(rawDestinations, homeCity);
   const list = filterDestinations(itemsWithDistance, filters);
+  const favoriteIdSet = new Set(favoriteIds);
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -153,7 +160,12 @@ export default async function DestinationsPage({
                       <Star className="h-3.5 w-3.5 fill-current text-amber-500" />
                       {item.rating.toFixed(1)}
                     </span>
-                    <FavoriteButton destinationId={item.id} size="sm" />
+                    <FavoriteButton
+                      destinationId={item.id}
+                      size="sm"
+                      initialIsFavorite={favoriteIdSet.has(item.id)}
+                      initialIsLoggedIn={Boolean(profile)}
+                    />
                   </div>
                 </div>
 

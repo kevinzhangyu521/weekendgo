@@ -151,3 +151,24 @@ export async function getMyFavoriteDestinations(): Promise<DestinationItem[]> {
     return [];
   }
 }
+
+export async function getMyFavoriteDestinationIds(): Promise<string[]> {
+  if (!hasSupabaseEnv()) return [];
+  if (!(await hasSupabaseAuthCookie())) return [];
+
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user }
+    } = await supabase.auth.getUser();
+
+    if (!user) return [];
+
+    const { data, error } = await supabase.from("favorites").select("destination_id").eq("user_id", user.id);
+    if (error || !data) return [];
+
+    return data.map((row) => row.destination_id).filter((id): id is string => typeof id === "string");
+  } catch {
+    return [];
+  }
+}

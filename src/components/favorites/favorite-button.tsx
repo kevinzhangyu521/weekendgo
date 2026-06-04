@@ -10,18 +10,29 @@ type Props = {
   destinationId: string;
   size?: "sm" | "md";
   className?: string;
+  initialIsFavorite?: boolean;
+  initialIsLoggedIn?: boolean;
 };
 
-export function FavoriteButton({ destinationId, size = "md", className = "" }: Props) {
+export function FavoriteButton({
+  destinationId,
+  size = "md",
+  className = "",
+  initialIsFavorite,
+  initialIsLoggedIn
+}: Props) {
   const pathname = usePathname();
   const supabase = useMemo(() => createClient(), []);
-  const [loading, setLoading] = useState(true);
+  const hasInitialState = typeof initialIsFavorite === "boolean" || typeof initialIsLoggedIn === "boolean";
+  const [loading, setLoading] = useState(!hasInitialState);
   const [saving, setSaving] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(Boolean(initialIsFavorite));
+  const [isLoggedIn, setIsLoggedIn] = useState(Boolean(initialIsLoggedIn));
   const [errorText, setErrorText] = useState("");
 
   useEffect(() => {
+    if (hasInitialState) return;
+
     let mounted = true;
 
     async function load() {
@@ -60,7 +71,7 @@ export function FavoriteButton({ destinationId, size = "md", className = "" }: P
     return () => {
       mounted = false;
     };
-  }, [destinationId, supabase]);
+  }, [destinationId, hasInitialState, supabase]);
 
   async function toggleFavorite() {
     if (loading || saving) return;

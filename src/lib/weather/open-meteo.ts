@@ -6,7 +6,7 @@ type CityCoordinate = {
   longitude: number;
 };
 
-type WeatherResult = {
+export type WeatherResult = {
   weather: string;
   wind: string;
   condition: string;

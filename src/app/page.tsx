@@ -11,13 +11,13 @@ import {
   destinationSafety,
   destinationScenario
 } from "@/features/destinations/presenter";
+import { HomeWeatherBadges } from "@/components/weather/home-weather-badges";
 import { getAllDestinations } from "@/features/destinations/repository";
 import type { DestinationItem, Scenario } from "@/features/destinations/types";
 import { getMyProfile } from "@/features/profiles/repository";
 import { DEFAULT_HOME_CITY, withDistanceFromCity } from "@/lib/geo/distance";
 import type { Locale } from "@/lib/i18n/config";
 import { getLocale, pick } from "@/lib/i18n/server";
-import { getCityWeather } from "@/lib/weather/open-meteo";
 
 const scenes = [
   { key: "camping", label: "Camping", labelZh: "\u9732\u8425", icon: Tent, color: "bg-amber-100 text-amber-700" },
@@ -180,12 +180,8 @@ export default async function HomePage() {
   const zh = locale === "zh";
   const homeCity = profile?.homeCity?.trim() || DEFAULT_HOME_CITY;
   const preferredScenarios = profile?.preferredScenarios ?? [];
-  const dynamicWeather = await getCityWeather(homeCity, locale);
-  const weatherDetailHref = dynamicWeather ? `/weather?city=${encodeURIComponent(homeCity)}` : "";
-  const weekend = {
-    ...getWeekendRecommendation(homeCity, preferredScenarios, locale),
-    ...(dynamicWeather ?? {})
-  };
+  const weatherDetailHref = `/weather?city=${encodeURIComponent(homeCity)}`;
+  const weekend = getWeekendRecommendation(homeCity, preferredScenarios, locale);
   const allDestinations = withDistanceFromCity(rawDestinations, homeCity);
   const recommendations = getPersonalizedDestinations(allDestinations, preferredScenarios, homeCity);
 
@@ -208,19 +204,14 @@ export default async function HomePage() {
           <p className="mt-3 max-w-2xl text-sm text-slate-100 md:text-base">
             {pick(locale, `${weekend.source}: ${weekend.scenes}. ${weekend.advice}.`, `${weekend.source}\uff1a${weekend.scenes}\u3002${weekend.advice}\u3002`)}
           </p>
-          <div className="mt-5 flex flex-wrap gap-2">
-            <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700">{weekend.weather}</span>
-            <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700">{weekend.wind}</span>
-            <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700">{weekend.advice}</span>
-          </div>
-          {weatherDetailHref ? (
-            <Link
-              href={weatherDetailHref}
-              className="mt-3 inline-flex text-xs font-medium text-emerald-100 underline-offset-4 hover:text-white hover:underline"
-            >
-              {pick(locale, "View weather details", "\u67e5\u770b\u5929\u6c14\u8be6\u60c5")}
-            </Link>
-          ) : null}
+          <HomeWeatherBadges
+            city={homeCity}
+            locale={locale}
+            fallbackWeather={weekend.weather}
+            fallbackWind={weekend.wind}
+            advice={weekend.advice}
+            detailHref={weatherDetailHref}
+          />
           <div className="mt-6 flex flex-col gap-3 rounded-xl bg-white/95 p-4 text-slate-800 shadow-sm backdrop-blur md:max-w-2xl md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">{pick(locale, "Recommended plan", "\u63a8\u8350\u73a9\u6cd5")}</p>
