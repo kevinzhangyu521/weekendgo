@@ -1,12 +1,15 @@
 import Link from "next/link";
-import { Bath, Car, SlidersHorizontal, Star } from "lucide-react";
+import { AlertTriangle, Bath, Car, MapPin, SlidersHorizontal, Star } from "lucide-react";
 import { FavoriteButton } from "@/components/favorites/favorite-button";
 import { filterDestinations, parseFilters } from "@/features/destinations/filter";
 import {
   destinationDescription,
+  destinationDecisionTags,
   destinationDifficultyShort,
+  destinationFamilyHighlight,
   destinationName,
   destinationRegion,
+  destinationSafetyTip,
   destinationSafety,
   destinationScenario
 } from "@/features/destinations/presenter";
@@ -151,10 +154,31 @@ export default async function DestinationsPage({
                     {destinationName(item, locale)}
                   </Link>
                 </h2>
+                <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800">{destinationFamilyHighlight(item, locale)}</p>
                 <p className="line-clamp-2 text-sm text-slate-600">{destinationDescription(item, locale)}</p>
-                <p className="text-sm text-slate-600">
-                  {destinationRegion(item, locale)} - {formatDistance(item.distanceKm, locale)} - {destinationDifficultyShort(item, locale)} - {destinationSafety(item, locale)}
-                </p>
+                <div className="grid grid-cols-2 gap-2 text-xs text-slate-600">
+                  <span className="inline-flex items-center gap-1 rounded-lg bg-slate-50 px-2.5 py-2">
+                    <MapPin className="h-3.5 w-3.5 text-emerald-700" />
+                    {destinationRegion(item, locale)} / {formatDistance(item.distanceKm, locale)}
+                  </span>
+                  <span className="rounded-lg bg-slate-50 px-2.5 py-2">
+                    {destinationDifficultyShort(item, locale)} / {destinationSafety(item, locale)}
+                  </span>
+                </div>
+                <div className="flex min-h-16 flex-wrap content-start gap-2">
+                  {destinationDecisionTags(item, locale).map((tag) => (
+                    <span key={tag} className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                <div className="rounded-lg border border-amber-100 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800">
+                  <span className="inline-flex items-center gap-1 font-semibold">
+                    <AlertTriangle className="h-3.5 w-3.5" />
+                    {pick(locale, "Safety note", "\u5b89\u5168\u63d0\u793a")}
+                  </span>
+                  <span className="ml-1">{destinationSafetyTip(item, locale)}</span>
+                </div>
 
                 <div className="mt-auto flex items-center gap-4 border-t border-slate-100 pt-3 text-xs text-slate-600">
                   <span className="inline-flex items-center gap-1">

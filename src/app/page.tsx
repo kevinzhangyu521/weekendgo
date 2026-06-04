@@ -2,9 +2,12 @@ import Link from "next/link";
 import { Bath, Car, Footprints, Sandwich, ShieldCheck, Star, Tent, Waves } from "lucide-react";
 import {
   destinationDescription,
+  destinationDecisionTags,
   destinationDifficultyShort,
+  destinationFamilyHighlight,
   destinationName,
   destinationRegion,
+  destinationSafetyTip,
   destinationSafety,
   destinationScenario
 } from "@/features/destinations/presenter";
@@ -289,6 +292,7 @@ export default async function HomePage() {
 
                 <div className="flex-1 space-y-3">
                   <h3 className="line-clamp-1 text-base font-semibold text-slate-900 transition group-hover:text-emerald-700">{destinationName(item, locale)}</h3>
+                  <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800">{destinationFamilyHighlight(item, locale)}</p>
                   <p className="line-clamp-2 min-h-10 text-sm text-slate-600">{destinationDescription(item, locale)}</p>
 
                   <p className="text-sm text-slate-600">
@@ -297,10 +301,17 @@ export default async function HomePage() {
                 </div>
 
                 <div className="mt-auto space-y-3">
-                  <div className="flex min-h-7 flex-wrap gap-2">
-                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">{item.minKidAge}{pick(locale, "+ years", "\u5c81+")}</span>
-                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">{item.hasParking ? pick(locale, "Parking", "\u53ef\u505c\u8f66") : pick(locale, "Limited parking", "\u505c\u8f66\u4e00\u822c")}</span>
-                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">{item.hasToilet ? pick(locale, "Toilet", "\u6709\u5395\u6240") : pick(locale, "Limited toilet", "\u5395\u6240\u8f83\u5c11")}</span>
+                  <div className="flex min-h-16 flex-wrap content-start gap-2">
+                    {destinationDecisionTags(item, locale).map((tag) => (
+                      <span key={tag} className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="rounded-lg border border-amber-100 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800">
+                    <span className="font-semibold">{pick(locale, "Before you go", "\u51fa\u53d1\u524d\u770b")}</span>
+                    <span className="ml-1">{destinationSafetyTip(item, locale)}</span>
                   </div>
 
                   <div className="flex items-center gap-4 border-t border-slate-100 pt-3 text-xs text-slate-600 transition group-hover:text-slate-700">
