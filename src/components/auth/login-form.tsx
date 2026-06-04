@@ -15,6 +15,21 @@ type Props = {
 
 type AuthAction = "login" | "signup" | "signout";
 
+function withTimeout<T>(promise: Promise<T>, timeoutMs = 12000): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = window.setTimeout(() => reject(new Error("请求超时，请检查网络后再试。")), timeoutMs);
+    promise
+      .then((value) => {
+        window.clearTimeout(timer);
+        resolve(value);
+      })
+      .catch((error) => {
+        window.clearTimeout(timer);
+        reject(error);
+      });
+  });
+}
+
 function translateAuthError(message: string) {
   const lower = message.toLowerCase();
   if (lower.includes("invalid login credentials")) return "邮箱或密码不正确，请检查后再试。";
@@ -71,19 +86,23 @@ export function LoginForm({ locale, initialEmail }: Props) {
     if (!fields) return;
 
     setLoadingAction("login");
+    setMessage("正在登录，请稍候...");
 
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword(fields);
+      const { error: signInError } = await withTimeout(supabase.auth.signInWithPassword(fields));
 
       if (signInError) {
+        setMessage("");
         setError(`登录失败：${translateAuthError(signInError.message)}`);
         return;
       }
 
-      router.replace("/");
+      setMessage("登录成功，正在进入首页...");
       router.refresh();
+      window.location.assign("/");
     } catch (err) {
       const detail = err instanceof Error ? err.message : "请稍后再试。";
+      setMessage("");
       setError(`登录失败：${detail}`);
     } finally {
       setLoadingAction(null);
@@ -96,18 +115,21 @@ export function LoginForm({ locale, initialEmail }: Props) {
     if (!fields) return;
 
     setLoadingAction("signup");
+    setMessage("正在注册，请稍候...");
 
     try {
-      const { data, error: signUpError } = await supabase.auth.signUp(fields);
+      const { data, error: signUpError } = await withTimeout(supabase.auth.signUp(fields));
 
       if (signUpError) {
+        setMessage("");
         setError(`注册失败：${translateAuthError(signUpError.message)}`);
         return;
       }
 
       if (data.session) {
-        router.replace("/");
+        setMessage("注册成功，正在进入首页...");
         router.refresh();
+        window.location.assign("/");
         return;
       }
 
