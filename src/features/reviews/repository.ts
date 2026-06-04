@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
 import type { DestinationReview } from "./types";
 
 type ReviewRow = {
@@ -60,7 +61,7 @@ export async function getMyDestinationReview(destinationId: string) {
 }
 
 export async function getDestinationReviewsForUser(destinationId: string, userId?: string, limit = 8) {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("destination_reviews")
     .select("id,destination_id,user_id,rating,content,visit_date,created_at")
