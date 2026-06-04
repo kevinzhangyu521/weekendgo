@@ -18,9 +18,9 @@ import {
   destinationScenario,
   destinationTripDuration
 } from "@/features/destinations/presenter";
-import { getDestinationById, getRelatedDestinations } from "@/features/destinations/repository";
+import { getAllDestinations } from "@/features/destinations/repository";
 import { getMyProfile } from "@/features/profiles/repository";
-import { getDestinationReviews, getMyDestinationReview } from "@/features/reviews/repository";
+import { getDestinationReviewsForUser } from "@/features/reviews/repository";
 import { DEFAULT_HOME_CITY, withDistanceFromCity } from "@/lib/geo/distance";
 import { getLocale, pick } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
@@ -35,25 +35,31 @@ export default async function DestinationDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const locale = await getLocale();
+  const [locale, { id }] = await Promise.all([getLocale(), params]);
   const isZh = locale === "zh";
-  const { id } = await params;
   const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
-  const profile = await getMyProfile();
+  const [
+    {
+      data: { user }
+    },
+    profile,
+    allDestinationsRaw
+  ] = await Promise.all([supabase.auth.getUser(), getMyProfile(), getAllDestinations()]);
   const homeCity = profile?.homeCity?.trim() || DEFAULT_HOME_CITY;
-  const destinationRaw = await getDestinationById(id);
+  const destinationRaw = allDestinationsRaw.find((item) => item.id === id) ?? null;
 
   if (!destinationRaw) notFound();
 
   const [destination] = withDistanceFromCity([destinationRaw], homeCity);
-  const related = withDistanceFromCity(await getRelatedDestinations(destination.id), homeCity);
+  const related = withDistanceFromCity(
+    allDestinationsRaw
+      .filter((item) => item.id !== destination.id && (item.scenario === destination.scenario || item.city === destination.city))
+      .slice(0, 3),
+    homeCity
+  );
   const decisionTags = destinationDecisionTags(destination, locale);
   const packingList = destinationPackingList(destination, locale);
-  const reviews = await getDestinationReviews(destination.id);
-  const myReview = await getMyDestinationReview(destination.id);
+  const { reviews, myReview } = await getDestinationReviewsForUser(destination.id, user?.id);
 
   return (
     <main className="min-h-screen bg-slate-50 pb-12">
