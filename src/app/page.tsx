@@ -271,9 +271,12 @@ export default async function HomePage() {
               className="group flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-xl"
             >
               <div className="relative h-44 w-full overflow-hidden">
-                <div
-                  className="absolute inset-0 bg-cover bg-center transition duration-300 group-hover:scale-105"
-                  style={{ backgroundImage: `url('${item.image || fallbackImage}')` }}
+                <img
+                  src={item.image || fallbackImage}
+                  alt={destinationName(item, locale)}
+                  loading="lazy"
+                  decoding="async"
+                  className="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/35 to-transparent opacity-0 transition group-hover:opacity-100" />
                 <span className="absolute bottom-3 right-3 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-emerald-700 opacity-0 shadow-sm transition group-hover:opacity-100">

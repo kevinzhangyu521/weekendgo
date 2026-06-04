@@ -25,6 +25,8 @@ import { DEFAULT_HOME_CITY, withDistanceFromCity } from "@/lib/geo/distance";
 import { getLocale, pick } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 
+const fallbackImage = "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1400&q=80";
+
 function formatDistance(distanceKm: number, locale: "en" | "zh") {
   if (!distanceKm || distanceKm <= 0) return pick(locale, "Distance pending", "\u8ddd\u79bb\u5f85\u8ba1\u7b97");
   return pick(locale, `About ${distanceKm}km away`, `\u7ea6 ${distanceKm}km`);
@@ -70,7 +72,15 @@ export default async function DestinationDetailPage({
         </Link>
 
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="h-64 bg-cover bg-center md:h-96" style={{ backgroundImage: `url('${destination.image}')` }} />
+          <div className="h-64 overflow-hidden bg-slate-100 md:h-96">
+            <img
+              src={destination.image || fallbackImage}
+              alt={destinationName(destination, locale)}
+              fetchPriority="high"
+              decoding="async"
+              className="h-full w-full object-cover"
+            />
+          </div>
           <div className="space-y-4 p-5 md:p-6">
             <div className="flex flex-wrap items-center gap-2">
               <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
@@ -248,7 +258,15 @@ export default async function DestinationDetailPage({
                 href={`/destinations/${item.id}`}
                 className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
               >
-                <div className="h-28 bg-cover bg-center" style={{ backgroundImage: `url('${item.image}')` }} />
+                <div className="h-28 overflow-hidden bg-slate-100">
+                  <img
+                    src={item.image || fallbackImage}
+                    alt={destinationName(item, locale)}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover transition duration-300 hover:scale-105"
+                  />
+                </div>
                 <div className="p-3">
                   <p className="text-sm font-medium text-slate-900">{destinationName(item, locale)}</p>
                   <p className="mt-1 text-xs text-slate-600">

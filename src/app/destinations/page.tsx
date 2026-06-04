@@ -33,6 +33,8 @@ const difficultyLabelMap = {
   hard: { en: "Hard", zh: "\u9ad8\u96be\u5ea6" }
 } as const;
 
+const fallbackImage = "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=900&q=75";
+
 function formatDistance(distanceKm: number, locale: "en" | "zh") {
   if (!distanceKm || distanceKm <= 0) return pick(locale, "Distance pending", "\u8ddd\u79bb\u5f85\u8ba1\u7b97");
   return pick(locale, `About ${distanceKm}km away`, `\u8ddd\u79bb\u5e38\u4f4f\u57ce\u5e02\u7ea6 ${distanceKm}km`);
@@ -43,12 +45,10 @@ export default async function DestinationsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const locale = await getLocale();
-  const params = await searchParams;
+  const [locale, params, profile, rawDestinations] = await Promise.all([getLocale(), searchParams, getMyProfile(), getAllDestinations()]);
   const filters = parseFilters(params);
-  const profile = await getMyProfile();
   const homeCity = profile?.homeCity?.trim() || DEFAULT_HOME_CITY;
-  const itemsWithDistance = withDistanceFromCity(await getAllDestinations(), homeCity);
+  const itemsWithDistance = withDistanceFromCity(rawDestinations, homeCity);
   const list = filterDestinations(itemsWithDistance, filters);
 
   return (
@@ -134,7 +134,15 @@ export default async function DestinationsPage({
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {list.map((item) => (
             <article key={item.id} className="flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
-              <Link href={`/destinations/${item.id}`} className="block h-44 bg-cover bg-center" style={{ backgroundImage: `url('${item.image}')` }} />
+              <Link href={`/destinations/${item.id}`} className="block h-44 overflow-hidden bg-slate-100">
+                <img
+                  src={item.image || fallbackImage}
+                  alt={destinationName(item, locale)}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-cover transition duration-300 hover:scale-105"
+                />
+              </Link>
               <div className="flex flex-1 flex-col space-y-3 p-4">
                 <div className="flex items-center justify-between">
                   <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
