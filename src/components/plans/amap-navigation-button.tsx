@@ -18,7 +18,7 @@ function getCurrentPosition() {
 
     navigator.geolocation.getCurrentPosition(resolve, reject, {
       enableHighAccuracy: true,
-      timeout: 5000,
+      timeout: 3000,
       maximumAge: 60000
     });
   });
@@ -29,15 +29,6 @@ export function AmapNavigationButton({ destination, label }: Props) {
 
   async function openNavigation() {
     setLoading(true);
-    const navigationWindow = window.open("about:blank", "_blank", "noopener,noreferrer");
-
-    function openUrl(url: string) {
-      if (navigationWindow) {
-        navigationWindow.location.href = url;
-        return;
-      }
-      window.location.href = url;
-    }
 
     try {
       const position = await getCurrentPosition();
@@ -46,9 +37,9 @@ export function AmapNavigationButton({ destination, label }: Props) {
         longitude: position.coords.longitude,
         name: "我的位置"
       });
-      openUrl(url);
+      window.location.href = url;
     } catch {
-      openUrl(getAmapNavigationUrl(destination));
+      window.location.href = getAmapNavigationUrl(destination);
     } finally {
       setLoading(false);
     }
