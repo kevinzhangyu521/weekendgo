@@ -7,6 +7,7 @@ import { getAmapNavigationUrl } from "@/lib/maps/navigation";
 type Props = {
   destination: DestinationItem;
   label: string;
+  className?: string;
 };
 
 function getCurrentPosition() {
@@ -24,7 +25,7 @@ function getCurrentPosition() {
   });
 }
 
-export function AmapNavigationButton({ destination, label }: Props) {
+export function AmapNavigationButton({ destination, label, className = "" }: Props) {
   const [loading, setLoading] = useState(false);
 
   async function openNavigation() {
@@ -35,7 +36,7 @@ export function AmapNavigationButton({ destination, label }: Props) {
       const url = getAmapNavigationUrl(destination, {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
-        name: "我的位置"
+        name: "\u6211\u7684\u4f4d\u7f6e"
       });
       window.location.href = url;
     } catch {
@@ -50,9 +51,9 @@ export function AmapNavigationButton({ destination, label }: Props) {
       type="button"
       onClick={openNavigation}
       disabled={loading}
-      className="inline-flex min-h-10 items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white disabled:cursor-wait disabled:opacity-70"
+      className={`inline-flex min-h-10 items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white disabled:cursor-wait disabled:opacity-70 ${className}`}
     >
-      {loading ? "正在定位..." : label}
+      {loading ? "\u6b63\u5728\u5b9a\u4f4d..." : label}
     </button>
   );
 }

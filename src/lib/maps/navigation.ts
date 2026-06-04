@@ -24,7 +24,7 @@ export function getAmapNavigationUrl(destination: DestinationItem, origin?: Navi
   });
 
   if (origin) {
-    params.set("from", locationParam(origin.longitude, origin.latitude, origin.name || "我的位置"));
+    params.set("from", locationParam(origin.longitude, origin.latitude, origin.name || "\u6211\u7684\u4f4d\u7f6e"));
   }
 
   return `https://uri.amap.com/navigation?${params.toString()}`;

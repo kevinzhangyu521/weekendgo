@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { AlertTriangle, Backpack, Bath, Car, ChevronLeft, Clock, MapPinned, ShieldCheck, Star, TentTree, Users } from "lucide-react";
 import { FavoriteButton } from "@/components/favorites/favorite-button";
 import { AddToPlanButton } from "@/components/plans/add-to-plan-button";
+import { AmapNavigationButton } from "@/components/plans/amap-navigation-button";
 import { ReviewForm } from "@/components/reviews/review-form";
 import {
   destinationDescription,
@@ -66,7 +67,7 @@ export default async function DestinationDetailPage({
   const { reviews, myReview } = await getDestinationReviewsForUser(destination.id, user?.id);
 
   return (
-    <main className="min-h-screen bg-slate-50 pb-12">
+    <main className="min-h-screen bg-slate-50 pb-28 md:pb-12">
       <section className="mx-auto max-w-6xl px-4 py-6 md:px-6">
         <Link href="/destinations" className="mb-4 inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900">
           <ChevronLeft className="h-4 w-4" />
@@ -101,6 +102,9 @@ export default async function DestinationDetailPage({
             <div className="flex items-center gap-2">
               <FavoriteButton destinationId={destination.id} />
               <AddToPlanButton destinationId={destination.id} locale={locale} />
+              <div className="hidden md:block">
+                <AmapNavigationButton destination={destination} label={pick(locale, "Navigate", "\u7acb\u5373\u5bfc\u822a")} />
+              </div>
               <span className="text-sm text-slate-600">{pick(locale, "Save this destination", "\u6536\u85cf\u6216\u52a0\u5165\u8ba1\u5212")}</span>
             </div>
             <p className="text-slate-600">{destinationDescription(destination, locale)}</p>
@@ -280,6 +284,16 @@ export default async function DestinationDetailPage({
           </div>
         </section>
       </section>
+
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 px-4 py-3 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur md:hidden">
+        <div className="mx-auto flex max-w-6xl items-center gap-2">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold text-slate-900">{destinationName(destination, locale)}</p>
+            <p className="text-xs text-slate-500">{formatDistance(destination.distanceKm, locale)}</p>
+          </div>
+          <AmapNavigationButton destination={destination} label={pick(locale, "Navigate", "\u7acb\u5373\u5bfc\u822a")} className="shrink-0" />
+        </div>
+      </div>
     </main>
   );
 }
