@@ -124,3 +124,46 @@ export function destinationDecisionTags(item: DestinationItem, locale: Locale) {
     item.difficulty === "easy" ? "Beginner friendly" : item.difficulty === "moderate" ? "Some stamina" : "Older kids"
   ];
 }
+
+export function destinationTripDuration(item: DestinationItem, locale: Locale) {
+  const duration: Record<Scenario, { en: string; zh: string }> = {
+    camping: { en: "Half-day to full-day", zh: "\u534a\u65e5\u5230\u4e00\u65e5" },
+    creek: { en: "2-4 hours", zh: "2-4 \u5c0f\u65f6" },
+    hiking: { en: "2-5 hours", zh: "2-5 \u5c0f\u65f6" },
+    picnic: { en: "2-3 hours", zh: "2-3 \u5c0f\u65f6" }
+  };
+
+  return locale === "zh" ? duration[item.scenario].zh : duration[item.scenario].en;
+}
+
+export function destinationBestFor(item: DestinationItem, locale: Locale) {
+  const bestFor: Record<Scenario, { en: string; zh: string }> = {
+    camping: { en: "Families who want a slower outdoor day", zh: "\u60f3\u6162\u8282\u594f\u653e\u677e\u7684\u4eb2\u5b50\u5bb6\u5ead" },
+    creek: { en: "Families who want water play and cooling off", zh: "\u60f3\u73a9\u6c34\u3001\u907f\u6691\u7684\u4eb2\u5b50\u5bb6\u5ead" },
+    hiking: { en: "Families who want light exercise", zh: "\u60f3\u8f7b\u91cf\u8fd0\u52a8\u7684\u4eb2\u5b50\u5bb6\u5ead" },
+    picnic: { en: "Families who want photos, food and open space", zh: "\u60f3\u91ce\u9910\u3001\u62cd\u7167\u548c\u653e\u98ce\u7684\u5bb6\u5ead" }
+  };
+
+  return locale === "zh" ? bestFor[item.scenario].zh : bestFor[item.scenario].en;
+}
+
+export function destinationPackingList(item: DestinationItem, locale: Locale) {
+  const sharedZh = ["\u996e\u7528\u6c34", "\u9632\u6652\u9632\u868a", "\u7eb8\u5dfe\u548c\u5783\u573e\u888b"];
+  const sharedEn = ["Water", "Sun and mosquito protection", "Tissues and trash bags"];
+
+  const scenarioZh: Record<Scenario, string[]> = {
+    camping: ["\u91ce\u9910\u57ab\u6216\u9732\u8425\u6905", "\u5929\u5e55\u6216\u906e\u9633\u5e03"],
+    creek: ["\u9632\u6ed1\u978b", "\u66ff\u6362\u8863\u7269"],
+    hiking: ["\u8f7b\u4fbf\u80cc\u5305", "\u9002\u5408\u8d70\u8def\u7684\u978b"],
+    picnic: ["\u91ce\u9910\u57ab", "\u4fbf\u643a\u98df\u7269"]
+  };
+
+  const scenarioEn: Record<Scenario, string[]> = {
+    camping: ["Picnic mat or camping chairs", "Canopy or shade cloth"],
+    creek: ["Non-slip shoes", "Spare clothes"],
+    hiking: ["Light backpack", "Comfortable walking shoes"],
+    picnic: ["Picnic mat", "Portable food"]
+  };
+
+  return locale === "zh" ? [...scenarioZh[item.scenario], ...sharedZh] : [...scenarioEn[item.scenario], ...sharedEn];
+}

@@ -1,15 +1,21 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Bath, Car, ChevronLeft, MapPinned, ShieldCheck, Star, TentTree } from "lucide-react";
+import { AlertTriangle, Backpack, Bath, Car, ChevronLeft, Clock, MapPinned, ShieldCheck, Star, TentTree, Users } from "lucide-react";
 import { FavoriteButton } from "@/components/favorites/favorite-button";
 import { AddToPlanButton } from "@/components/plans/add-to-plan-button";
 import {
   destinationDescription,
+  destinationBestFor,
+  destinationDecisionTags,
   destinationDifficulty,
+  destinationFamilyHighlight,
   destinationName,
+  destinationPackingList,
   destinationRegion,
   destinationSafety,
-  destinationScenario
+  destinationSafetyTip,
+  destinationScenario,
+  destinationTripDuration
 } from "@/features/destinations/presenter";
 import { getDestinationById, getRelatedDestinations } from "@/features/destinations/repository";
 import { getMyProfile } from "@/features/profiles/repository";
@@ -37,6 +43,8 @@ export default async function DestinationDetailPage({
 
   const [destination] = withDistanceFromCity([destinationRaw], homeCity);
   const related = withDistanceFromCity(await getRelatedDestinations(destination.id), homeCity);
+  const decisionTags = destinationDecisionTags(destination, locale);
+  const packingList = destinationPackingList(destination, locale);
 
   return (
     <main className="min-h-screen bg-slate-50 pb-12">
@@ -62,12 +70,20 @@ export default async function DestinationDetailPage({
             </div>
 
             <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">{destinationName(destination, locale)}</h1>
+            <p className="rounded-xl bg-emerald-50 px-4 py-3 text-base font-semibold text-emerald-800">{destinationFamilyHighlight(destination, locale)}</p>
             <div className="flex items-center gap-2">
               <FavoriteButton destinationId={destination.id} />
               <AddToPlanButton destinationId={destination.id} locale={locale} />
               <span className="text-sm text-slate-600">{pick(locale, "Save this destination", "\u6536\u85cf\u6216\u52a0\u5165\u8ba1\u5212")}</span>
             </div>
             <p className="text-slate-600">{destinationDescription(destination, locale)}</p>
+            <div className="flex flex-wrap gap-2">
+              {decisionTags.map((tag) => (
+                <span key={tag} className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700">
+                  {tag}
+                </span>
+              ))}
+            </div>
 
             <div className="grid gap-3 text-sm text-slate-700 md:grid-cols-4">
               <div className="rounded-xl bg-slate-50 p-3">
@@ -93,6 +109,32 @@ export default async function DestinationDetailPage({
             </div>
           </div>
         </div>
+
+        <section className="mt-5 grid gap-4 md:grid-cols-3">
+          <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4">
+            <h2 className="mb-2 inline-flex items-center gap-2 text-base font-semibold text-emerald-950">
+              <Users className="h-4 w-4" />
+              {pick(locale, "Best for", "\u9002\u5408\u8c01\u53bb")}
+            </h2>
+            <p className="text-sm leading-6 text-emerald-900">{destinationBestFor(destination, locale)}</p>
+          </div>
+
+          <div className="rounded-xl border border-sky-100 bg-sky-50 p-4">
+            <h2 className="mb-2 inline-flex items-center gap-2 text-base font-semibold text-sky-950">
+              <Clock className="h-4 w-4" />
+              {pick(locale, "Suggested time", "\u5efa\u8bae\u6e38\u73a9\u65f6\u957f")}
+            </h2>
+            <p className="text-sm leading-6 text-sky-900">{destinationTripDuration(destination, locale)}</p>
+          </div>
+
+          <div className="rounded-xl border border-amber-100 bg-amber-50 p-4">
+            <h2 className="mb-2 inline-flex items-center gap-2 text-base font-semibold text-amber-950">
+              <AlertTriangle className="h-4 w-4" />
+              {pick(locale, "Main reminder", "\u4e3b\u8981\u63d0\u9192")}
+            </h2>
+            <p className="text-sm leading-6 text-amber-900">{destinationSafetyTip(destination, locale)}</p>
+          </div>
+        </section>
 
         <section className="mt-5 grid gap-4 md:grid-cols-3">
           <div className="rounded-xl border border-slate-200 bg-white p-4">
@@ -130,16 +172,16 @@ export default async function DestinationDetailPage({
         </section>
 
         <section className="mt-5 rounded-xl border border-slate-200 bg-white p-4">
-          <h2 className="text-base font-semibold text-slate-900">{pick(locale, "Family Reviews (Sample)", "\u7528\u6237\u8bc4\u4ef7\uff08\u793a\u4f8b\uff09")}</h2>
-          <div className="mt-3 space-y-3">
-            <article className="rounded-lg bg-slate-50 p-3 text-sm text-slate-700">
-              <p className="font-medium text-slate-900">{pick(locale, "Great for young kids", "\u5f88\u9002\u5408\u5e74\u9f84\u8f83\u5c0f\u7684\u5b69\u5b50")}</p>
-              <p className="mt-1">{pick(locale, "We arrived in the morning and everything felt organized and relaxed.", "\u4e0a\u5348\u5230\u8fbe\uff0c\u6574\u4f53\u79e9\u5e8f\u5f88\u597d\uff0c\u5b69\u5b50\u73a9\u5f97\u5f88\u8f7b\u677e\u3002")}</p>
-            </article>
-            <article className="rounded-lg bg-slate-50 p-3 text-sm text-slate-700">
-              <p className="font-medium text-slate-900">{pick(locale, "Good for first-time families", "\u5bf9\u65b0\u624b\u5bb6\u5ead\u975e\u5e38\u53cb\u597d")}</p>
-              <p className="mt-1">{pick(locale, "Easy route, practical facilities, and manageable pace for children.", "\u8def\u7ebf\u4e0d\u590d\u6742\uff0c\u8bbe\u65bd\u5b9e\u7528\uff0c\u8282\u594f\u5b69\u5b50\u4e5f\u80fd\u8ddf\u4e0a\u3002")}</p>
-            </article>
+          <h2 className="inline-flex items-center gap-2 text-base font-semibold text-slate-900">
+            <Backpack className="h-4 w-4" />
+            {pick(locale, "Before Departure Checklist", "\u51fa\u53d1\u524d\u51c6\u5907\u6e05\u5355")}
+          </h2>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {packingList.map((item) => (
+              <div key={item} className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                {item}
+              </div>
+            ))}
           </div>
         </section>
 
