@@ -204,7 +204,7 @@ export function LoginForm({ locale, initialEmail }: Props) {
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                placeholder="you@example.com"
+                placeholder={pick(locale, "For example: yourname@qq.com", "\u4f8b\u5982\uff1ayourname@qq.com")}
                 className="h-10 w-full bg-transparent text-sm text-slate-900 outline-none"
               />
             </div>
@@ -219,7 +219,7 @@ export function LoginForm({ locale, initialEmail }: Props) {
                 type="password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                placeholder="\u81f3\u5c11 6 \u4f4d"
+                placeholder={pick(locale, "At least 6 characters, safe and easy to remember", "\u81f3\u5c11 6 \u4f4d\uff0c\u5efa\u8bae\u5b89\u5168\u597d\u8bb0")}
                 className="h-10 w-full bg-transparent text-sm text-slate-900 outline-none"
               />
             </div>
