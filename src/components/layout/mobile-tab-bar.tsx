@@ -43,22 +43,21 @@ export function MobileTabBar({ locale, isSignedIn }: Props) {
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return;
       const user = data.session?.user ?? null;
-      setSignedIn(Boolean(user));
       if (user?.email) {
+        setSignedIn(true);
         window.localStorage.setItem("qimeide_auth_email", user.email);
-      } else {
-        window.localStorage.removeItem("qimeide_auth_email");
       }
     });
 
     const {
       data: { subscription }
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       const user = session?.user ?? null;
-      setSignedIn(Boolean(user));
       if (user?.email) {
+        setSignedIn(true);
         window.localStorage.setItem("qimeide_auth_email", user.email);
-      } else {
+      } else if (event === "SIGNED_OUT") {
+        setSignedIn(false);
         window.localStorage.removeItem("qimeide_auth_email");
       }
     });

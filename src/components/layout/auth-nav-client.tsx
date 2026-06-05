@@ -60,16 +60,19 @@ export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
     const cachedEmail = window.localStorage.getItem("qimeide_auth_email");
     if (cachedEmail) setEmail(cachedEmail);
 
-    async function updateFromSession(userId?: string, userEmail?: string | null) {
+    async function updateFromSession(userId?: string, userEmail?: string | null, clearWhenMissing = false) {
       if (!mounted) return;
-      setEmail(userEmail ?? null);
 
       if (!userId) {
-        window.localStorage.removeItem("qimeide_auth_email");
+        if (clearWhenMissing) {
+          window.localStorage.removeItem("qimeide_auth_email");
+          setEmail(null);
+        }
         setIsAdmin(false);
         return;
       }
 
+      setEmail(userEmail ?? null);
       if (userEmail) window.localStorage.setItem("qimeide_auth_email", userEmail);
       const { data } = await supabase.from("admin_users").select("user_id").eq("user_id", userId).maybeSingle();
       if (mounted) setIsAdmin(Boolean(data));
@@ -77,14 +80,14 @@ export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
 
     supabase.auth.getSession().then(({ data }) => {
       const user = data.session?.user ?? null;
-      void updateFromSession(user?.id, user?.email ?? null);
+      void updateFromSession(user?.id, user?.email ?? null, false);
     });
 
     const {
       data: { subscription }
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       const user = session?.user ?? null;
-      await updateFromSession(user?.id, user?.email ?? null);
+      await updateFromSession(user?.id, user?.email ?? null, event === "SIGNED_OUT");
 
       if (event === "SIGNED_IN" || event === "SIGNED_OUT") router.refresh();
     });
