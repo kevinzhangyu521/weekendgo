@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getMyNotifications } from "@/features/notifications/repository";
 import { getMySubmissions, purgeExpiredDeletedSubmissions } from "@/features/submissions/repository";
 import type { SpotSubmission } from "@/features/submissions/types";
+import { toChineseRegionName } from "@/lib/geo/region-names";
 import { deleteSubmission, lockSubmission, restoreSubmission, unlockSubmission } from "./actions";
 
 const statusMap = {
@@ -40,8 +41,8 @@ function getDeleteCountdown(deletedAt: string | null) {
 }
 
 function formatRegion(item: SpotSubmission) {
-  const province = item.provinceZh || item.province || "";
-  const city = item.cityZh || item.city;
+  const province = item.provinceZh || toChineseRegionName(item.province);
+  const city = item.cityZh || toChineseRegionName(item.city);
   if (!province || province === city) return city;
   return `${province} ${city}`;
 }

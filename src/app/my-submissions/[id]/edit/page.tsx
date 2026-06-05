@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getEditableSubmission } from "@/features/submissions/repository";
+import { toChineseRegionName } from "@/lib/geo/region-names";
 import { updateSubmission } from "./actions";
 
 const scenarios = [
@@ -43,11 +44,11 @@ export default async function EditSubmissionPage({
               </label>
               <label className={labelClass}>
                 {"\u7701\u4efd *"}
-                <input name="province" required defaultValue={item.provinceZh || item.province || ""} className={inputClass} />
+                <input name="province" required defaultValue={item.provinceZh || toChineseRegionName(item.province)} className={inputClass} />
               </label>
               <label className={labelClass}>
                 {"\u57ce\u5e02 *"}
-                <input name="city" required defaultValue={item.cityZh || item.city} className={inputClass} />
+                <input name="city" required defaultValue={item.cityZh || toChineseRegionName(item.city)} className={inputClass} />
               </label>
             </div>
             <label className={labelClass}>

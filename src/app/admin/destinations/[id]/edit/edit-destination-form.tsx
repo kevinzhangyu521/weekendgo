@@ -5,6 +5,7 @@ import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import type { AdminDestination } from "@/features/admin/destinations";
+import { toChineseRegionName } from "@/lib/geo/region-names";
 import { saveDestination, type UpdateDestinationState } from "./actions";
 
 const scenarios = [
@@ -34,7 +35,7 @@ export function EditDestinationForm({ item }: { item: AdminDestination }) {
   const router = useRouter();
   const initialState: UpdateDestinationState = { ok: false, message: "" };
   const [state, formAction] = useActionState(saveDestination, initialState);
-  const [locationText, setLocationText] = useState(`${item.provinceZh || item.province || ""} ${item.cityZh || item.city} ${item.nameZh || item.name}`.trim());
+  const [locationText, setLocationText] = useState(`${item.provinceZh || toChineseRegionName(item.province)} ${item.cityZh || toChineseRegionName(item.city)} ${item.nameZh || item.name}`.trim());
   const [latitude, setLatitude] = useState(String(item.latitude || ""));
   const [longitude, setLongitude] = useState(String(item.longitude || ""));
   const [locating, setLocating] = useState(false);
@@ -110,11 +111,11 @@ export function EditDestinationForm({ item }: { item: AdminDestination }) {
           </label>
           <label className={labelClass}>
             {"\u7701\u4efd *"}
-            <input name="province" required defaultValue={item.provinceZh || item.province || ""} placeholder={"\u4f8b\u5982\uff1a\u6e56\u5317"} className={inputClass} />
+            <input name="province" required defaultValue={item.provinceZh || toChineseRegionName(item.province)} placeholder={"\u4f8b\u5982\uff1a\u6e56\u5317"} className={inputClass} />
           </label>
           <label className={labelClass}>
             {"\u57ce\u5e02 *"}
-            <input name="city" required defaultValue={item.cityZh || item.city} className={inputClass} />
+            <input name="city" required defaultValue={item.cityZh || toChineseRegionName(item.city)} className={inputClass} />
           </label>
         </div>
         <label className={labelClass}>

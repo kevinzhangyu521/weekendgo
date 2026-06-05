@@ -84,8 +84,8 @@ export default async function WeatherPage({
 
               <div className="flex flex-col gap-2 border-t border-slate-100 pt-4 text-sm text-slate-500 md:flex-row md:items-center md:justify-between">
                 <span>{pick(locale, "Updated at", "\u66f4\u65b0\u65f6\u95f4")}: {formatUpdatedAt(weather.updatedAt, locale)}</span>
-                <a href={weather.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-medium text-emerald-700 hover:text-emerald-800">
-                  {pick(locale, "Original data", "\u539f\u59cb\u6570\u636e")}
+                <a href="https://open-meteo.com/" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-medium text-emerald-700 hover:text-emerald-800">
+                  {pick(locale, "About data source", "\u6570\u636e\u6765\u6e90\u8bf4\u660e")}
                   <ExternalLink className="h-3.5 w-3.5" />
                 </a>
               </div>

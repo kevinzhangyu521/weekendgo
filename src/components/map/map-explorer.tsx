@@ -6,6 +6,7 @@ import { MapPinned, Star } from "lucide-react";
 import type { Map } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import type { DestinationItem } from "@/features/destinations/types";
+import { toChineseRegionName } from "@/lib/geo/region-names";
 import type { Locale } from "@/lib/i18n/config";
 import { setupMapboxToken } from "@/lib/mapbox/client";
 import { DEFAULT_CITY } from "@/lib/mapbox/constants";
@@ -20,8 +21,8 @@ function displayName(item: DestinationItem) {
 }
 
 function displayCity(item: DestinationItem) {
-  const province = item.provinceZh || item.province || "";
-  const city = item.cityZh || item.city;
+  const province = item.provinceZh || toChineseRegionName(item.province);
+  const city = item.cityZh || toChineseRegionName(item.city);
   if (!province || province === city) return city;
   return `${province} ${city}`;
 }

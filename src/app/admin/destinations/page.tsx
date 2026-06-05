@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Pencil } from "lucide-react";
 import { getAdminDestinations } from "@/features/admin/destinations";
+import { toChineseRegionName } from "@/lib/geo/region-names";
 
 const scenarioLabelMap = {
   camping: "\u9732\u8425",
@@ -16,8 +17,8 @@ function formatDistance(distanceKm: number) {
 }
 
 function formatRegion(item: { province?: string | null; provinceZh?: string | null; city: string; cityZh?: string | null }) {
-  const province = item.provinceZh || item.province || "";
-  const city = item.cityZh || item.city;
+  const province = item.provinceZh || toChineseRegionName(item.province);
+  const city = item.cityZh || toChineseRegionName(item.city);
   if (!province || province === city) return city;
   return `${province} ${city}`;
 }

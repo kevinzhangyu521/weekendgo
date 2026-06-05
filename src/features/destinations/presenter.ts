@@ -1,4 +1,5 @@
 import type { Locale } from "@/lib/i18n/config";
+import { toChineseRegionName } from "@/lib/geo/region-names";
 import type { DestinationItem, Difficulty, Safety, Scenario } from "./types";
 
 const scenarioLabelMap: Record<Scenario, { en: string; zh: string }> = {
@@ -31,11 +32,11 @@ export function destinationName(item: DestinationItem, locale: Locale) {
 }
 
 export function destinationCity(item: DestinationItem, locale: Locale) {
-  return locale === "zh" ? item.cityZh || item.city : item.city;
+  return locale === "zh" ? item.cityZh || toChineseRegionName(item.city) : item.city;
 }
 
 export function destinationProvince(item: DestinationItem, locale: Locale) {
-  return locale === "zh" ? item.provinceZh || item.province || "" : item.province || "";
+  return locale === "zh" ? item.provinceZh || toChineseRegionName(item.province) : item.province || "";
 }
 
 export function destinationRegion(item: DestinationItem, locale: Locale) {
