@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { AuthNav } from "@/components/layout/auth-nav";
 import { MobileTabBar } from "@/components/layout/mobile-tab-bar";
 import { InstallPrompt } from "@/components/pwa/install-prompt";
@@ -37,6 +38,9 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const locale = await getLocale();
+  const cookieStore = await cookies();
+  const displayEmailCookie = cookieStore.get("qimeide_auth_email")?.value ?? "";
+  const displayEmail = displayEmailCookie ? decodeURIComponent(displayEmailCookie) : null;
   const hasAuthCookie = await hasSupabaseAuthCookie();
   const supabase = hasAuthCookie ? await createClient() : null;
   const {
@@ -52,10 +56,10 @@ export default async function RootLayout({
   return (
     <html lang="zh-CN">
       <body className="bg-slate-50 pb-16 text-slate-800 antialiased md:pb-0">
-        <AuthNav locale={locale} email={user?.email ?? null} isAdmin={isAdmin} />
+        <AuthNav locale={locale} email={user?.email ?? displayEmail} isAdmin={isAdmin} />
         {children}
         <InstallPrompt />
-        <MobileTabBar locale={locale} isSignedIn={Boolean(user)} />
+        <MobileTabBar locale={locale} isSignedIn={Boolean(user || displayEmail)} />
       </body>
     </html>
   );

@@ -38,6 +38,7 @@ async function signOut(request: NextRequest) {
     .getAll()
     .filter((cookie) => cookie.name.startsWith("sb-"))
     .forEach((cookie) => response.cookies.set(cookie.name, "", { maxAge: 0, path: "/" }));
+  response.cookies.set("qimeide_auth_email", "", { maxAge: 0, path: "/" });
 
   return response;
 }
