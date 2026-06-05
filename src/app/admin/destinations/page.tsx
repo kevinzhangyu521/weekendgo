@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { Pencil } from "lucide-react";
 import { getAdminDestinations } from "@/features/admin/destinations";
 import { toChineseRegionName } from "@/lib/geo/region-names";
@@ -23,6 +22,33 @@ function formatRegion(item: { province?: string | null; provinceZh?: string | nu
   return `${province} ${city}`;
 }
 
+function AdminAccessRequired() {
+  return (
+    <main className="min-h-screen bg-slate-50">
+      <section className="mx-auto max-w-3xl px-4 py-10 md:px-6">
+        <div className="rounded-2xl border border-amber-200 bg-white p-6 shadow-sm">
+          <p className="text-sm font-semibold text-amber-700">{"\u9700\u8981\u7ba1\u7406\u5458\u6743\u9650"}</p>
+          <h1 className="mt-2 text-2xl font-bold text-slate-900">{"\u6682\u65f6\u65e0\u6cd5\u6253\u5f00\u76ee\u7684\u5730\u7ba1\u7406"}</h1>
+          <p className="mt-3 text-sm leading-6 text-slate-600">
+            {"\u8bf7\u5148\u786e\u8ba4\u5df2\u767b\u5f55\u7ba1\u7406\u5458\u8d26\u53f7\u3002\u5982\u679c\u4f60\u5df2\u7ecf\u662f\u7ba1\u7406\u5458\uff0c\u8bf7\u5148\u9000\u51fa\u540e\u91cd\u65b0\u767b\u5f55\uff0c\u518d\u6253\u5f00\u672c\u9875\u3002"}
+          </p>
+          <div className="mt-5 flex flex-wrap gap-2">
+            <Link href="/login?next=/admin/destinations" className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">
+              {"\u767b\u5f55\u7ba1\u7406\u5458\u8d26\u53f7"}
+            </Link>
+            <Link href="/admin/submissions" className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700">
+              {"\u53bb\u5ba1\u6838\u6295\u7a3f"}
+            </Link>
+            <Link href="/" className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700">
+              {"\u8fd4\u56de\u9996\u9875"}
+            </Link>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}
+
 export default async function AdminDestinationsPage({
   searchParams
 }: {
@@ -31,7 +57,7 @@ export default async function AdminDestinationsPage({
   const params = await searchParams;
   const q = String(params.q ?? "");
   const destinations = await getAdminDestinations(q);
-  if (!destinations) notFound();
+  if (!destinations) return <AdminAccessRequired />;
 
   return (
     <main className="min-h-screen bg-slate-50">
