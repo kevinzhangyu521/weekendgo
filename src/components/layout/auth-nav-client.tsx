@@ -55,23 +55,39 @@ export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
+    let mounted = true;
+
+    async function updateFromSession(userId?: string, userEmail?: string | null) {
+      if (!mounted) return;
+      setEmail(userEmail ?? null);
+
+      if (!userId) {
+        setIsAdmin(false);
+        return;
+      }
+
+      const { data } = await supabase.from("admin_users").select("user_id").eq("user_id", userId).maybeSingle();
+      if (mounted) setIsAdmin(Boolean(data));
+    }
+
+    supabase.auth.getSession().then(({ data }) => {
+      const user = data.session?.user ?? null;
+      void updateFromSession(user?.id, user?.email ?? null);
+    });
+
     const {
       data: { subscription }
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       const user = session?.user ?? null;
-      setEmail(user?.email ?? null);
-
-      if (!user) {
-        setIsAdmin(false);
-      } else {
-        const { data } = await supabase.from("admin_users").select("user_id").eq("user_id", user.id).maybeSingle();
-        setIsAdmin(Boolean(data));
-      }
+      await updateFromSession(user?.id, user?.email ?? null);
 
       if (event === "SIGNED_IN" || event === "SIGNED_OUT") router.refresh();
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, [router, supabase]);
 
   function prepareSignOut() {

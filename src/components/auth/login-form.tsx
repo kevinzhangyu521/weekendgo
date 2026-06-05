@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Lock, Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/lib/i18n/config";
@@ -15,9 +15,13 @@ type Props = {
 
 type AuthAction = "login" | "signup" | "signout";
 
+function pick(locale: Locale, en: string, zh: string) {
+  return locale === "zh" ? zh : en;
+}
+
 function withTimeout<T>(promise: Promise<T>, timeoutMs = 12000): Promise<T> {
   return new Promise((resolve, reject) => {
-    const timer = window.setTimeout(() => reject(new Error("请求超时，请检查网络后再试。")), timeoutMs);
+    const timer = window.setTimeout(() => reject(new Error("\u8bf7\u6c42\u8d85\u65f6\uff0c\u8bf7\u68c0\u67e5\u7f51\u7edc\u540e\u518d\u8bd5\u3002")), timeoutMs);
     promise
       .then((value) => {
         window.clearTimeout(timer);
@@ -32,23 +36,29 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs = 12000): Promise<T> {
 
 function translateAuthError(message: string) {
   const lower = message.toLowerCase();
-  if (lower.includes("invalid login credentials")) return "邮箱或密码不正确，请检查后再试。";
-  if (lower.includes("email not confirmed")) return "账号还没有完成邮箱确认，请先去邮箱完成确认。";
-  if (lower.includes("already registered") || lower.includes("user already registered")) return "这个邮箱已经注册过，请直接登录。";
-  if (lower.includes("password")) return "密码不符合要求，请至少填写 6 位。";
+  if (lower.includes("invalid login credentials")) return "\u90ae\u7bb1\u6216\u5bc6\u7801\u4e0d\u6b63\u786e\uff0c\u8bf7\u68c0\u67e5\u540e\u518d\u8bd5\u3002";
+  if (lower.includes("email not confirmed")) return "\u8d26\u53f7\u8fd8\u6ca1\u6709\u5b8c\u6210\u90ae\u7bb1\u786e\u8ba4\uff0c\u8bf7\u5148\u53bb\u90ae\u7bb1\u5b8c\u6210\u786e\u8ba4\u3002";
+  if (lower.includes("already registered") || lower.includes("user already registered")) return "\u8fd9\u4e2a\u90ae\u7bb1\u5df2\u7ecf\u6ce8\u518c\u8fc7\uff0c\u8bf7\u76f4\u63a5\u767b\u5f55\u3002";
+  if (lower.includes("password")) return "\u5bc6\u7801\u4e0d\u7b26\u5408\u8981\u6c42\uff0c\u8bf7\u81f3\u5c11\u586b\u5199 6 \u4f4d\u3002";
   return message;
+}
+
+function safeNextPath(value: string | null) {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/";
+  if (value.startsWith("/login")) return "/";
+  return value;
 }
 
 export function LoginForm({ locale, initialEmail }: Props) {
   const text = getLoginMessages(locale);
-  const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = useMemo(() => createClient(), []);
-  const next = searchParams.get("next") ?? "/favorites";
+  const next = safeNextPath(searchParams.get("next"));
   const confirmed = searchParams.get("confirmed") === "1";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [currentEmail, setCurrentEmail] = useState(initialEmail);
   const [loadingAction, setLoadingAction] = useState<AuthAction | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -61,19 +71,19 @@ export function LoginForm({ locale, initialEmail }: Props) {
   function validateFields() {
     const emailValue = email.trim();
     if (!emailValue) {
-      setError("请先填写邮箱。");
+      setError("\u8bf7\u5148\u586b\u5199\u90ae\u7bb1\u3002");
       return null;
     }
     if (!emailValue.includes("@")) {
-      setError("请填写正确的邮箱地址。");
+      setError("\u8bf7\u586b\u5199\u6b63\u786e\u7684\u90ae\u7bb1\u5730\u5740\u3002");
       return null;
     }
     if (!password) {
-      setError("请先填写密码。");
+      setError("\u8bf7\u5148\u586b\u5199\u5bc6\u7801\u3002");
       return null;
     }
     if (password.length < 6) {
-      setError("密码至少需要 6 位。");
+      setError("\u5bc6\u7801\u81f3\u5c11\u9700\u8981 6 \u4f4d\u3002");
       return null;
     }
     return { email: emailValue, password };
@@ -86,24 +96,26 @@ export function LoginForm({ locale, initialEmail }: Props) {
     if (!fields) return;
 
     setLoadingAction("login");
-    setMessage("正在登录，请稍候...");
+    setMessage("\u6b63\u5728\u767b\u5f55\uff0c\u8bf7\u7a0d\u5019...");
 
     try {
-      const { error: signInError } = await withTimeout(supabase.auth.signInWithPassword(fields));
+      const { data, error: signInError } = await withTimeout(supabase.auth.signInWithPassword(fields));
 
       if (signInError) {
         setMessage("");
-        setError(`登录失败：${translateAuthError(signInError.message)}`);
+        setError(`\u767b\u5f55\u5931\u8d25\uff1a${translateAuthError(signInError.message)}`);
         return;
       }
 
-      setMessage("登录成功，正在进入首页...");
-      router.refresh();
-      window.location.assign("/");
+      const userEmail = data.user?.email ?? fields.email;
+      setCurrentEmail(userEmail);
+      setMessage("\u767b\u5f55\u6210\u529f\uff0c\u6b63\u5728\u8fdb\u5165\u9996\u9875...");
+      await supabase.auth.getSession();
+      window.location.replace("/");
     } catch (err) {
-      const detail = err instanceof Error ? err.message : "请稍后再试。";
+      const detail = err instanceof Error ? err.message : "\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002";
       setMessage("");
-      setError(`登录失败：${detail}`);
+      setError(`\u767b\u5f55\u5931\u8d25\uff1a${detail}`);
     } finally {
       setLoadingAction(null);
     }
@@ -115,144 +127,127 @@ export function LoginForm({ locale, initialEmail }: Props) {
     if (!fields) return;
 
     setLoadingAction("signup");
-    setMessage("正在注册，请稍候...");
+    setMessage("\u6b63\u5728\u6ce8\u518c\uff0c\u8bf7\u7a0d\u5019...");
 
     try {
       const { data, error: signUpError } = await withTimeout(supabase.auth.signUp(fields));
 
       if (signUpError) {
         setMessage("");
-        setError(`注册失败：${translateAuthError(signUpError.message)}`);
+        setError(`\u6ce8\u518c\u5931\u8d25\uff1a${translateAuthError(signUpError.message)}`);
         return;
       }
 
       if (data.session) {
-        setMessage("注册成功，正在进入首页...");
-        router.refresh();
-        window.location.assign("/");
+        setCurrentEmail(data.user?.email ?? fields.email);
+        setMessage("\u6ce8\u518c\u6210\u529f\uff0c\u6b63\u5728\u8fdb\u5165\u9996\u9875...");
+        await supabase.auth.getSession();
+        window.location.replace("/");
         return;
       }
 
-      setMessage("注册申请已提交。请打开邮箱里的确认邮件，点击确认链接后再回到本页登录。");
+      setMessage("\u6ce8\u518c\u7533\u8bf7\u5df2\u63d0\u4ea4\u3002\u8bf7\u6253\u5f00\u90ae\u7bb1\u91cc\u7684\u786e\u8ba4\u90ae\u4ef6\uff0c\u70b9\u51fb\u786e\u8ba4\u94fe\u63a5\u540e\u518d\u56de\u5230\u672c\u9875\u767b\u5f55\u3002");
     } catch (err) {
-      const detail = err instanceof Error ? err.message : "请稍后再试。";
-      setError(`注册失败：${detail}`);
+      const detail = err instanceof Error ? err.message : "\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002";
+      setMessage("");
+      setError(`\u6ce8\u518c\u5931\u8d25\uff1a${detail}`);
     } finally {
       setLoadingAction(null);
     }
   }
 
-  async function signOut() {
-    resetFeedback();
-    setLoadingAction("signout");
-
-    const { error: signOutError } = await supabase.auth.signOut();
-    setLoadingAction(null);
-
-    if (signOutError) {
-      setError(`退出登录失败：${translateAuthError(signOutError.message)}`);
-      return;
-    }
-
-    setMessage(text.signedOut);
-    router.refresh();
-  }
+  const isSignedIn = Boolean(currentEmail);
 
   return (
     <main className="min-h-screen bg-slate-50">
       <section className="mx-auto flex max-w-md flex-col px-4 py-10 md:px-0">
-        <p className="text-sm text-slate-500">{"栖美地账号"}</p>
-        <h1 className="mt-1 text-2xl font-bold text-slate-900">{"邮箱密码登录"}</h1>
-        <p className="mt-2 text-sm text-slate-600">{"使用邮箱和密码登录栖美地，不需要再去邮箱点击登录链接。"}</p>
+        <p className="text-sm text-slate-500">{"\u6816\u7f8e\u5730\u8d26\u53f7"}</p>
+        <h1 className="mt-1 text-2xl font-bold text-slate-900">{pick(locale, "Email and password sign in", "\u90ae\u7bb1\u5bc6\u7801\u767b\u5f55")}</h1>
+        <p className="mt-2 text-sm text-slate-600">
+          {pick(locale, "Use your email and password to sign in.", "\u4f7f\u7528\u90ae\u7bb1\u548c\u5bc6\u7801\u767b\u5f55\u6816\u7f8e\u5730\u3002")}
+        </p>
 
         {confirmed ? (
           <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
-            <p className="font-semibold">{"注册确认成功"}</p>
-            <p className="mt-1">{"请返回刚才的注册页面，或在下方输入邮箱和密码登录。"}</p>
+            <p className="font-semibold">{"\u6ce8\u518c\u786e\u8ba4\u6210\u529f"}</p>
+            <p className="mt-1">{"\u8bf7\u5728\u4e0b\u65b9\u8f93\u5165\u90ae\u7bb1\u548c\u5bc6\u7801\u767b\u5f55\u3002"}</p>
           </div>
         ) : null}
 
-        {initialEmail ? (
+        {isSignedIn ? (
           <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
-            <p className="font-semibold">{"当前已登录"}</p>
-            <p className="mt-1">{initialEmail}</p>
+            <p className="font-semibold">{"\u5f53\u524d\u5df2\u767b\u5f55"}</p>
+            <p className="mt-1">{currentEmail}</p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <Link href={next} className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white">
-                {"继续使用网站"}
+              <Link href="/" className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white">
+                {"\u8fdb\u5165\u9996\u9875"}
               </Link>
               <Link href="/reset-password" className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-emerald-700">
-                {"修改密码"}
+                {"\u4fee\u6539\u5bc6\u7801"}
               </Link>
-              <button
-                type="button"
-                onClick={signOut}
-                disabled={loadingAction !== null}
-                className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-emerald-700 disabled:opacity-60"
-              >
-                {loadingAction === "signout" ? "退出中..." : text.signOut}
-              </button>
+              <Link href="/auth/sign-out" className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-emerald-700">
+                {text.signOut}
+              </Link>
             </div>
-            {message ? <p className="mt-2 text-sm text-emerald-700">{message}</p> : null}
-            {error ? <p className="mt-2 text-sm text-rose-600">{error}</p> : null}
           </div>
         ) : null}
 
-        {!initialEmail ? (
-        <form onSubmit={login} className="mt-6 space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-          <label className="text-sm font-bold text-slate-900" htmlFor="email">
-            {"邮箱"}
-          </label>
-          <div className="flex items-center gap-2 rounded-lg border border-slate-200 px-3">
-            <Mail className="h-4 w-4 text-slate-500" />
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="you@example.com"
-              className="h-10 w-full bg-transparent text-sm text-slate-900 outline-none"
-            />
-          </div>
+        {!isSignedIn ? (
+          <form onSubmit={login} className="mt-6 space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+            <label className="text-sm font-bold text-slate-900" htmlFor="email">
+              {"\u90ae\u7bb1"}
+            </label>
+            <div className="flex items-center gap-2 rounded-lg border border-slate-200 px-3">
+              <Mail className="h-4 w-4 text-slate-500" />
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="you@example.com"
+                className="h-10 w-full bg-transparent text-sm text-slate-900 outline-none"
+              />
+            </div>
 
-          <label className="text-sm font-bold text-slate-900" htmlFor="password">
-            {"密码"}
-          </label>
-          <div className="flex items-center gap-2 rounded-lg border border-slate-200 px-3">
-            <Lock className="h-4 w-4 text-slate-500" />
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="至少 6 位"
-              className="h-10 w-full bg-transparent text-sm text-slate-900 outline-none"
-            />
-          </div>
+            <label className="text-sm font-bold text-slate-900" htmlFor="password">
+              {"\u5bc6\u7801"}
+            </label>
+            <div className="flex items-center gap-2 rounded-lg border border-slate-200 px-3">
+              <Lock className="h-4 w-4 text-slate-500" />
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="\u81f3\u5c11 6 \u4f4d"
+                className="h-10 w-full bg-transparent text-sm text-slate-900 outline-none"
+              />
+            </div>
 
-          <button
-            type="submit"
-            disabled={loadingAction !== null}
-            className="w-full rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
-          >
-            {loadingAction === "login" ? "登录中..." : "登录"}
-          </button>
+            <button
+              type="submit"
+              disabled={loadingAction !== null}
+              className="w-full rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+            >
+              {loadingAction === "login" ? "\u767b\u5f55\u4e2d..." : "\u767b\u5f55"}
+            </button>
 
-          <Link href="/reset-password" className="block text-center text-sm text-emerald-700 hover:underline">
-            {"忘记密码？"}
-          </Link>
+            <Link href="/reset-password" className="block text-center text-sm text-emerald-700 hover:underline">
+              {"\u5fd8\u8bb0\u5bc6\u7801\uff1f"}
+            </Link>
 
-          <button
-            type="button"
-            onClick={signUp}
-            disabled={loadingAction !== null}
-            className="w-full rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-medium text-emerald-700 disabled:opacity-60"
-          >
-            {loadingAction === "signup" ? "注册中..." : "注册新账号"}
-          </button>
+            <button
+              type="button"
+              onClick={signUp}
+              disabled={loadingAction !== null}
+              className="w-full rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-medium text-emerald-700 disabled:opacity-60"
+            >
+              {loadingAction === "signup" ? "\u6ce8\u518c\u4e2d..." : "\u6ce8\u518c\u65b0\u8d26\u53f7"}
+            </button>
 
-          {message ? <p className="text-sm text-emerald-700">{message}</p> : null}
-          {error ? <p className="text-sm text-rose-600">{error}</p> : null}
-        </form>
+            {message ? <p className="text-sm text-emerald-700">{message}</p> : null}
+            {error ? <p className="text-sm text-rose-600">{error}</p> : null}
+          </form>
         ) : null}
 
         <div className="mt-4 flex items-center gap-3 text-sm">
