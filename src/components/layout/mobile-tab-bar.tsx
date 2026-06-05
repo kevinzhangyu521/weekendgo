@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { Heart, Home, MapPinned, Route, User } from "lucide-react";
 import { usePathname } from "next/navigation";
 import type { Locale } from "@/lib/i18n/config";
+import { createClient } from "@/lib/supabase/client";
 
 type Props = {
   locale: Locale;
@@ -12,11 +14,11 @@ type Props = {
 
 const labels = {
   zh: {
-    home: "首页",
-    destinations: "目的地",
-    map: "地图",
-    plans: "我的计划",
-    mine: "我的"
+    home: "\u9996\u9875",
+    destinations: "\u76ee\u7684\u5730",
+    map: "\u5730\u56fe",
+    plans: "\u6211\u7684\u8ba1\u5212",
+    mine: "\u6211\u7684"
   },
   en: {
     home: "Home",
@@ -29,8 +31,45 @@ const labels = {
 
 export function MobileTabBar({ locale, isSignedIn }: Props) {
   const pathname = usePathname();
+  const supabase = useMemo(() => createClient(), []);
+  const [signedIn, setSignedIn] = useState(isSignedIn);
   const text = labels[locale];
-  const mineHref = isSignedIn ? "/profile" : `/login?next=${encodeURIComponent(pathname || "/")}`;
+
+  useEffect(() => {
+    let mounted = true;
+    const cachedEmail = window.localStorage.getItem("qimeide_auth_email");
+    if (cachedEmail) setSignedIn(true);
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (!mounted) return;
+      const user = data.session?.user ?? null;
+      setSignedIn(Boolean(user));
+      if (user?.email) {
+        window.localStorage.setItem("qimeide_auth_email", user.email);
+      } else {
+        window.localStorage.removeItem("qimeide_auth_email");
+      }
+    });
+
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      const user = session?.user ?? null;
+      setSignedIn(Boolean(user));
+      if (user?.email) {
+        window.localStorage.setItem("qimeide_auth_email", user.email);
+      } else {
+        window.localStorage.removeItem("qimeide_auth_email");
+      }
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [supabase]);
+
+  const mineHref = signedIn ? "/profile" : `/login?next=${encodeURIComponent(pathname || "/")}`;
 
   const items = [
     { href: "/", label: text.home, icon: Home },

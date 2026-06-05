@@ -57,15 +57,20 @@ export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
   useEffect(() => {
     let mounted = true;
 
+    const cachedEmail = window.localStorage.getItem("qimeide_auth_email");
+    if (cachedEmail) setEmail(cachedEmail);
+
     async function updateFromSession(userId?: string, userEmail?: string | null) {
       if (!mounted) return;
       setEmail(userEmail ?? null);
 
       if (!userId) {
+        window.localStorage.removeItem("qimeide_auth_email");
         setIsAdmin(false);
         return;
       }
 
+      if (userEmail) window.localStorage.setItem("qimeide_auth_email", userEmail);
       const { data } = await supabase.from("admin_users").select("user_id").eq("user_id", userId).maybeSingle();
       if (mounted) setIsAdmin(Boolean(data));
     }
@@ -95,6 +100,7 @@ export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
     setMenuOpen(false);
     setEmail(null);
     setIsAdmin(false);
+    window.localStorage.removeItem("qimeide_auth_email");
   }
 
   const visibleItems = navItems[locale].filter((item) => {
