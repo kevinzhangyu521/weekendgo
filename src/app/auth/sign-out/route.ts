@@ -28,7 +28,11 @@ async function signOut(request: NextRequest) {
     }
   });
 
-  await supabase.auth.signOut();
+  try {
+    await supabase.auth.signOut();
+  } catch {
+    // Continue clearing local auth cookies even if Supabase cannot be reached.
+  }
 
   request.cookies
     .getAll()

@@ -74,12 +74,11 @@ export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
     return () => subscription.unsubscribe();
   }, [router, supabase]);
 
-  function handleSignOut() {
+  function prepareSignOut() {
     setLoading(true);
     setMenuOpen(false);
     setEmail(null);
     setIsAdmin(false);
-    window.location.assign("/auth/sign-out");
   }
 
   const visibleItems = navItems[locale].filter((item) => {
@@ -104,14 +103,15 @@ export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
       {email ? (
         <div className="flex items-center gap-2">
           <span className="hidden max-w-[220px] truncate text-slate-600 md:inline">{email}</span>
-          <button
-            type="button"
-            onClick={handleSignOut}
-            disabled={loading}
-            className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+          <Link
+            href="/auth/sign-out"
+            onClick={prepareSignOut}
+            className={`rounded-full border border-slate-200 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-50 ${
+              loading ? "pointer-events-none opacity-60" : ""
+            }`}
           >
             {loading ? (locale === "zh" ? "\u9000\u51fa\u4e2d..." : "Signing out...") : locale === "zh" ? "\u9000\u51fa" : "Sign out"}
-          </button>
+          </Link>
         </div>
       ) : (
         <Link href={loginHref} className="rounded-full bg-emerald-600 px-3 py-1.5 font-medium text-white hover:bg-emerald-700">
