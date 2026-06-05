@@ -74,14 +74,12 @@ export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
     return () => subscription.unsubscribe();
   }, [router, supabase]);
 
-  async function handleSignOut() {
+  function handleSignOut() {
     setLoading(true);
-    await supabase.auth.signOut();
+    setMenuOpen(false);
     setEmail(null);
     setIsAdmin(false);
-    setMenuOpen(false);
-    setLoading(false);
-    router.refresh();
+    window.location.assign("/auth/sign-out");
   }
 
   const visibleItems = navItems[locale].filter((item) => {
@@ -112,7 +110,7 @@ export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
             disabled={loading}
             className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-50 disabled:opacity-60"
           >
-            {locale === "zh" ? "\u9000\u51fa" : "Sign out"}
+            {loading ? (locale === "zh" ? "\u9000\u51fa\u4e2d..." : "Signing out...") : locale === "zh" ? "\u9000\u51fa" : "Sign out"}
           </button>
         </div>
       ) : (
