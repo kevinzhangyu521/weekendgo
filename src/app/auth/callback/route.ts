@@ -1,11 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { setSupabaseSessionCookies } from "@/lib/supabase/auth-session-cookie";
 
 type CookieToSet = {
   name: string;
   value: string;
   options?: Parameters<NextResponse["cookies"]["set"]>[2];
 };
+
+export const runtime = "nodejs";
 
 function safeNextPath(value: string | null) {
   if (!value || !value.startsWith("/") || value.startsWith("//")) return "/";
@@ -35,9 +38,12 @@ export async function GET(request: NextRequest) {
         }
       }
     });
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (error) {
       return NextResponse.redirect(`${origin}/login?authError=invalid_link`);
+    }
+    if (data.session) {
+      setSupabaseSessionCookies(request, response, data.session);
     }
     await supabase.auth.getSession();
   }

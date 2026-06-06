@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { setSupabaseSessionCookies } from "@/lib/supabase/auth-session-cookie";
 
 type CookieToSet = {
   name: string;
@@ -12,6 +13,8 @@ type LoginPayload = {
   password?: string;
   next?: string;
 };
+
+export const runtime = "nodejs";
 
 function isValidEmail(value: unknown): value is string {
   return typeof value === "string" && value.includes("@") && value.length <= 254;
@@ -96,6 +99,9 @@ export async function POST(request: NextRequest) {
       : redirectWithError(request, "\u90ae\u7bb1\u6216\u5bc6\u7801\u4e0d\u6b63\u786e\uff0c\u8bf7\u68c0\u67e5\u540e\u518d\u8bd5\u3002");
   }
 
+  if (data.session) {
+    authCookiesSet += setSupabaseSessionCookies(request, response, data.session);
+  }
   await supabase.auth.getSession();
   response.headers.set("X-Qimeide-Auth-Cookies", String(authCookiesSet));
 
