@@ -69,12 +69,20 @@ export async function POST(request: NextRequest) {
     ? NextResponse.json({ ok: true, email })
     : NextResponse.redirect(`${origin}${next}`, { status: 303 });
   response.headers.set("Cache-Control", "no-store");
+  let authCookiesSet = 0;
   const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+    cookieOptions: {
+      path: "/",
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production"
+    },
     cookies: {
       getAll() {
         return request.cookies.getAll();
       },
       setAll(cookiesToSet: CookieToSet[]) {
+        authCookiesSet += cookiesToSet.filter((cookie) => cookie.name.startsWith("sb-")).length;
+        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
         cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
       }
     }
@@ -87,6 +95,9 @@ export async function POST(request: NextRequest) {
       ? NextResponse.json({ ok: false, message: "\u90ae\u7bb1\u6216\u5bc6\u7801\u4e0d\u6b63\u786e\uff0c\u8bf7\u68c0\u67e5\u540e\u518d\u8bd5\u3002" }, { status: 401 })
       : redirectWithError(request, "\u90ae\u7bb1\u6216\u5bc6\u7801\u4e0d\u6b63\u786e\uff0c\u8bf7\u68c0\u67e5\u540e\u518d\u8bd5\u3002");
   }
+
+  await supabase.auth.getSession();
+  response.headers.set("X-Qimeide-Auth-Cookies", String(authCookiesSet));
 
   return response;
 }
