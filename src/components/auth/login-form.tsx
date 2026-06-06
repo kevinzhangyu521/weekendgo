@@ -49,18 +49,9 @@ function safeNextPath(value: string | null) {
   return value;
 }
 
-async function rememberSignedInEmail(email: string) {
+function rememberSignedInEmail(email: string) {
   window.localStorage.setItem("qimeide_auth_email", email);
   document.cookie = `qimeide_auth_email=${encodeURIComponent(email)}; Path=/; Max-Age=2592000; SameSite=Lax`;
-
-  await fetch("/auth/display-session", {
-    method: "POST",
-    credentials: "same-origin",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ email })
-  });
 }
 
 export function LoginForm({ locale, initialEmail }: Props) {
@@ -113,19 +104,28 @@ export function LoginForm({ locale, initialEmail }: Props) {
     setMessage("\u6b63\u5728\u767b\u5f55\uff0c\u8bf7\u7a0d\u5019...");
 
     try {
-      const { data, error: signInError } = await withTimeout(supabase.auth.signInWithPassword(fields));
+      const response = await withTimeout(
+        fetch("/auth/password-login", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(fields)
+        })
+      );
+      const result = (await response.json()) as { ok?: boolean; email?: string; message?: string };
 
-      if (signInError) {
+      if (!response.ok || !result.ok) {
         setMessage("");
-        setError(`\u767b\u5f55\u5931\u8d25\uff1a${translateAuthError(signInError.message)}`);
+        setError(`\u767b\u5f55\u5931\u8d25\uff1a${result.message ?? "\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002"}`);
         return;
       }
 
-      const userEmail = data.user?.email ?? fields.email;
+      const userEmail = result.email ?? fields.email;
       setCurrentEmail(userEmail);
-      await rememberSignedInEmail(userEmail);
+      rememberSignedInEmail(userEmail);
       setMessage("\u767b\u5f55\u6210\u529f\uff0c\u6b63\u5728\u8fdb\u5165\u9996\u9875...");
-      await supabase.auth.getSession();
       window.location.replace("/");
     } catch (err) {
       const detail = err instanceof Error ? err.message : "\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002";
@@ -156,7 +156,7 @@ export function LoginForm({ locale, initialEmail }: Props) {
       if (data.session) {
         const userEmail = data.user?.email ?? fields.email;
         setCurrentEmail(userEmail);
-        await rememberSignedInEmail(userEmail);
+        rememberSignedInEmail(userEmail);
         setMessage("\u6ce8\u518c\u6210\u529f\uff0c\u6b63\u5728\u8fdb\u5165\u9996\u9875...");
         await supabase.auth.getSession();
         window.location.replace("/");
