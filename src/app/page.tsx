@@ -327,6 +327,7 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+      <div className="pb-6 text-center text-[11px] text-slate-400">部署检测 2026-06-07</div>
     </main>
   );
 }
