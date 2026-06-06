@@ -1,23 +1,39 @@
 import { type EmailOtpType } from "@supabase/supabase-js";
-import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { NextResponse, type NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr";
+
+type CookieToSet = {
+  name: string;
+  value: string;
+  options?: Parameters<NextResponse["cookies"]["set"]>[2];
+};
 
 function safeNextPath(value: string | null) {
   if (!value || !value.startsWith("/") || value.startsWith("//")) return "/";
   return value;
 }
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
   const next = safeNextPath(searchParams.get("next"));
+  const response = NextResponse.redirect(type === "signup" ? `${origin}/login?confirmed=1` : `${origin}${next}`);
 
   if (!tokenHash || !type) {
     return NextResponse.redirect(`${origin}/login?authError=missing_link`);
   }
 
-  const supabase = await createClient();
+  const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet: CookieToSet[]) {
+        cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+      }
+    }
+  });
   const { error } = await supabase.auth.verifyOtp({
     token_hash: tokenHash,
     type
@@ -27,9 +43,5 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/login?authError=invalid_link`);
   }
 
-  if (type === "signup") {
-    return NextResponse.redirect(`${origin}/login?confirmed=1`);
-  }
-
-  return NextResponse.redirect(`${origin}${next}`);
+  return response;
 }

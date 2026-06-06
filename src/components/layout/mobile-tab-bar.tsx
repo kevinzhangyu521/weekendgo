@@ -38,10 +38,28 @@ export function MobileTabBar({ locale, isSignedIn }: Props) {
   useEffect(() => {
     let mounted = true;
 
+    async function updateFromServer() {
+      try {
+        const response = await fetch("/api/auth/me", {
+          cache: "no-store",
+          credentials: "include"
+        });
+        if (!response.ok || !mounted) return;
+        const data = (await response.json()) as { user: unknown | null };
+        setSignedIn(Boolean(data.user));
+      } catch {
+        // Keep the last known tab state if this background check fails.
+      }
+    }
+
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return;
       const user = data.session?.user ?? null;
-      setSignedIn(Boolean(user));
+      if (user) {
+        setSignedIn(true);
+      } else {
+        void updateFromServer();
+      }
     });
 
     const {

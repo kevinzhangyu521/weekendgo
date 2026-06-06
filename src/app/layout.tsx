@@ -3,9 +3,11 @@ import { AuthNav } from "@/components/layout/auth-nav";
 import { MobileTabBar } from "@/components/layout/mobile-tab-bar";
 import { InstallPrompt } from "@/components/pwa/install-prompt";
 import { getLocale } from "@/lib/i18n/server";
-import { hasSupabaseAuthCookie } from "@/lib/supabase/auth-cookie";
 import { createClient } from "@/lib/supabase/server";
 import "./globals.css";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: "\u6816\u7f8e\u5730 | \u4eb2\u5b50\u5468\u672b\u6237\u5916\u6307\u5357",
@@ -37,14 +39,13 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const locale = await getLocale();
-  const hasAuthCookie = await hasSupabaseAuthCookie();
-  const supabase = hasAuthCookie ? await createClient() : null;
+  const supabase = await createClient();
   const {
     data: { user }
-  } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
+  } = await supabase.auth.getUser();
   let isAdmin = false;
 
-  if (user && supabase) {
+  if (user) {
     const { data } = await supabase.from("admin_users").select("user_id").eq("user_id", user.id).maybeSingle();
     isAdmin = Boolean(data);
   }

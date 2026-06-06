@@ -57,12 +57,29 @@ export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
   useEffect(() => {
     let mounted = true;
 
+    async function updateFromServer() {
+      try {
+        const response = await fetch("/api/auth/me", {
+          cache: "no-store",
+          credentials: "include"
+        });
+        if (!response.ok || !mounted) return;
+        const data = (await response.json()) as {
+          user: { email: string | null } | null;
+          isAdmin: boolean;
+        };
+        setEmail(data.user?.email ?? null);
+        setIsAdmin(Boolean(data.isAdmin));
+      } catch {
+        // Keep the last known navigation state if this background check fails.
+      }
+    }
+
     async function updateFromSession(userId?: string, userEmail?: string | null) {
       if (!mounted) return;
 
       if (!userId) {
-        setEmail(null);
-        setIsAdmin(false);
+        await updateFromServer();
         return;
       }
 
@@ -73,7 +90,11 @@ export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
 
     supabase.auth.getSession().then(({ data }) => {
       const user = data.session?.user ?? null;
-      void updateFromSession(user?.id, user?.email ?? null);
+      if (user) {
+        void updateFromSession(user.id, user.email ?? null);
+      } else {
+        void updateFromServer();
+      }
     });
 
     const {
