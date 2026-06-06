@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { type FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Lock, Mail } from "lucide-react";
@@ -13,7 +13,7 @@ type Props = {
   initialEmail: string | null;
 };
 
-type AuthAction = "login" | "signup" | "signout";
+type AuthAction = "login" | "signup";
 
 function pick(locale: Locale, en: string, zh: string) {
   return locale === "zh" ? zh : en;
@@ -90,6 +90,37 @@ export function LoginForm({ locale, initialEmail }: Props) {
     return { email: emailValue, password };
   }
 
+  async function login(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    resetFeedback();
+    const fields = validateFields();
+    if (!fields) return;
+
+    setLoadingAction("login");
+    setMessage("正在登录，请稍候...");
+
+    try {
+      const { data, error: loginError } = await withTimeout(supabase.auth.signInWithPassword(fields));
+
+      if (loginError || !data.user) {
+        setMessage("");
+        setError(`登录失败：${translateAuthError(loginError?.message ?? "请检查邮箱和密码后再试。")}`);
+        return;
+      }
+
+      await supabase.auth.getSession();
+      setCurrentEmail(data.user.email ?? fields.email);
+      setMessage("登录成功，正在进入首页...");
+      window.location.replace(next);
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : "请稍后再试。";
+      setMessage("");
+      setError(`登录失败：${detail}`);
+    } finally {
+      setLoadingAction(null);
+    }
+  }
+
   async function signUp() {
     resetFeedback();
     const fields = validateFields();
@@ -162,8 +193,7 @@ export function LoginForm({ locale, initialEmail }: Props) {
         ) : null}
 
         {!isSignedIn ? (
-          <form action="/auth/password-login" method="post" className="mt-6 space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-            <input type="hidden" name="next" value={next} />
+          <form onSubmit={login} className="mt-6 space-y-3 rounded-xl border border-slate-200 bg-white p-4">
             <label className="text-sm font-bold text-slate-900" htmlFor="email">
               {"\u90ae\u7bb1"}
             </label>
