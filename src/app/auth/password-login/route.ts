@@ -87,12 +87,5 @@ export async function POST(request: NextRequest) {
       : redirectWithError(request, "\u90ae\u7bb1\u6216\u5bc6\u7801\u4e0d\u6b63\u786e\uff0c\u8bf7\u68c0\u67e5\u540e\u518d\u8bd5\u3002");
   }
 
-  response.cookies.set("qimeide_auth_email", data.user.email ?? email, {
-    path: "/",
-    maxAge: 60 * 60 * 24 * 30,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production"
-  });
-
   return response;
 }

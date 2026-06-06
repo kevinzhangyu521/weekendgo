@@ -37,30 +37,19 @@ export function MobileTabBar({ locale, isSignedIn }: Props) {
 
   useEffect(() => {
     let mounted = true;
-    const cachedEmail = window.localStorage.getItem("qimeide_auth_email");
-    if (cachedEmail) setSignedIn(true);
 
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return;
       const user = data.session?.user ?? null;
-      if (user?.email) {
-        setSignedIn(true);
-        window.localStorage.setItem("qimeide_auth_email", user.email);
-        document.cookie = `qimeide_auth_email=${encodeURIComponent(user.email)}; Path=/; Max-Age=2592000; SameSite=Lax`;
-      }
+      setSignedIn(Boolean(user));
     });
 
     const {
       data: { subscription }
     } = supabase.auth.onAuthStateChange((event, session) => {
       const user = session?.user ?? null;
-      if (user?.email) {
-        setSignedIn(true);
-        window.localStorage.setItem("qimeide_auth_email", user.email);
-        document.cookie = `qimeide_auth_email=${encodeURIComponent(user.email)}; Path=/; Max-Age=2592000; SameSite=Lax`;
-      } else if (event === "SIGNED_OUT") {
-        setSignedIn(false);
-        window.localStorage.removeItem("qimeide_auth_email");
+      setSignedIn(Boolean(user));
+      if (event === "SIGNED_OUT") {
         document.cookie = "qimeide_auth_email=; Path=/; Max-Age=0; SameSite=Lax";
       }
     });

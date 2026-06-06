@@ -49,11 +49,6 @@ function safeNextPath(value: string | null) {
   return value;
 }
 
-function rememberSignedInEmail(email: string) {
-  window.localStorage.setItem("qimeide_auth_email", email);
-  document.cookie = `qimeide_auth_email=${encodeURIComponent(email)}; Path=/; Max-Age=2592000; SameSite=Lax`;
-}
-
 export function LoginForm({ locale, initialEmail }: Props) {
   const text = getLoginMessages(locale);
   const searchParams = useSearchParams();
@@ -113,9 +108,7 @@ export function LoginForm({ locale, initialEmail }: Props) {
       }
 
       if (data.session) {
-        const userEmail = data.user?.email ?? fields.email;
-        setCurrentEmail(userEmail);
-        rememberSignedInEmail(userEmail);
+        setCurrentEmail(data.user?.email ?? fields.email);
         setMessage("\u6ce8\u518c\u6210\u529f\uff0c\u6b63\u5728\u8fdb\u5165\u9996\u9875...");
         await supabase.auth.getSession();
         window.location.replace("/");
