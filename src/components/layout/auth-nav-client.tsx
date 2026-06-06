@@ -104,7 +104,7 @@ export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
     setEmail(null);
     setIsAdmin(false);
     window.localStorage.removeItem("qimeide_auth_email");
-    document.cookie = "qimeide_auth_email=; path=/; max-age=0; samesite=lax";
+    document.cookie = "qimeide_auth_email=; Path=/; Max-Age=0; SameSite=Lax";
   }
 
   const visibleItems = navItems[locale].filter((item) => {

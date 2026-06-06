@@ -49,9 +49,18 @@ function safeNextPath(value: string | null) {
   return value;
 }
 
-function rememberSignedInEmail(email: string) {
+async function rememberSignedInEmail(email: string) {
   window.localStorage.setItem("qimeide_auth_email", email);
-  document.cookie = `qimeide_auth_email=${encodeURIComponent(email)}; path=/; max-age=2592000; samesite=lax`;
+  document.cookie = `qimeide_auth_email=${encodeURIComponent(email)}; Path=/; Max-Age=2592000; SameSite=Lax`;
+
+  await fetch("/auth/display-session", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ email })
+  });
 }
 
 export function LoginForm({ locale, initialEmail }: Props) {
@@ -114,7 +123,7 @@ export function LoginForm({ locale, initialEmail }: Props) {
 
       const userEmail = data.user?.email ?? fields.email;
       setCurrentEmail(userEmail);
-      rememberSignedInEmail(userEmail);
+      await rememberSignedInEmail(userEmail);
       setMessage("\u767b\u5f55\u6210\u529f\uff0c\u6b63\u5728\u8fdb\u5165\u9996\u9875...");
       await supabase.auth.getSession();
       window.location.replace("/");
@@ -147,7 +156,7 @@ export function LoginForm({ locale, initialEmail }: Props) {
       if (data.session) {
         const userEmail = data.user?.email ?? fields.email;
         setCurrentEmail(userEmail);
-        rememberSignedInEmail(userEmail);
+        await rememberSignedInEmail(userEmail);
         setMessage("\u6ce8\u518c\u6210\u529f\uff0c\u6b63\u5728\u8fdb\u5165\u9996\u9875...");
         await supabase.auth.getSession();
         window.location.replace("/");

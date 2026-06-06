@@ -40,7 +40,12 @@ export default async function RootLayout({
   const locale = await getLocale();
   const cookieStore = await cookies();
   const displayEmailCookie = cookieStore.get("qimeide_auth_email")?.value ?? "";
-  const displayEmail = displayEmailCookie ? decodeURIComponent(displayEmailCookie) : null;
+  let displayEmail: string | null = null;
+  try {
+    displayEmail = displayEmailCookie ? decodeURIComponent(displayEmailCookie) : null;
+  } catch {
+    displayEmail = null;
+  }
   const hasAuthCookie = await hasSupabaseAuthCookie();
   const supabase = hasAuthCookie ? await createClient() : null;
   const {

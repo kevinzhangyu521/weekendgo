@@ -46,7 +46,7 @@ export function MobileTabBar({ locale, isSignedIn }: Props) {
       if (user?.email) {
         setSignedIn(true);
         window.localStorage.setItem("qimeide_auth_email", user.email);
-        document.cookie = `qimeide_auth_email=${encodeURIComponent(user.email)}; path=/; max-age=2592000; samesite=lax`;
+        document.cookie = `qimeide_auth_email=${encodeURIComponent(user.email)}; Path=/; Max-Age=2592000; SameSite=Lax`;
       }
     });
 
@@ -57,11 +57,11 @@ export function MobileTabBar({ locale, isSignedIn }: Props) {
       if (user?.email) {
         setSignedIn(true);
         window.localStorage.setItem("qimeide_auth_email", user.email);
-        document.cookie = `qimeide_auth_email=${encodeURIComponent(user.email)}; path=/; max-age=2592000; samesite=lax`;
+        document.cookie = `qimeide_auth_email=${encodeURIComponent(user.email)}; Path=/; Max-Age=2592000; SameSite=Lax`;
       } else if (event === "SIGNED_OUT") {
         setSignedIn(false);
         window.localStorage.removeItem("qimeide_auth_email");
-        document.cookie = "qimeide_auth_email=; path=/; max-age=0; samesite=lax";
+        document.cookie = "qimeide_auth_email=; Path=/; Max-Age=0; SameSite=Lax";
       }
     });
 
