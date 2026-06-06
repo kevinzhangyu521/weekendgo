@@ -59,7 +59,7 @@ export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
 
     async function updateFromServer() {
       try {
-        const response = await fetch("/api/auth/me", {
+        const response = await fetch("/auth/me", {
           cache: "no-store",
           credentials: "include"
         });
