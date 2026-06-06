@@ -60,6 +60,7 @@ export function LoginForm({ locale, initialEmail }: Props) {
   const supabase = useMemo(() => createClient(), []);
   const next = safeNextPath(searchParams.get("next"));
   const confirmed = searchParams.get("confirmed") === "1";
+  const loginError = searchParams.get("loginError");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -92,48 +93,6 @@ export function LoginForm({ locale, initialEmail }: Props) {
       return null;
     }
     return { email: emailValue, password };
-  }
-
-  async function login(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    resetFeedback();
-    const fields = validateFields();
-    if (!fields) return;
-
-    setLoadingAction("login");
-    setMessage("\u6b63\u5728\u767b\u5f55\uff0c\u8bf7\u7a0d\u5019...");
-
-    try {
-      const response = await withTimeout(
-        fetch("/auth/password-login", {
-          method: "POST",
-          credentials: "same-origin",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(fields)
-        })
-      );
-      const result = (await response.json()) as { ok?: boolean; email?: string; message?: string };
-
-      if (!response.ok || !result.ok) {
-        setMessage("");
-        setError(`\u767b\u5f55\u5931\u8d25\uff1a${result.message ?? "\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002"}`);
-        return;
-      }
-
-      const userEmail = result.email ?? fields.email;
-      setCurrentEmail(userEmail);
-      rememberSignedInEmail(userEmail);
-      setMessage("\u767b\u5f55\u6210\u529f\uff0c\u6b63\u5728\u8fdb\u5165\u9996\u9875...");
-      window.location.replace("/");
-    } catch (err) {
-      const detail = err instanceof Error ? err.message : "\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002";
-      setMessage("");
-      setError(`\u767b\u5f55\u5931\u8d25\uff1a${detail}`);
-    } finally {
-      setLoadingAction(null);
-    }
   }
 
   async function signUp() {
@@ -210,7 +169,8 @@ export function LoginForm({ locale, initialEmail }: Props) {
         ) : null}
 
         {!isSignedIn ? (
-          <form onSubmit={login} className="mt-6 space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+          <form action="/auth/password-login" method="post" className="mt-6 space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+            <input type="hidden" name="next" value={next} />
             <label className="text-sm font-bold text-slate-900" htmlFor="email">
               {"\u90ae\u7bb1"}
             </label>
@@ -218,6 +178,7 @@ export function LoginForm({ locale, initialEmail }: Props) {
               <Mail className="h-4 w-4 text-slate-500" />
               <input
                 id="email"
+                name="email"
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
@@ -233,6 +194,7 @@ export function LoginForm({ locale, initialEmail }: Props) {
               <Lock className="h-4 w-4 text-slate-500" />
               <input
                 id="password"
+                name="password"
                 type="password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
@@ -263,6 +225,7 @@ export function LoginForm({ locale, initialEmail }: Props) {
             </button>
 
             {message ? <p className="text-sm text-emerald-700">{message}</p> : null}
+            {loginError ? <p className="text-sm text-rose-600">{"\u767b\u5f55\u5931\u8d25\uff1a"}{loginError}</p> : null}
             {error ? <p className="text-sm text-rose-600">{error}</p> : null}
           </form>
         ) : null}
