@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import type { Session } from "@supabase/supabase-js";
 import { setSupabaseSessionCookies } from "@/lib/supabase/auth-session-cookie";
 
 type CookieToSet = {
@@ -11,6 +12,7 @@ type CookieToSet = {
 type SyncPayload = {
   access_token?: string;
   refresh_token?: string;
+  session?: Session;
 };
 
 export const runtime = "nodejs";
@@ -24,7 +26,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, message: "Missing session payload." }, { status: 400 });
   }
 
-  if (!payload.access_token || !payload.refresh_token) {
+  const session = payload.session;
+
+  if (!payload.access_token || !payload.refresh_token || !session) {
     return NextResponse.json({ ok: false, message: "Missing session tokens." }, { status: 400 });
   }
 
@@ -54,17 +58,13 @@ export async function POST(request: NextRequest) {
     }
   });
 
-  const { data, error } = await supabase.auth.setSession({
-    access_token: payload.access_token,
-    refresh_token: payload.refresh_token
-  });
+  const { data, error } = await supabase.auth.getUser(payload.access_token);
 
-  if (error || !data.session) {
-    return NextResponse.json({ ok: false, message: "Session sync failed." }, { status: 401 });
+  if (error || !data.user || data.user.id !== session.user.id) {
+    return NextResponse.json({ ok: false, message: "Invalid session." }, { status: 401 });
   }
 
-  setSupabaseSessionCookies(request, response, data.session);
-  await supabase.auth.getSession();
+  setSupabaseSessionCookies(request, response, session);
 
   return response;
 }
