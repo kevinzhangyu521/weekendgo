@@ -37,6 +37,7 @@ export function MobileTabBar({ locale, isSignedIn }: Props) {
 
   useEffect(() => {
     let mounted = true;
+    if (window.localStorage.getItem("qimeide_auth_email")) setSignedIn(true);
 
     async function updateFromServer() {
       try {
@@ -58,7 +59,12 @@ export function MobileTabBar({ locale, isSignedIn }: Props) {
       if (user) {
         setSignedIn(true);
       } else {
-        void updateFromServer();
+        const fallbackEmail = window.localStorage.getItem("qimeide_auth_email");
+        if (fallbackEmail) {
+          setSignedIn(true);
+        } else {
+          void updateFromServer();
+        }
       }
     });
 
@@ -68,6 +74,7 @@ export function MobileTabBar({ locale, isSignedIn }: Props) {
       const user = session?.user ?? null;
       setSignedIn(Boolean(user));
       if (event === "SIGNED_OUT") {
+        window.localStorage.removeItem("qimeide_auth_email");
         document.cookie = "qimeide_auth_email=; Path=/; Max-Age=0; SameSite=Lax";
       }
     });

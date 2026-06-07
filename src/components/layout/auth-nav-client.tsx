@@ -56,6 +56,8 @@ export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
 
   useEffect(() => {
     let mounted = true;
+    const savedEmail = window.localStorage.getItem("qimeide_auth_email");
+    if (savedEmail) setEmail(savedEmail);
 
     async function updateFromServer() {
       try {
@@ -79,11 +81,18 @@ export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
       if (!mounted) return;
 
       if (!userId) {
+        const fallbackEmail = window.localStorage.getItem("qimeide_auth_email");
+        if (fallbackEmail) {
+          setEmail(fallbackEmail);
+          setIsAdmin(false);
+          return;
+        }
         await updateFromServer();
         return;
       }
 
       setEmail(userEmail ?? null);
+      if (userEmail) window.localStorage.setItem("qimeide_auth_email", userEmail);
       const { data } = await supabase.from("admin_users").select("user_id").eq("user_id", userId).maybeSingle();
       if (mounted) setIsAdmin(Boolean(data));
     }
@@ -117,6 +126,7 @@ export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
     setMenuOpen(false);
     setEmail(null);
     setIsAdmin(false);
+    window.localStorage.removeItem("qimeide_auth_email");
     document.cookie = "qimeide_auth_email=; Path=/; Max-Age=0; SameSite=Lax";
   }
 

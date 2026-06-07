@@ -108,27 +108,8 @@ export function LoginForm({ locale, initialEmail }: Props) {
         return;
       }
 
-      const syncResponse = await fetch("/auth/sync-session", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          access_token: data.session.access_token,
-          refresh_token: data.session.refresh_token,
-          session: data.session
-        })
-      });
-
-      if (!syncResponse.ok) {
-        const syncError = (await syncResponse.json().catch(() => null)) as { message?: string } | null;
-        setMessage("");
-        setError(`登录成功，但保存登录状态失败：${syncError?.message ?? "请刷新后再试。"}`);
-        return;
-      }
-
       await supabase.auth.getSession();
+      window.localStorage.setItem("qimeide_auth_email", data.user.email ?? fields.email);
       setCurrentEmail(data.user.email ?? fields.email);
       setMessage("登录成功，正在进入首页...");
       window.location.replace(next);
