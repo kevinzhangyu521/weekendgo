@@ -66,6 +66,18 @@ export function destinationSafety(item: DestinationItem, locale: Locale) {
   return locale === "zh" ? safetyLabelMap[item.safety].zh : safetyLabelMap[item.safety].en;
 }
 
+export function destinationAgeRange(item: DestinationItem, locale: Locale) {
+  const age = item.minKidAge;
+  if (age >= 12) return locale === "zh" ? "12\u5c81+" : "12+ years";
+  if (age >= 6) return locale === "zh" ? "6-12\u5c81" : "6-12 years";
+  if (age >= 3) return locale === "zh" ? "3-6\u5c81" : "3-6 years";
+  return locale === "zh" ? "0-3\u5c81" : "0-3 years";
+}
+
+export function destinationAgeLabel(item: DestinationItem, locale: Locale) {
+  return locale === "zh" ? `\u9002\u5408\u5e74\u9f84\uff1a${destinationAgeRange(item, locale)}` : `Age: ${destinationAgeRange(item, locale)}`;
+}
+
 export function destinationFamilyHighlight(item: DestinationItem, locale: Locale) {
   const scenarioText: Record<Scenario, { en: string; zh: string }> = {
     camping: {
@@ -111,7 +123,7 @@ export function destinationSafetyTip(item: DestinationItem, locale: Locale) {
 export function destinationDecisionTags(item: DestinationItem, locale: Locale) {
   if (locale === "zh") {
     return [
-      `${item.minKidAge}\u5c81+`,
+      destinationAgeRange(item, locale),
       item.hasParking ? "\u53ef\u505c\u8f66" : "\u505c\u8f66\u4e00\u822c",
       item.hasToilet ? "\u6709\u5395\u6240" : "\u5395\u6240\u8f83\u5c11",
       item.difficulty === "easy" ? "\u65b0\u624b\u53cb\u597d" : item.difficulty === "moderate" ? "\u9700\u4e00\u70b9\u4f53\u529b" : "\u9002\u5408\u5927\u5b69\u5b50"
@@ -119,7 +131,7 @@ export function destinationDecisionTags(item: DestinationItem, locale: Locale) {
   }
 
   return [
-    `${item.minKidAge}+ years`,
+    destinationAgeRange(item, locale),
     item.hasParking ? "Parking" : "Limited parking",
     item.hasToilet ? "Toilet" : "Limited toilet",
     item.difficulty === "easy" ? "Beginner friendly" : item.difficulty === "moderate" ? "Some stamina" : "Older kids"

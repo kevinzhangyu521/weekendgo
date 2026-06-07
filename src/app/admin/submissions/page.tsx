@@ -27,6 +27,13 @@ function formatDistance(distanceKm: number) {
   return `${distanceKm}km`;
 }
 
+function formatAgeRange(minKidAge: number) {
+  if (minKidAge >= 12) return "12\u5c81+";
+  if (minKidAge >= 6) return "6-12\u5c81";
+  if (minKidAge >= 3) return "3-6\u5c81";
+  return "0-3\u5c81";
+}
+
 function formatRegion(item: { province?: string | null; provinceZh?: string | null; city: string; cityZh?: string | null }) {
   const province = item.provinceZh || toChineseRegionName(item.province);
   const city = item.cityZh || toChineseRegionName(item.city);
@@ -70,7 +77,7 @@ export default async function AdminSubmissionsPage() {
                 <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-600">
                   <span className="rounded-full bg-slate-100 px-2.5 py-1">{"\u505c\u8f66\uff1a"}{item.hasParking ? "\u6709" : "\u672a\u786e\u8ba4"}</span>
                   <span className="rounded-full bg-slate-100 px-2.5 py-1">{"\u6d17\u624b\u95f4\uff1a"}{item.hasToilet ? "\u6709" : "\u672a\u786e\u8ba4"}</span>
-                  <span className="rounded-full bg-slate-100 px-2.5 py-1">{"\u9002\u5408\u5e74\u9f84\uff1a"}{item.minKidAge}{"\u5c81\u4ee5\u4e0a"}</span>
+                  <span className="rounded-full bg-slate-100 px-2.5 py-1">{"\u9002\u5408\u5e74\u9f84\uff1a"}{formatAgeRange(item.minKidAge)}</span>
                   <span className="rounded-full bg-slate-100 px-2.5 py-1">{"\u8ddd\u79bb\uff1a"}{formatDistance(item.distanceKm)}</span>
                   <span className="rounded-full bg-slate-100 px-2.5 py-1">
                     {"\u5750\u6807\uff1a"}{item.latitude ?? "-"}, {item.longitude ?? "-"}

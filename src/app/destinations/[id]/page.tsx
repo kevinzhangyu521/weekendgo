@@ -8,6 +8,7 @@ import { ReviewForm } from "@/components/reviews/review-form";
 import { getDestinationImage } from "@/features/destinations/images";
 import {
   destinationDescription,
+  destinationAgeRange,
   destinationBestFor,
   destinationDecisionTags,
   destinationDifficulty,
@@ -132,8 +133,8 @@ export default async function DestinationDetailPage({
                 <p className="mt-1 text-xs text-slate-500">{pick(locale, `From ${homeCity}`, `\u6309\u5e38\u4f4f\u57ce\u5e02\u300c${homeCity}\u300d\u8ba1\u7b97`)}</p>
               </div>
               <div className="rounded-xl bg-slate-50 p-3">
-                <p className="text-xs text-slate-500">{pick(locale, "Kids Age", "\u5b69\u5b50\u5e74\u9f84")}</p>
-                <p className="mt-1 font-medium">{isZh ? `${destination.minKidAge}\u5c81+` : `${destination.minKidAge}+ years`}</p>
+                <p className="text-xs text-slate-500">{pick(locale, "Suitable age", "\u9002\u5408\u5e74\u9f84")}</p>
+                <p className="mt-1 font-medium">{destinationAgeRange(destination, locale)}</p>
               </div>
               <div className="rounded-xl bg-slate-50 p-3">
                 <p className="text-xs text-slate-500">{pick(locale, "Rating", "\u8bc4\u5206")}</p>

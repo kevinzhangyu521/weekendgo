@@ -8,6 +8,7 @@ import {
   destinationDecisionTags,
   destinationDifficultyShort,
   destinationFamilyHighlight,
+  destinationAgeLabel,
   destinationName,
   destinationRegion,
   destinationSafetyTip,
@@ -217,7 +218,7 @@ export default async function DestinationsPage({
                     <Bath className="h-3.5 w-3.5" />
                     {item.hasToilet ? "\u6709\u5395\u6240" : "\u5395\u6240\u8f83\u5c11"}
                   </span>
-                  <span>{item.minKidAge}{"\u5c81+"}</span>
+                  <span>{destinationAgeLabel(item, locale)}</span>
                 </div>
               </div>
               </article>
