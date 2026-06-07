@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Bath, Car, Heart, Star } from "lucide-react";
+import { getDestinationImage } from "@/features/destinations/images";
 import { destinationName, destinationRegion, destinationScenario } from "@/features/destinations/presenter";
 import { getMyFavoriteDestinations } from "@/features/destinations/repository";
 import { getMyProfile } from "@/features/profiles/repository";
@@ -10,8 +11,6 @@ function formatDistance(distanceKm: number, locale: "en" | "zh") {
   if (!distanceKm || distanceKm <= 0) return pick(locale, "Distance pending", "\u8ddd\u79bb\u5f85\u8ba1\u7b97");
   return pick(locale, `About ${distanceKm}km away`, `\u7ea6 ${distanceKm}km`);
 }
-
-const fallbackImage = "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=900&q=75";
 
 export default async function FavoritesPage() {
   const [locale, profile, favoriteDestinations] = await Promise.all([getLocale(), getMyProfile(), getMyFavoriteDestinations()]);
@@ -41,21 +40,28 @@ export default async function FavoritesPage() {
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {list.map((item) => (
-              <Link
-                key={item.id}
-                href={`/destinations/${item.id}`}
-                className="flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
-              >
-                <div className="h-44 overflow-hidden bg-slate-100">
-                  <img
-                    src={item.image || fallbackImage}
-                    alt={destinationName(item, locale)}
-                    loading="lazy"
-                    decoding="async"
-                    className="h-full w-full object-cover transition duration-300 hover:scale-105"
-                  />
-                </div>
+            {list.map((item) => {
+              const image = getDestinationImage(item);
+              return (
+                <Link
+                  key={item.id}
+                  href={`/destinations/${item.id}`}
+                  className="flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
+                >
+                  <div className="relative h-44 overflow-hidden bg-slate-100">
+                    <img
+                      src={image.src}
+                      alt={destinationName(item, locale)}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover transition duration-300 hover:scale-105"
+                    />
+                    {image.pending ? (
+                      <span className="absolute left-3 top-3 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800 shadow-sm">
+                        {pick(locale, "Image pending", "\u56fe\u7247\u5f85\u8865\u5145")}
+                      </span>
+                    ) : null}
+                  </div>
                 <div className="flex flex-1 flex-col space-y-3 p-4">
                   <div className="flex items-center justify-between">
                     <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
@@ -81,8 +87,9 @@ export default async function FavoritesPage() {
                     </span>
                   </div>
                 </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         )}
       </section>

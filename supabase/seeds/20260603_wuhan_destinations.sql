@@ -40,7 +40,7 @@ values
     true,
     true,
     3,
-    'https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?auto=format&fit=crop&w=1400&q=80',
+    'https://commons.wikimedia.org/wiki/Special:FilePath/%E6%9C%A8%E5%85%B0%E8%8D%89%E5%8E%9F%E9%A3%8E%E6%99%AF%E5%8C%BA%E5%A4%A7%E9%97%A8_-_panoramio.jpg?width=1400',
     'Open grassland, mature scenic facilities, and camping-friendly weekend routes for families.',
     '草原空间开阔，景区配套成熟，适合亲子家庭周末露营、放风筝和轻户外体验。',
     now()
@@ -63,7 +63,7 @@ values
     true,
     true,
     4,
-    'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=1400&q=80',
+    '',
     'Forest setting near Wuhan with light hiking options and family-friendly outdoor space.',
     '武汉西部森林型景区，可结合轻徒步和营地活动，适合想离城市近一点的家庭。',
     now()
@@ -86,7 +86,7 @@ values
     true,
     true,
     5,
-    'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1400&q=80',
+    '',
     'Mountain water, valley trails, and shaded summer routes suitable for cautious family creek play.',
     '山水峡谷型路线，夏季适合亲水和轻溯溪体验；带孩子需关注天气和水位。',
     now()
@@ -109,7 +109,7 @@ values
     true,
     true,
     6,
-    'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1400&q=80',
+    '',
     'Cool mountain valley route with streams and waterfalls, better for school-age children.',
     '山谷、溪流和瀑布资源丰富，清凉感强，更适合学龄儿童家庭结伴出行。',
     now()
@@ -132,7 +132,7 @@ values
     true,
     true,
     3,
-    'https://images.unsplash.com/photo-1464822759844-d150ad6d1d88?auto=format&fit=crop&w=1400&q=80',
+    '',
     'Urban forest park with accessible trails, convenient for first-time family hiking.',
     '城市森林公园，路线选择灵活、到达方便，适合亲子家庭第一次轻徒步。',
     now()
@@ -155,7 +155,7 @@ values
     true,
     true,
     6,
-    'https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=1400&q=80',
+    '',
     'Classic Wuhan-area mountain route with more climbing, suitable for active families.',
     '武汉周边经典登山路线，爬升感更明显，适合体力较好的亲子家庭。',
     now()
@@ -178,7 +178,7 @@ values
     true,
     true,
     0,
-    'https://images.unsplash.com/photo-1521334884684-d80222895322?auto=format&fit=crop&w=1400&q=80',
+    'https://commons.wikimedia.org/wiki/Special:FilePath/Wuhan_East_Lake_01.jpg?width=1400',
     'Large lakefront greenway with lawns, cycling paths, toilets, and very family-friendly access.',
     '湖边绿道和草坪资源丰富，公共配套成熟，适合野餐、骑行、遛娃和半日游。',
     now()
@@ -201,7 +201,7 @@ values
     true,
     false,
     3,
-    'https://images.unsplash.com/photo-1519331379826-f10be5486c6f?auto=format&fit=crop&w=1400&q=80',
+    '',
     'Open wetland landscape near the city, good for simple picnic, birdwatching, and sunset walks.',
     '城市近郊湿地空间开阔，适合轻野餐、观鸟和傍晚散步；厕所等配套相对有限。',
     now()

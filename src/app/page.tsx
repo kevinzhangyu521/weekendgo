@@ -12,6 +12,7 @@ import {
   destinationScenario
 } from "@/features/destinations/presenter";
 import { HomeWeatherBadges } from "@/components/weather/home-weather-badges";
+import { getDestinationImage } from "@/features/destinations/images";
 import { getAllDestinations } from "@/features/destinations/repository";
 import type { DestinationItem, Scenario } from "@/features/destinations/types";
 import { getMyProfile } from "@/features/profiles/repository";
@@ -25,8 +26,6 @@ const scenes = [
   { key: "hiking", label: "Hiking", labelZh: "\u5f92\u6b65", icon: Footprints, color: "bg-orange-100 text-orange-700" },
   { key: "picnic", label: "Picnic", labelZh: "\u91ce\u9910", icon: Sandwich, color: "bg-pink-100 text-pink-700" }
 ] as const;
-
-const fallbackImage = "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1400&q=80";
 
 const scenarioLabels: Record<Scenario, { en: string; zh: string }> = {
   camping: { en: "Camping", zh: "\u9732\u8425" },
@@ -255,25 +254,32 @@ export default async function HomePage() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {recommendations.map((item) => (
-            <Link
-              key={item.id}
-              href={`/destinations/${item.id}`}
-              className="group flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-xl"
-            >
-              <div className="relative h-44 w-full overflow-hidden">
-                <img
-                  src={item.image || fallbackImage}
-                  alt={destinationName(item, locale)}
-                  loading="lazy"
-                  decoding="async"
-                  className="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/35 to-transparent opacity-0 transition group-hover:opacity-100" />
-                <span className="absolute bottom-3 right-3 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-emerald-700 opacity-0 shadow-sm transition group-hover:opacity-100">
-                  {pick(locale, "View detail", "\u67e5\u770b\u8be6\u60c5")}
-                </span>
-              </div>
+          {recommendations.map((item) => {
+            const image = getDestinationImage(item);
+            return (
+              <Link
+                key={item.id}
+                href={`/destinations/${item.id}`}
+                className="group flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-xl"
+              >
+                <div className="relative h-44 w-full overflow-hidden">
+                  <img
+                    src={image.src}
+                    alt={destinationName(item, locale)}
+                    loading="lazy"
+                    decoding="async"
+                    className="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/35 to-transparent opacity-0 transition group-hover:opacity-100" />
+                  {image.pending ? (
+                    <span className="absolute left-3 top-3 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800 shadow-sm">
+                      {pick(locale, "Image pending", "\u56fe\u7247\u5f85\u8865\u5145")}
+                    </span>
+                  ) : null}
+                  <span className="absolute bottom-3 right-3 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-emerald-700 opacity-0 shadow-sm transition group-hover:opacity-100">
+                    {pick(locale, "View detail", "\u67e5\u770b\u8be6\u60c5")}
+                  </span>
+                </div>
               <div className="flex flex-1 flex-col space-y-3 p-4">
                 <div className="flex items-center justify-between">
                   <SceneBadge item={item} locale={locale} />
@@ -323,11 +329,11 @@ export default async function HomePage() {
                   </div>
                 </div>
               </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       </section>
-      <div className="pb-6 text-center text-[11px] text-slate-400">部署检测 2026-06-07</div>
     </main>
   );
 }

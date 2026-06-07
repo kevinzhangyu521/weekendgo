@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AlertTriangle, Bath, Car, MapPin, SlidersHorizontal, Star } from "lucide-react";
 import { FavoriteButton } from "@/components/favorites/favorite-button";
 import { filterDestinations, parseFilters } from "@/features/destinations/filter";
+import { getDestinationImage } from "@/features/destinations/images";
 import {
   destinationDescription,
   destinationDecisionTags,
@@ -32,8 +33,6 @@ const difficultyLabelMap = {
   moderate: { en: "Moderate", zh: "\u4e2d\u96be\u5ea6" },
   hard: { en: "Hard", zh: "\u9ad8\u96be\u5ea6" }
 } as const;
-
-const fallbackImage = "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=900&q=75";
 
 function formatDistance(distanceKm: number, locale: "en" | "zh") {
   if (!distanceKm || distanceKm <= 0) return pick(locale, "Distance pending", "\u8ddd\u79bb\u5f85\u8ba1\u7b97");
@@ -139,17 +138,26 @@ export default async function DestinationsPage({
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {list.map((item) => (
-            <article key={item.id} className="flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
-              <Link href={`/destinations/${item.id}`} className="block h-44 overflow-hidden bg-slate-100">
-                <img
-                  src={item.image || fallbackImage}
-                  alt={destinationName(item, locale)}
-                  loading="lazy"
-                  decoding="async"
-                  className="h-full w-full object-cover transition duration-300 hover:scale-105"
-                />
-              </Link>
+          {list.map((item) => {
+            const image = getDestinationImage(item);
+            return (
+              <article key={item.id} className="flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
+                <Link href={`/destinations/${item.id}`} className="block h-44 overflow-hidden bg-slate-100">
+                  <div className="relative h-full w-full">
+                    <img
+                      src={image.src}
+                      alt={destinationName(item, locale)}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover transition duration-300 hover:scale-105"
+                    />
+                    {image.pending ? (
+                      <span className="absolute left-3 top-3 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800 shadow-sm">
+                        {pick(locale, "Image pending", "\u56fe\u7247\u5f85\u8865\u5145")}
+                      </span>
+                    ) : null}
+                  </div>
+                </Link>
               <div className="flex flex-1 flex-col space-y-3 p-4">
                 <div className="flex items-center justify-between">
                   <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
@@ -212,8 +220,9 @@ export default async function DestinationsPage({
                   <span>{item.minKidAge}{"\u5c81+"}</span>
                 </div>
               </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       </section>
     </main>

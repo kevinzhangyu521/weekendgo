@@ -5,6 +5,7 @@ import { FavoriteButton } from "@/components/favorites/favorite-button";
 import { AddToPlanButton } from "@/components/plans/add-to-plan-button";
 import { AmapNavigationButton } from "@/components/plans/amap-navigation-button";
 import { ReviewForm } from "@/components/reviews/review-form";
+import { getDestinationImage } from "@/features/destinations/images";
 import {
   destinationDescription,
   destinationBestFor,
@@ -26,8 +27,6 @@ import { DEFAULT_HOME_CITY, withDistanceFromCity } from "@/lib/geo/distance";
 import { getLocale, pick } from "@/lib/i18n/server";
 import { hasSupabaseAuthCookie } from "@/lib/supabase/auth-cookie";
 import { createClient } from "@/lib/supabase/server";
-
-const fallbackImage = "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1400&q=80";
 
 function formatDistance(distanceKm: number, locale: "en" | "zh") {
   if (!distanceKm || distanceKm <= 0) return pick(locale, "Distance pending", "\u8ddd\u79bb\u5f85\u8ba1\u7b97");
@@ -65,6 +64,7 @@ export default async function DestinationDetailPage({
   const decisionTags = destinationDecisionTags(destination, locale);
   const packingList = destinationPackingList(destination, locale);
   const { reviews, myReview } = await getDestinationReviewsForUser(destination.id, user?.id);
+  const heroImage = getDestinationImage(destination);
 
   return (
     <main className="min-h-screen bg-slate-50 pb-28 md:pb-12">
@@ -75,14 +75,19 @@ export default async function DestinationDetailPage({
         </Link>
 
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="h-64 overflow-hidden bg-slate-100 md:h-96">
+          <div className="relative h-64 overflow-hidden bg-slate-100 md:h-96">
             <img
-              src={destination.image || fallbackImage}
+              src={heroImage.src}
               alt={destinationName(destination, locale)}
               fetchPriority="high"
               decoding="async"
               className="h-full w-full object-cover"
             />
+            {heroImage.pending ? (
+              <span className="absolute left-4 top-4 rounded-full bg-amber-100 px-3 py-1.5 text-sm font-semibold text-amber-800 shadow-sm">
+                {pick(locale, "Image pending", "\u56fe\u7247\u5f85\u8865\u5145")}
+              </span>
+            ) : null}
           </div>
           <div className="space-y-4 p-5 md:p-6">
             <div className="flex flex-wrap items-center gap-2">
@@ -258,29 +263,37 @@ export default async function DestinationDetailPage({
         <section className="mt-5">
           <h2 className="mb-3 text-base font-semibold text-slate-900">{pick(locale, "Related Picks", "\u76f8\u5173\u63a8\u8350")}</h2>
           <div className="grid gap-3 md:grid-cols-3">
-            {related.map((item) => (
-              <Link
-                key={item.id}
-                href={`/destinations/${item.id}`}
-                className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
-              >
-                <div className="h-28 overflow-hidden bg-slate-100">
-                  <img
-                    src={item.image || fallbackImage}
-                    alt={destinationName(item, locale)}
-                    loading="lazy"
-                    decoding="async"
-                    className="h-full w-full object-cover transition duration-300 hover:scale-105"
-                  />
-                </div>
+            {related.map((item) => {
+              const image = getDestinationImage(item);
+              return (
+                <Link
+                  key={item.id}
+                  href={`/destinations/${item.id}`}
+                  className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
+                >
+                  <div className="relative h-28 overflow-hidden bg-slate-100">
+                    <img
+                      src={image.src}
+                      alt={destinationName(item, locale)}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover transition duration-300 hover:scale-105"
+                    />
+                    {image.pending ? (
+                      <span className="absolute left-2 top-2 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800 shadow-sm">
+                        {pick(locale, "Pending", "\u5f85\u8865\u5145")}
+                      </span>
+                    ) : null}
+                  </div>
                 <div className="p-3">
                   <p className="text-sm font-medium text-slate-900">{destinationName(item, locale)}</p>
                   <p className="mt-1 text-xs text-slate-600">
                     {destinationRegion(item, locale)} - {formatDistance(item.distanceKm, locale)} - {pick(locale, "Rating", "\u8bc4\u5206")} {item.rating.toFixed(1)}
                   </p>
                 </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         </section>
       </section>
