@@ -30,7 +30,8 @@ const navItems: Record<Locale, NavItem[]> = {
     { href: "/my-submissions", label: "\u6211\u7684\u6295\u7a3f", authOnly: true },
     { href: "/profile", label: "\u6211\u7684\u8d44\u6599", authOnly: true },
     { href: "/admin/submissions", label: "\u5ba1\u6838\u6295\u7a3f", adminOnly: true },
-    { href: "/admin/destinations", label: "\u76ee\u7684\u5730\u7ba1\u7406", adminOnly: true }
+    { href: "/admin/destinations", label: "\u76ee\u7684\u5730\u7ba1\u7406", adminOnly: true },
+    { href: "/admin/settings", label: "\u7ba1\u7406\u5458\u8bbe\u7f6e", adminOnly: true }
   ],
   en: [
     { href: "/destinations", label: "Destinations" },
@@ -41,7 +42,8 @@ const navItems: Record<Locale, NavItem[]> = {
     { href: "/my-submissions", label: "My Submissions", authOnly: true },
     { href: "/profile", label: "Profile", authOnly: true },
     { href: "/admin/submissions", label: "Review", adminOnly: true },
-    { href: "/admin/destinations", label: "Destination Admin", adminOnly: true }
+    { href: "/admin/destinations", label: "Destination Admin", adminOnly: true },
+    { href: "/admin/settings", label: "Admin Settings", adminOnly: true }
   ]
 };
 

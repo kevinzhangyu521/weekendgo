@@ -51,6 +51,9 @@ export function AuthNav({ locale, email, isAdmin }: Props) {
                 <Link href="/admin/destinations" className="font-medium text-emerald-700 hover:text-emerald-800">
                   {"\u76ee\u7684\u5730\u7ba1\u7406"}
                 </Link>
+                <Link href="/admin/settings" className="font-medium text-emerald-700 hover:text-emerald-800">
+                  {"\u7ba1\u7406\u5458\u8bbe\u7f6e"}
+                </Link>
               </>
             ) : null}
           </nav>
