@@ -109,6 +109,25 @@ export function LoginForm({ locale, initialEmail }: Props) {
       }
 
       await supabase.auth.getSession();
+      if (data.session?.access_token && data.session.refresh_token) {
+        const syncResponse = await fetch("/auth/sync-session", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            access_token: data.session.access_token,
+            refresh_token: data.session.refresh_token
+          })
+        });
+
+        if (!syncResponse.ok) {
+          setMessage("");
+          setError("登录成功，但保存登录状态失败，请刷新后再试。");
+          return;
+        }
+      }
       setCurrentEmail(data.user.email ?? fields.email);
       setMessage("登录成功，正在进入首页...");
       window.location.replace(next);
