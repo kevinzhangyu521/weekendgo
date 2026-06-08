@@ -174,6 +174,19 @@ function getPersonalizedDestinations(allDestinations: DestinationItem[], preferr
   return [...sortByHomeCity(matched, homeCity), ...sortByHomeCity(fallback, homeCity)].slice(0, 6);
 }
 
+function HeroRatingLine({ label }: { label: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-lg bg-white/90 px-3 py-2 text-sm text-slate-800">
+      <span className="font-semibold">{label}</span>
+      <span className="inline-flex items-center gap-0.5 text-amber-500" aria-label="5/5">
+        {Array.from({ length: 5 }).map((_, index) => (
+          <Star key={index} className="h-4 w-4 fill-current" />
+        ))}
+      </span>
+    </div>
+  );
+}
+
 export default async function HomePage() {
   const [locale, profile, rawDestinations] = await Promise.all([getLocale(), getMyProfile(), getAllDestinations()]);
   const zh = locale === "zh";
@@ -203,6 +216,19 @@ export default async function HomePage() {
           <p className="mt-3 max-w-2xl text-sm text-slate-100 md:text-base">
             {pick(locale, `${weekend.source}: ${weekend.scenes}. ${weekend.advice}.`, `${weekend.source}\uff1a${weekend.scenes}\u3002${weekend.advice}\u3002`)}
           </p>
+          <Link
+            href="/destinations?scenario=all&difficulty=all&maxDistance=120&needParking=false&needToilet=false"
+            className="mt-5 block max-w-xl rounded-2xl border border-white/40 bg-white/20 p-4 text-white shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/25 hover:shadow-xl md:max-w-lg"
+          >
+            <p className="text-xs font-semibold text-emerald-100">{pick(locale, "Wuhan family outing ranking", "\u6b66\u6c49\u4eb2\u5b50\u6237\u5916\u699c\u5355")}</p>
+            <h2 className="mt-1 text-2xl font-bold leading-tight md:text-3xl">{pick(locale, "Top 10 Family Outings in Wuhan This Week", "\u672c\u5468\u6b66\u6c49TOP10\u9044\u5a03\u5730")}</h2>
+            <div className="mt-4 grid gap-2">
+              <HeroRatingLine label={pick(locale, "Best weather", "\u5929\u6c14\u6700\u4f73")} />
+              <HeroRatingLine label={pick(locale, "Best water condition", "\u6c34\u51b5\u6700\u4f73")} />
+              <HeroRatingLine label={pick(locale, "Best for young kids", "\u6700\u9002\u5408\u4f4e\u9f84\u513f\u7ae5")} />
+            </div>
+            <p className="mt-3 text-sm font-semibold text-emerald-50">{pick(locale, "Tap to view this week's picks", "\u70b9\u51fb\u67e5\u770b\u672c\u5468\u63a8\u8350")}</p>
+          </Link>
           <HomeWeatherBadges
             city={homeCity}
             locale={locale}
