@@ -68,10 +68,7 @@ export async function POST(request: NextRequest) {
   }
 
   const { origin } = new URL(request.url);
-  const response = contentType.includes("application/json")
-    ? NextResponse.json({ ok: true, email })
-    : NextResponse.redirect(`${origin}${next}`, { status: 303 });
-  response.headers.set("Cache-Control", "no-store");
+  const cookiesToApply: CookieToSet[] = [];
   let authCookiesSet = 0;
   const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
     cookieOptions: {
@@ -86,7 +83,7 @@ export async function POST(request: NextRequest) {
       setAll(cookiesToSet: CookieToSet[]) {
         authCookiesSet += cookiesToSet.filter((cookie) => cookie.name.startsWith("sb-")).length;
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-        cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+        cookiesToApply.push(...cookiesToSet);
       }
     }
   });
@@ -99,6 +96,21 @@ export async function POST(request: NextRequest) {
       : redirectWithError(request, "\u90ae\u7bb1\u6216\u5bc6\u7801\u4e0d\u6b63\u786e\uff0c\u8bf7\u68c0\u67e5\u540e\u518d\u8bd5\u3002");
   }
 
+  const response = contentType.includes("application/json")
+    ? NextResponse.json({
+        ok: true,
+        email: data.user.email ?? email,
+        session: data.session
+          ? {
+              access_token: data.session.access_token,
+              refresh_token: data.session.refresh_token
+            }
+          : null
+      })
+    : NextResponse.redirect(`${origin}${next}`, { status: 303 });
+  response.headers.set("Cache-Control", "no-store");
+
+  cookiesToApply.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
   if (data.session) {
     authCookiesSet += setSupabaseSessionCookies(request, response, data.session);
   }

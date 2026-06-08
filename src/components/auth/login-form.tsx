@@ -111,11 +111,36 @@ export function LoginForm({ locale, initialEmail }: Props) {
           body: JSON.stringify({ ...fields, next })
         })
       );
-      const result = (await response.json()) as { ok?: boolean; email?: string; message?: string };
+      const result = (await response.json()) as {
+        ok?: boolean;
+        email?: string;
+        message?: string;
+        session?: {
+          access_token: string;
+          refresh_token: string;
+        } | null;
+      };
 
       if (!response.ok || !result.ok) {
         setMessage("");
         setError(`登录失败：${translateAuthError(result.message ?? "请检查邮箱和密码后再试。")}`);
+        return;
+      }
+
+      if (!result.session?.access_token || !result.session.refresh_token) {
+        setMessage("");
+        setError("登录成功，但浏览器登录状态同步失败。请刷新后再试。");
+        return;
+      }
+
+      const { error: browserSessionError } = await supabase.auth.setSession({
+        access_token: result.session.access_token,
+        refresh_token: result.session.refresh_token
+      });
+
+      if (browserSessionError) {
+        setMessage("");
+        setError(`登录成功，但浏览器登录状态同步失败：${browserSessionError.message}`);
         return;
       }
 
