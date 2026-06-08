@@ -100,17 +100,42 @@ export function LoginForm({ locale, initialEmail }: Props) {
     setMessage("正在登录，请稍候...");
 
     try {
-      const { data, error: loginError } = await withTimeout(supabase.auth.signInWithPassword(fields));
+      const response = await withTimeout(
+        fetch("/auth/password-login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "include",
+          cache: "no-store",
+          body: JSON.stringify({ ...fields, next })
+        })
+      );
+      const result = (await response.json()) as { ok?: boolean; email?: string; message?: string };
 
-      if (loginError || !data.user || !data.session) {
+      if (!response.ok || !result.ok) {
         setMessage("");
-        setError(`登录失败：${translateAuthError(loginError?.message ?? "请检查邮箱和密码后再试。")}`);
+        setError(`登录失败：${translateAuthError(result.message ?? "请检查邮箱和密码后再试。")}`);
         return;
       }
 
-      await supabase.auth.getSession();
-      window.localStorage.setItem("qimeide_auth_email", data.user.email ?? fields.email);
-      setCurrentEmail(data.user.email ?? fields.email);
+      const meResponse = await withTimeout(
+        fetch("/auth/me", {
+          cache: "no-store",
+          credentials: "include"
+        }),
+        6000
+      );
+      const me = (await meResponse.json()) as { user?: { email?: string | null } | null };
+      const verifiedEmail = me.user?.email ?? result.email ?? fields.email;
+      if (!me.user?.email) {
+        setMessage("");
+        setError("登录成功，但保存登录状态失败。请刷新后再试。");
+        return;
+      }
+
+      window.localStorage.setItem("qimeide_auth_email", verifiedEmail);
+      setCurrentEmail(verifiedEmail);
       setMessage("登录成功，正在进入首页...");
       window.location.replace(next);
     } catch (err) {
