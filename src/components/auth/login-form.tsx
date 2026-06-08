@@ -100,65 +100,38 @@ export function LoginForm({ locale, initialEmail }: Props) {
     setMessage("正在登录，请稍候...");
 
     try {
-      const response = await withTimeout(
-        fetch("/auth/password-login", {
+      const { data, error: loginError } = await withTimeout(supabase.auth.signInWithPassword(fields));
+
+      if (loginError || !data.user || !data.session) {
+        setMessage("");
+        setError(`登录失败：${translateAuthError(loginError?.message ?? "请检查邮箱和密码后再试。")}`);
+        return;
+      }
+
+      const syncResponse = await withTimeout(
+        fetch("/auth/sync-session", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
           },
           credentials: "include",
           cache: "no-store",
-          body: JSON.stringify({ ...fields, next })
-        })
-      );
-      const result = (await response.json()) as {
-        ok?: boolean;
-        email?: string;
-        message?: string;
-        session?: {
-          access_token: string;
-          refresh_token: string;
-        } | null;
-      };
-
-      if (!response.ok || !result.ok) {
-        setMessage("");
-        setError(`登录失败：${translateAuthError(result.message ?? "请检查邮箱和密码后再试。")}`);
-        return;
-      }
-
-      if (!result.session?.access_token || !result.session.refresh_token) {
-        setMessage("");
-        setError("登录成功，但浏览器登录状态同步失败。请刷新后再试。");
-        return;
-      }
-
-      const { error: browserSessionError } = await supabase.auth.setSession({
-        access_token: result.session.access_token,
-        refresh_token: result.session.refresh_token
-      });
-
-      if (browserSessionError) {
-        setMessage("");
-        setError(`登录成功，但浏览器登录状态同步失败：${browserSessionError.message}`);
-        return;
-      }
-
-      const meResponse = await withTimeout(
-        fetch("/auth/me", {
-          cache: "no-store",
-          credentials: "include"
+          body: JSON.stringify({
+            access_token: data.session.access_token,
+            refresh_token: data.session.refresh_token
+          })
         }),
         6000
       );
-      const me = (await meResponse.json()) as { user?: { email?: string | null } | null };
-      const verifiedEmail = me.user?.email ?? result.email ?? fields.email;
-      if (!me.user?.email) {
+      const syncResult = (await syncResponse.json()) as { ok?: boolean; message?: string };
+
+      if (!syncResponse.ok || !syncResult.ok) {
         setMessage("");
-        setError("登录成功，但保存登录状态失败。请刷新后再试。");
+        setError(`登录成功，但服务端登录状态同步失败：${syncResult.message ?? "请刷新后再试。"}`);
         return;
       }
 
+      const verifiedEmail = data.user.email ?? fields.email;
       window.localStorage.setItem("qimeide_auth_email", verifiedEmail);
       setCurrentEmail(verifiedEmail);
       setMessage("登录成功，正在进入首页...");
