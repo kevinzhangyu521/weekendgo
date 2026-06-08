@@ -30,9 +30,11 @@ export function AuthNav({ locale, email, isAdmin }: Props) {
             <Link href="/plans" className="shrink-0 hover:text-slate-900">
               {pick(locale, "My Plans", "\u6211\u7684\u8ba1\u5212")}
             </Link>
-            <Link href="/submit-spot" className="shrink-0 hover:text-slate-900">
-              {pick(locale, "Add Spot", "\u6dfb\u52a0\u63a8\u8350\u5730\u70b9")}
-            </Link>
+            {email ? (
+              <Link href="/submit-spot" className="shrink-0 hover:text-slate-900">
+                {pick(locale, "Add Spot", "\u6dfb\u52a0\u63a8\u8350\u5730\u70b9")}
+              </Link>
+            ) : null}
             {email ? (
               <Link href="/my-submissions" className="shrink-0 hover:text-slate-900">
                 {pick(locale, "My Submissions", "\u6211\u7684\u6295\u7a3f")}
