@@ -222,9 +222,8 @@ export default async function HomePage() {
       <section className="bg-white px-4 pb-3 pt-3 shadow-sm">
         <div className="mx-auto max-w-6xl">
           <div>
-            <p className="text-xs font-semibold text-emerald-700">{pick(locale, "WeekendGo", "栖美地")}</p>
             <h1 className="mt-0.5 text-2xl font-black leading-tight text-slate-950 md:text-3xl">
-              {pick(locale, `Where to take kids near ${city}?`, `${homeCity}本周去哪遛娃？`)}
+              {pick(locale, `Where to take kids near ${city}`, `${homeCity}本周去哪遛娃`)}
             </h1>
             <Link href={`/weather?city=${encodeURIComponent(homeCity)}`} className="mt-1 inline-flex text-sm font-medium text-slate-600 hover:text-emerald-700">
               {pick(locale, `Live weather: ${weekendWeather.weather} · Play: ${weekendWeather.advice}`, `实时天气：${weekendWeather.weather} · 推荐玩法：${weekendWeather.advice}`)}

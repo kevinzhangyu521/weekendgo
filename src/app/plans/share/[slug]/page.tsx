@@ -8,6 +8,8 @@ import type { PlanDetail } from "@/features/plans/types";
 import { DEFAULT_HOME_CITY, withDistanceFromCity } from "@/lib/geo/distance";
 import { getAmapNavigationUrl } from "@/lib/maps/navigation";
 import { getLocale, pick } from "@/lib/i18n/server";
+import { hasSupabaseAuthCookie } from "@/lib/supabase/auth-cookie";
+import { createClient } from "@/lib/supabase/server";
 
 function formatDistance(distanceKm: number, locale: "en" | "zh") {
   if (!distanceKm || distanceKm <= 0) return pick(locale, "Distance pending", "\u8ddd\u79bb\u5f85\u8ba1\u7b97");
@@ -44,6 +46,12 @@ export default async function SharedPlanPage({
   const rawPlan = await getPublicPlanBySlug(slug);
   if (!rawPlan) notFound();
   const plan = withPlanDistances(rawPlan);
+  const hasAuthCookie = await hasSupabaseAuthCookie();
+  const supabase = hasAuthCookie ? await createClient() : null;
+  const {
+    data: { user }
+  } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
+  const isSignedIn = Boolean(user);
 
   return (
     <main className={`min-h-screen bg-slate-50 ${cardView ? "py-8" : ""}`}>
@@ -123,14 +131,23 @@ export default async function SharedPlanPage({
                       </p>
                       {!cardView ? (
                         <div className="mt-2 flex flex-wrap gap-2 no-print">
-                          <a
-                            href={getAmapNavigationUrl(item.destination)}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex rounded-full bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white"
-                          >
-                            {pick(locale, "Navigate", "\u7acb\u5373\u5bfc\u822a")}
-                          </a>
+                          {isSignedIn ? (
+                            <a
+                              href={getAmapNavigationUrl(item.destination)}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex rounded-full bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white"
+                            >
+                              {pick(locale, "Navigate", "\u7acb\u5373\u5bfc\u822a")}
+                            </a>
+                          ) : (
+                            <Link
+                              href={`/login?next=${encodeURIComponent(`/plans/share/${slug}`)}`}
+                              className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-700"
+                            >
+                              {pick(locale, "Sign in to navigate", "\u767b\u5f55\u540e\u5bfc\u822a")}
+                            </Link>
+                          )}
                           <Link
                             href={`/destinations/${item.destination.id}`}
                             className="inline-flex rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700"

@@ -66,6 +66,7 @@ export default async function DestinationDetailPage({
   const packingList = destinationPackingList(destination, locale);
   const { reviews, myReview } = await getDestinationReviewsForUser(destination.id, user?.id);
   const heroImage = getDestinationImage(destination);
+  const loginHref = `/login?next=${encodeURIComponent(`/destinations/${destination.id}`)}`;
 
   return (
     <main className="min-h-screen bg-slate-50 pb-28 md:pb-12">
@@ -109,7 +110,13 @@ export default async function DestinationDetailPage({
               <FavoriteButton destinationId={destination.id} />
               <AddToPlanButton destinationId={destination.id} locale={locale} />
               <div className="hidden md:block">
-                <AmapNavigationButton destination={destination} label={pick(locale, "Navigate", "\u7acb\u5373\u5bfc\u822a")} />
+                <AmapNavigationButton
+                  destination={destination}
+                  label={pick(locale, "Navigate", "\u7acb\u5373\u5bfc\u822a")}
+                  isSignedIn={Boolean(user)}
+                  loginHref={loginHref}
+                  signedOutLabel={pick(locale, "Sign in to navigate", "\u767b\u5f55\u540e\u5bfc\u822a")}
+                />
               </div>
               <span className="text-sm text-slate-600">{pick(locale, "Save this destination", "\u6536\u85cf\u6216\u52a0\u5165\u8ba1\u5212")}</span>
             </div>
@@ -305,7 +312,14 @@ export default async function DestinationDetailPage({
             <p className="truncate text-sm font-semibold text-slate-900">{destinationName(destination, locale)}</p>
             <p className="text-xs text-slate-500">{formatDistance(destination.distanceKm, locale)}</p>
           </div>
-          <AmapNavigationButton destination={destination} label={pick(locale, "Navigate", "\u7acb\u5373\u5bfc\u822a")} className="shrink-0" />
+          <AmapNavigationButton
+            destination={destination}
+            label={pick(locale, "Navigate", "\u7acb\u5373\u5bfc\u822a")}
+            className="shrink-0"
+            isSignedIn={Boolean(user)}
+            loginHref={loginHref}
+            signedOutLabel={pick(locale, "Sign in to navigate", "\u767b\u5f55\u540e\u5bfc\u822a")}
+          />
         </div>
       </div>
     </main>
