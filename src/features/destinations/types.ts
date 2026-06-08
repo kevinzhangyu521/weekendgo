@@ -31,4 +31,6 @@ export type DestinationFilters = {
   difficulty: Difficulty | "all";
   needParking: boolean;
   needToilet: boolean;
+  query?: string;
+  city?: string;
 };

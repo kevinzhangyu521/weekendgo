@@ -1,18 +1,31 @@
 import Link from "next/link";
-import { Bath, Car, Footprints, Sandwich, ShieldCheck, Star, Tent, Waves } from "lucide-react";
 import {
+  Bath,
+  Car,
+  ChevronRight,
+  CloudSun,
+  Footprints,
+  MapPin,
+  Navigation,
+  Search,
+  Sandwich,
+  ShieldCheck,
+  Star,
+  Tent,
+  Users,
+  Waves
+} from "lucide-react";
+import { getDestinationImage } from "@/features/destinations/images";
+import {
+  destinationAgeRange,
   destinationDescription,
-  destinationDecisionTags,
   destinationDifficultyShort,
   destinationFamilyHighlight,
   destinationName,
   destinationRegion,
-  destinationSafetyTip,
   destinationSafety,
   destinationScenario
 } from "@/features/destinations/presenter";
-import { HomeWeatherBadges } from "@/components/weather/home-weather-badges";
-import { getDestinationImage } from "@/features/destinations/images";
 import { getAllDestinations } from "@/features/destinations/repository";
 import type { DestinationItem, Scenario } from "@/features/destinations/types";
 import { getMyProfile } from "@/features/profiles/repository";
@@ -21,17 +34,22 @@ import type { Locale } from "@/lib/i18n/config";
 import { getLocale, pick } from "@/lib/i18n/server";
 
 const scenes = [
-  { key: "camping", label: "Camping", labelZh: "\u9732\u8425", icon: Tent, color: "bg-amber-100 text-amber-700" },
-  { key: "creek", label: "Creek", labelZh: "\u6eaf\u6eaa", icon: Waves, color: "bg-sky-100 text-sky-700" },
-  { key: "hiking", label: "Hiking", labelZh: "\u5f92\u6b65", icon: Footprints, color: "bg-orange-100 text-orange-700" },
-  { key: "picnic", label: "Picnic", labelZh: "\u91ce\u9910", icon: Sandwich, color: "bg-pink-100 text-pink-700" }
+  { key: "camping", label: "Camping", labelZh: "露营", icon: Tent, color: "bg-amber-100 text-amber-700" },
+  { key: "creek", label: "Creek", labelZh: "溯溪", icon: Waves, color: "bg-sky-100 text-sky-700" },
+  { key: "hiking", label: "Hiking", labelZh: "徒步", icon: Footprints, color: "bg-orange-100 text-orange-700" },
+  { key: "picnic", label: "Picnic", labelZh: "野餐", icon: Sandwich, color: "bg-pink-100 text-pink-700" }
 ] as const;
 
-const scenarioLabels: Record<Scenario, { en: string; zh: string }> = {
-  camping: { en: "Camping", zh: "\u9732\u8425" },
-  creek: { en: "Creek", zh: "\u6eaf\u6eaa" },
-  hiking: { en: "Hiking", zh: "\u5f92\u6b65" },
-  picnic: { en: "Picnic", zh: "\u91ce\u9910" }
+const cityOptions = ["武汉", "上海", "杭州", "成都"] as const;
+
+const cityNames: Record<string, string> = {
+  武汉: "Wuhan",
+  上海: "Shanghai",
+  北京: "Beijing",
+  杭州: "Hangzhou",
+  成都: "Chengdu",
+  广州: "Guangzhou",
+  深圳: "Shenzhen"
 };
 
 type WeekendProfile = {
@@ -41,63 +59,41 @@ type WeekendProfile = {
   wind: number;
   advice: string;
   adviceEn: string;
-  scenes: string;
-  scenesEn: string;
-  scenario: DestinationItem["scenario"];
-};
-
-const cityNames: Record<string, string> = {
-  "\u6b66\u6c49": "Wuhan",
-  "\u4e0a\u6d77": "Shanghai",
-  "\u5317\u4eac": "Beijing",
-  "\u676d\u5dde": "Hangzhou",
-  "\u6210\u90fd": "Chengdu",
-  "\u5e7f\u5dde": "Guangzhou",
-  "\u6df1\u5733": "Shenzhen"
+  scenario: Scenario;
 };
 
 const weatherByCity: Record<string, WeekendProfile> = {
-  "\u6b66\u6c49": {
-    text: "\u591a\u4e91\u95f4\u6674",
+  武汉: {
+    text: "多云间晴",
     textEn: "Partly sunny",
     temp: 28,
     wind: 2,
-    advice: "\u9002\u5408\u91ce\u9910\u548c\u8f7b\u5f92\u6b65",
+    advice: "适合野餐和轻徒步",
     adviceEn: "Good for picnic and light hiking",
-    scenes: "\u91ce\u9910 / \u5f92\u6b65",
-    scenesEn: "Picnic / Hiking",
     scenario: "picnic"
   },
-  "\u4e0a\u6d77": {
-    text: "\u9634\u5230\u591a\u4e91",
+  上海: {
+    text: "阴到多云",
     textEn: "Cloudy",
     temp: 26,
     wind: 3,
-    advice: "\u9002\u5408\u516c\u56ed\u91ce\u9910\u548c\u77ed\u9014\u5f92\u6b65",
+    advice: "适合公园野餐和短途徒步",
     adviceEn: "Good for parks and short walks",
-    scenes: "\u91ce\u9910 / \u5f92\u6b65",
-    scenesEn: "Picnic / Hiking",
     scenario: "picnic"
   },
-  "\u676d\u5dde": {
-    text: "\u6674\u5230\u591a\u4e91",
+  杭州: {
+    text: "晴到多云",
     textEn: "Sunny to cloudy",
     temp: 27,
     wind: 2,
-    advice: "\u9002\u5408\u5f92\u6b65\u548c\u6eaf\u6eaa\u5468\u8fb9\u6e38",
+    advice: "适合徒步和溯溪周边游",
     adviceEn: "Good for hiking and creek trips",
-    scenes: "\u5f92\u6b65 / \u6eaf\u6eaa",
-    scenesEn: "Hiking / Creek",
     scenario: "creek"
   }
 };
 
 function displayCity(city: string, locale: Locale) {
   return pick(locale, cityNames[city] ?? city, city);
-}
-
-function displayScenarios(scenarios: Scenario[], locale: Locale) {
-  return scenarios.map((scenario) => pick(locale, scenarioLabels[scenario].en, scenarioLabels[scenario].zh)).join(" / ");
 }
 
 function getWeekendRange(locale: Locale) {
@@ -117,39 +113,23 @@ function getWeekendRange(locale: Locale) {
   return `${formatter.format(saturday)} - ${formatter.format(sunday)}`;
 }
 
-function getWeekendRecommendation(city: string, preferredScenarios: Scenario[], locale: Locale) {
+function getWeekendWeather(city: string, preferredScenarios: Scenario[], locale: Locale) {
   const profile = weatherByCity[city] ?? weatherByCity[DEFAULT_HOME_CITY];
-  const hasPreference = preferredScenarios.length > 0;
-  const matchedScenario = hasPreference ? preferredScenarios[0] : profile.scenario;
-  const matchedScenes = hasPreference ? displayScenarios(preferredScenarios, locale) : pick(locale, profile.scenesEn, profile.scenes);
+  const scenario = preferredScenarios[0] ?? profile.scenario;
 
   return {
-    city: displayCity(city, locale),
-    dateRange: getWeekendRange(locale),
-    weather: pick(locale, `${profile.textEn} ${profile.temp}C`, `${profile.text} ${profile.temp}\u00b0C`),
-    wind: pick(locale, `Wind level ${profile.wind}`, `\u98ce\u529b ${profile.wind}\u7ea7`),
-    advice: hasPreference
-      ? pick(locale, "Matched with your saved outdoor preferences", "\u5df2\u6839\u636e\u4f60\u5728\u8d44\u6599\u91cc\u9009\u62e9\u7684\u504f\u597d\u573a\u666f\u5339\u914d")
-      : pick(locale, profile.adviceEn, profile.advice),
-    source: hasPreference ? pick(locale, "Based on your profile preferences", "\u6839\u636e\u4f60\u7684\u8d44\u6599\u504f\u597d\u63a8\u8350") : pick(locale, "Based on city and weekend conditions", "\u6839\u636e\u57ce\u5e02\u548c\u672c\u5468\u672b\u60c5\u51b5\u63a8\u8350"),
-    scenes: matchedScenes,
-    href: `/destinations?scenario=${matchedScenario}&difficulty=all&maxDistance=120&needParking=false&needToilet=false`
+    scenario,
+    weather: pick(locale, `${profile.textEn} ${profile.temp}C`, `${profile.text} ${profile.temp}°C`),
+    wind: pick(locale, `Wind level ${profile.wind}`, `风力 ${profile.wind}级`),
+    advice: preferredScenarios.length > 0
+      ? pick(locale, "Matched with your saved preferences", "已根据你的偏好场景匹配")
+      : pick(locale, profile.adviceEn, profile.advice)
   };
 }
 
 function formatDistance(distanceKm: number, locale: Locale) {
-  if (!distanceKm || distanceKm <= 0) return pick(locale, "Distance pending", "\u8ddd\u79bb\u5f85\u8ba1\u7b97");
-  return pick(locale, `About ${distanceKm}km away`, `\u7ea6 ${distanceKm}km`);
-}
-
-function SceneBadge({ item, locale }: { item: DestinationItem; locale: "en" | "zh" }) {
-  const colorMap: Record<DestinationItem["scenario"], string> = {
-    camping: "bg-amber-100 text-amber-700",
-    creek: "bg-sky-100 text-sky-700",
-    hiking: "bg-orange-100 text-orange-700",
-    picnic: "bg-pink-100 text-pink-700"
-  };
-  return <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${colorMap[item.scenario]}`}>{destinationScenario(item, locale)}</span>;
+  if (!distanceKm || distanceKm <= 0) return pick(locale, "Distance pending", "距离待计算");
+  return pick(locale, `${distanceKm}km`, `${distanceKm}km`);
 }
 
 function isNearHomeCity(item: DestinationItem, homeCity: string) {
@@ -157,33 +137,100 @@ function isNearHomeCity(item: DestinationItem, homeCity: string) {
   return cityText.includes(homeCity) || cityText.includes("Wuhan");
 }
 
-function sortByHomeCity(items: DestinationItem[], homeCity: string) {
-  return [...items].sort((a, b) => {
-    const aNear = isNearHomeCity(a, homeCity) ? 1 : 0;
-    const bNear = isNearHomeCity(b, homeCity) ? 1 : 0;
-    if (aNear !== bNear) return bNear - aNear;
-    return b.rating - a.rating;
-  });
+function worthScore(item: DestinationItem) {
+  const easyBonus = item.difficulty === "easy" ? 0.8 : item.difficulty === "moderate" ? 0.35 : 0;
+  const safetyBonus = item.safety === "low_risk" ? 0.8 : item.safety === "medium_risk" ? 0.25 : 0;
+  const facilityBonus = (item.hasParking ? 0.2 : 0) + (item.hasToilet ? 0.2 : 0);
+  const ageBonus = item.minKidAge <= 3 ? 0.35 : 0;
+  return item.rating + easyBonus + safetyBonus + facilityBonus + ageBonus;
 }
 
-function getPersonalizedDestinations(allDestinations: DestinationItem[], preferredScenarios: Scenario[], homeCity: string) {
-  if (preferredScenarios.length === 0) return sortByHomeCity(allDestinations, homeCity).slice(0, 6);
-
-  const matched = allDestinations.filter((item) => preferredScenarios.includes(item.scenario));
-  const fallback = allDestinations.filter((item) => !preferredScenarios.includes(item.scenario));
-  return [...sortByHomeCity(matched, homeCity), ...sortByHomeCity(fallback, homeCity)].slice(0, 6);
+function getTopDestinations(items: DestinationItem[], homeCity: string) {
+  const nearby = items.filter((item) => isNearHomeCity(item, homeCity));
+  const source = nearby.length > 0 ? nearby : items;
+  return [...source].sort((a, b) => worthScore(b) - worthScore(a)).slice(0, 10);
 }
 
-function HeroRatingLine({ label }: { label: string }) {
+function destinationListHref(params: Record<string, string | number | boolean>) {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => searchParams.set(key, String(value)));
+  return `/destinations?${searchParams.toString()}`;
+}
+
+function SectionHeader({ title, subtitle, href, locale }: { title: string; subtitle?: string; href?: string; locale: Locale }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-lg bg-white/90 px-3 py-2 text-sm text-slate-800">
-      <span className="font-semibold">{label}</span>
-      <span className="inline-flex items-center gap-0.5 text-amber-500" aria-label="5/5">
-        {Array.from({ length: 5 }).map((_, index) => (
-          <Star key={index} className="h-4 w-4 fill-current" />
-        ))}
-      </span>
+    <div className="mb-3 flex items-end justify-between gap-3 px-4">
+      <div>
+        <h2 className="text-lg font-bold text-slate-950">{title}</h2>
+        {subtitle ? <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p> : null}
+      </div>
+      {href ? (
+        <Link href={href} className="inline-flex shrink-0 items-center text-xs font-semibold text-emerald-700">
+          {pick(locale, "More", "更多")}
+          <ChevronRight className="h-3.5 w-3.5" />
+        </Link>
+      ) : null}
     </div>
+  );
+}
+
+function MiniDestinationCard({ item, locale, rank }: { item: DestinationItem; locale: Locale; rank?: number }) {
+  const image = getDestinationImage(item);
+
+  return (
+    <Link
+      href={`/destinations/${item.id}`}
+      className="group block w-64 shrink-0 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
+    >
+      <div className="relative h-32 overflow-hidden bg-slate-100">
+        <img
+          src={image.src}
+          alt={destinationName(item, locale)}
+          loading="lazy"
+          decoding="async"
+          className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+        />
+        {rank ? <span className="absolute left-2 top-2 rounded-full bg-slate-950/85 px-2 py-1 text-xs font-bold text-white">TOP {rank}</span> : null}
+        {image.pending ? <span className="absolute right-2 top-2 rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-800">待补充</span> : null}
+      </div>
+      <div className="space-y-2 p-3">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="line-clamp-1 text-sm font-bold text-slate-950">{destinationName(item, locale)}</h3>
+          <span className="inline-flex shrink-0 items-center gap-0.5 text-xs font-semibold text-amber-600">
+            <Star className="h-3.5 w-3.5 fill-current" />
+            {item.rating.toFixed(1)}
+          </span>
+        </div>
+        <p className="line-clamp-1 text-xs text-slate-500">{destinationRegion(item, locale)} · {formatDistance(item.distanceKm, locale)}</p>
+        <div className="flex flex-wrap gap-1.5 text-xs">
+          <span className="rounded-full bg-emerald-50 px-2 py-1 font-medium text-emerald-700">{destinationScenario(item, locale)}</span>
+          <span className="rounded-full bg-slate-100 px-2 py-1 text-slate-600">{destinationAgeRange(item, locale)}</span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function CompactDestinationCard({ item, locale, reason }: { item: DestinationItem; locale: Locale; reason: string }) {
+  const image = getDestinationImage(item);
+
+  return (
+    <Link href={`/destinations/${item.id}`} className="grid grid-cols-[96px_1fr] gap-3 rounded-2xl bg-white p-2 shadow-sm ring-1 ring-slate-100 transition hover:shadow-md">
+      <div className="relative h-24 overflow-hidden rounded-xl bg-slate-100">
+        <img src={image.src} alt={destinationName(item, locale)} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+        {image.pending ? <span className="absolute left-1.5 top-1.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">待补充</span> : null}
+      </div>
+      <div className="min-w-0 py-1">
+        <p className="text-[11px] font-semibold text-emerald-700">{reason}</p>
+        <h3 className="mt-1 line-clamp-1 text-sm font-bold text-slate-950">{destinationName(item, locale)}</h3>
+        <p className="mt-1 line-clamp-1 text-xs text-slate-500">{destinationFamilyHighlight(item, locale)}</p>
+        <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-slate-600">
+          <span className="rounded-full bg-slate-100 px-2 py-1">{formatDistance(item.distanceKm, locale)}</span>
+          <span className="rounded-full bg-slate-100 px-2 py-1">{destinationDifficultyShort(item, locale)}</span>
+          <span className="rounded-full bg-slate-100 px-2 py-1">{destinationSafety(item, locale)}</span>
+        </div>
+      </div>
+    </Link>
   );
 }
 
@@ -192,172 +239,183 @@ export default async function HomePage() {
   const zh = locale === "zh";
   const homeCity = profile?.homeCity?.trim() || DEFAULT_HOME_CITY;
   const preferredScenarios = profile?.preferredScenarios ?? [];
-  const weatherDetailHref = `/weather?city=${encodeURIComponent(homeCity)}`;
-  const weekend = getWeekendRecommendation(homeCity, preferredScenarios, locale);
+  const city = displayCity(homeCity, locale);
+  const weekendWeather = getWeekendWeather(homeCity, preferredScenarios, locale);
   const allDestinations = withDistanceFromCity(rawDestinations, homeCity);
-  const recommendations = getPersonalizedDestinations(allDestinations, preferredScenarios, homeCity);
+  const topDestinations = getTopDestinations(allDestinations, homeCity);
+  const weatherDestinations = allDestinations
+    .filter((item) => item.scenario === weekendWeather.scenario)
+    .sort((a, b) => worthScore(b) - worthScore(a))
+    .slice(0, 4);
+  const nearbyDestinations = [...allDestinations].sort((a, b) => a.distanceKm - b.distanceKm).slice(0, 4);
+  const latestShares = [...allDestinations].slice(0, 6);
+  const bestPick = topDestinations[0] ?? allDestinations[0];
 
   return (
-    <main className="min-h-screen">
-      <section className="mx-auto mt-4 max-w-6xl px-4 md:px-6">
-        <div
-          className="relative overflow-hidden rounded-2xl bg-cover bg-center p-6 md:min-h-[620px] md:p-10"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(15,23,42,.45), rgba(15,23,42,.35)), url('https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1800&q=80')"
-          }}
-        >
-          <p className="text-sm font-medium text-emerald-100">
-            {pick(locale, "This Weekend", "\u672c\u5468\u672b\u63a8\u8350")} - {weekend.city} - {weekend.dateRange}
-          </p>
-          <h1 className="mt-2 max-w-xl text-2xl font-bold leading-tight text-white md:text-4xl">
-            {pick(locale, `Family-friendly outdoor picks near ${weekend.city}`, `${weekend.city}\u5468\u8fb9\u4eb2\u5b50\u6237\u5916\u63a8\u8350`)}
-          </h1>
-          <p className="mt-3 max-w-2xl text-sm text-slate-100 md:text-base">
-            {pick(locale, `${weekend.source}: ${weekend.scenes}. ${weekend.advice}.`, `${weekend.source}\uff1a${weekend.scenes}\u3002${weekend.advice}\u3002`)}
-          </p>
-          <Link
-            href="/destinations?scenario=all&difficulty=all&maxDistance=120&needParking=false&needToilet=false"
-            className="mt-5 block max-w-xl rounded-2xl border border-white/40 bg-white/20 p-4 text-white shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/25 hover:shadow-xl md:absolute md:right-10 md:top-10 md:mt-0 md:w-80 md:p-4"
-          >
-            <p className="text-xs font-semibold text-emerald-100">{pick(locale, "Wuhan family outing ranking", "\u6b66\u6c49\u4eb2\u5b50\u6237\u5916\u699c\u5355")}</p>
-            <h2 className="mt-1 text-2xl font-bold leading-tight md:text-2xl">{pick(locale, "Top 10 Family Outings in Wuhan This Week", "\u672c\u5468\u6b66\u6c49TOP10\u9044\u5a03\u5730")}</h2>
-            <div className="mt-3 grid gap-2">
-              <HeroRatingLine label={pick(locale, "Best weather", "\u5929\u6c14\u6700\u4f73")} />
-              <HeroRatingLine label={pick(locale, "Best water condition", "\u6c34\u51b5\u6700\u4f73")} />
-              <HeroRatingLine label={pick(locale, "Best for young kids", "\u6700\u9002\u5408\u4f4e\u9f84\u513f\u7ae5")} />
-            </div>
-            <p className="mt-3 text-sm font-semibold text-emerald-50">{pick(locale, "Tap to view this week's picks", "\u70b9\u51fb\u67e5\u770b\u672c\u5468\u63a8\u8350")}</p>
-          </Link>
-          <HomeWeatherBadges
-            city={homeCity}
-            locale={locale}
-            fallbackWeather={weekend.weather}
-            fallbackWind={weekend.wind}
-            advice={weekend.advice}
-            detailHref={weatherDetailHref}
-          />
-          <div className="mt-6 flex flex-col gap-3 rounded-xl bg-white/95 p-4 text-slate-800 shadow-sm backdrop-blur md:max-w-lg md:flex-row md:items-center md:justify-between">
+    <main className="min-h-screen bg-slate-50 pb-10">
+      <section className="bg-white px-4 pb-4 pt-4 shadow-sm">
+        <div className="mx-auto max-w-6xl">
+          <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">{pick(locale, "Recommended plan", "\u63a8\u8350\u73a9\u6cd5")}</p>
-              <p className="mt-1 text-base font-bold text-slate-900">{weekend.scenes}</p>
-              <p className="mt-1 text-sm text-slate-600">{weekend.source}{pick(locale, ". Tap to see matched family-friendly destinations.", "\u3002\u70b9\u51fb\u67e5\u770b\u5339\u914d\u7684\u4eb2\u5b50\u6237\u5916\u76ee\u7684\u5730\u3002")}</p>
+              <p className="text-xs font-semibold text-emerald-700">{pick(locale, "WeekendGo", "栖美地")}</p>
+              <h1 className="mt-1 text-2xl font-black leading-tight text-slate-950">
+                {pick(locale, `Where to take kids near ${city}?`, `${homeCity}本周去哪遛娃？`)}
+              </h1>
+              <p className="mt-1 text-sm text-slate-500">
+                {pick(locale, `This week · ${getWeekendRange(locale)}`, `本周 · ${getWeekendRange(locale)}`)}
+              </p>
             </div>
-            <Link
-              href={weekend.href}
-              className="inline-flex shrink-0 items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-md"
-            >
-              {pick(locale, "View weekend picks", "\u67e5\u770b\u672c\u5468\u672b\u63a8\u8350")}
-            </Link>
+            {bestPick ? (
+              <Link href={`/destinations/${bestPick.id}`} className="hidden rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-sm md:block">
+                {pick(locale, "Best pick", "本周最值得去")}
+                <span className="mt-1 block max-w-36 truncate text-xs font-medium text-emerald-50">{destinationName(bestPick, locale)}</span>
+              </Link>
+            ) : null}
+          </div>
+
+          <form action="/destinations" className="mt-4 flex gap-2">
+            <div className="flex min-w-0 flex-1 items-center gap-2 rounded-2xl bg-slate-100 px-3 py-3">
+              <Search className="h-5 w-5 shrink-0 text-slate-400" />
+              <input
+                name="q"
+                type="search"
+                placeholder={pick(locale, "Search East Lake, creek, camping...", "搜索东湖、溯溪、露营地...")}
+                className="min-w-0 flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
+              />
+            </div>
+            <button type="submit" className="rounded-2xl bg-slate-950 px-4 text-sm font-bold text-white">
+              {pick(locale, "Search", "搜索")}
+            </button>
+          </form>
+
+          <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {cityOptions.map((option) => (
+              <Link
+                key={option}
+                href={destinationListHref({ city: option, scenario: "all", difficulty: "all", maxDistance: 120, needParking: false, needToilet: false })}
+                className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold ${
+                  option === homeCity ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-700"
+                }`}
+              >
+                <MapPin className="mr-1 inline h-3.5 w-3.5" />
+                {option}
+              </Link>
+            ))}
+          </div>
+
+          <div className="mt-4 grid grid-cols-4 gap-2">
+            {scenes.map((item) => (
+              <Link
+                key={item.key}
+                href={destinationListHref({ scenario: item.key, difficulty: "all", maxDistance: 120, needParking: false, needToilet: false })}
+                className="rounded-2xl bg-slate-50 px-2 py-3 text-center ring-1 ring-slate-100 transition hover:bg-white hover:shadow-sm"
+              >
+                <span className={`mx-auto flex h-9 w-9 items-center justify-center rounded-2xl ${item.color}`}>
+                  <item.icon className="h-5 w-5" />
+                </span>
+                <span className="mt-2 block text-xs font-bold text-slate-800">{zh ? item.labelZh : item.label}</span>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
 
-      <section className="mx-auto mt-6 max-w-6xl px-4 md:px-6">
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          {scenes.map((item) => (
-            <Link
-              key={item.key}
-              href={`/destinations?scenario=${item.key}`}
-              className="group rounded-xl border border-slate-200 bg-white p-4 text-left transition hover:-translate-y-0.5 hover:shadow-md"
-            >
-              <div className={`mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg ${item.color}`}>
-                <item.icon className="h-5 w-5" />
-              </div>
-              <p className="text-base font-semibold text-slate-900">{zh ? item.labelZh : item.label}</p>
-              <p className="text-xs text-slate-500">{pick(locale, "Family popular", "\u4eb2\u5b50\u70ed\u95e8")}</p>
-            </Link>
+      <section className="mx-auto mt-5 max-w-6xl">
+        <SectionHeader
+          title={pick(locale, `Top 10 family outings near ${city}`, `本周${homeCity}TOP10遛娃地`)}
+          subtitle={pick(locale, "Most worth tapping this week", "本周最值得点进去看的地方")}
+          href={destinationListHref({ city: homeCity, scenario: "all", difficulty: "all", maxDistance: 120, needParking: false, needToilet: false })}
+          locale={locale}
+        />
+        <div className="flex gap-3 overflow-x-auto px-4 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {topDestinations.map((item, index) => (
+            <MiniDestinationCard key={item.id} item={item} locale={locale} rank={index + 1} />
           ))}
         </div>
       </section>
 
-      <section className="mx-auto mt-8 max-w-6xl px-4 pb-10 md:px-6">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-slate-900">{pick(locale, "Recommended For You", "\u4e3a\u4f60\u63a8\u8350")}</h2>
-          <Link href="/destinations" className="text-sm font-medium text-emerald-700 hover:text-emerald-800">
-            {pick(locale, "View all", "\u67e5\u770b\u5168\u90e8")}
-          </Link>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {recommendations.map((item) => {
-            const image = getDestinationImage(item);
-            return (
-              <Link
-                key={item.id}
-                href={`/destinations/${item.id}`}
-                className="group flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-xl"
-              >
-                <div className="relative h-44 w-full overflow-hidden">
-                  <img
-                    src={image.src}
-                    alt={destinationName(item, locale)}
-                    loading="lazy"
-                    decoding="async"
-                    className="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/35 to-transparent opacity-0 transition group-hover:opacity-100" />
-                  {image.pending ? (
-                    <span className="absolute left-3 top-3 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800 shadow-sm">
-                      {pick(locale, "Image pending", "\u56fe\u7247\u5f85\u8865\u5145")}
-                    </span>
-                  ) : null}
-                  <span className="absolute bottom-3 right-3 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-emerald-700 opacity-0 shadow-sm transition group-hover:opacity-100">
-                    {pick(locale, "View detail", "\u67e5\u770b\u8be6\u60c5")}
-                  </span>
-                </div>
-              <div className="flex flex-1 flex-col space-y-3 p-4">
-                <div className="flex items-center justify-between">
-                  <SceneBadge item={item} locale={locale} />
-                  <span className="inline-flex items-center gap-1 text-xs text-slate-500">
-                    <Star className="h-3.5 w-3.5 fill-current text-amber-500" />
-                    {item.rating.toFixed(1)}
-                  </span>
-                </div>
-
-                <div className="flex-1 space-y-3">
-                  <h3 className="line-clamp-1 text-base font-semibold text-slate-900 transition group-hover:text-emerald-700">{destinationName(item, locale)}</h3>
-                  <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800">{destinationFamilyHighlight(item, locale)}</p>
-                  <p className="line-clamp-2 min-h-10 text-sm text-slate-600">{destinationDescription(item, locale)}</p>
-
-                  <p className="text-sm text-slate-600">
-                    {destinationRegion(item, locale)} - {formatDistance(item.distanceKm, locale)} - {destinationDifficultyShort(item, locale)} - {destinationSafety(item, locale)}
-                  </p>
-                </div>
-
-                <div className="mt-auto space-y-3">
-                  <div className="flex min-h-16 flex-wrap content-start gap-2">
-                    {destinationDecisionTags(item, locale).map((tag) => (
-                      <span key={tag} className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="rounded-lg border border-amber-100 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800">
-                    <span className="font-semibold">{pick(locale, "Before you go", "\u51fa\u53d1\u524d\u770b")}</span>
-                    <span className="ml-1">{destinationSafetyTip(item, locale)}</span>
-                  </div>
-
-                  <div className="flex items-center gap-4 border-t border-slate-100 pt-3 text-xs text-slate-600 transition group-hover:text-slate-700">
-                    <span className="inline-flex items-center gap-1">
-                      <ShieldCheck className="h-3.5 w-3.5" />
-                      {pick(locale, "Safety notes", "\u5b89\u5168\u63d0\u793a")}
-                    </span>
-                    <span className="inline-flex items-center gap-1">
-                      <Car className="h-3.5 w-3.5" />
-                      {pick(locale, "Parking", "\u505c\u8f66")}
-                    </span>
-                    <span className="inline-flex items-center gap-1">
-                      <Bath className="h-3.5 w-3.5" />
-                      {pick(locale, "Toilet", "\u6d17\u624b\u95f4")}
-                    </span>
-                  </div>
-                </div>
-              </div>
+      <section className="mx-auto mt-6 max-w-6xl px-4">
+        <div className="rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-600 p-4 text-white shadow-sm">
+          <div className="flex items-start gap-3">
+            <span className="rounded-2xl bg-white/15 p-2">
+              <CloudSun className="h-5 w-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-emerald-50">{pick(locale, "Weather-based picks", "根据天气推荐")}</p>
+              <h2 className="mt-1 text-lg font-black">{weekendWeather.weather} · {weekendWeather.advice}</h2>
+              <p className="mt-1 text-xs text-emerald-50">{weekendWeather.wind} · {pick(locale, "Tap to view weather details", "可点击查看天气详情")}</p>
+            </div>
+            <Link href={`/weather?city=${encodeURIComponent(homeCity)}`} className="shrink-0 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-emerald-700">
+              {pick(locale, "Details", "详情")}
+            </Link>
+          </div>
+          <div className="mt-4 grid gap-2 md:grid-cols-2">
+            {weatherDestinations.slice(0, 2).map((item) => (
+              <Link key={item.id} href={`/destinations/${item.id}`} className="rounded-2xl bg-white/95 p-3 text-slate-900">
+                <p className="text-xs font-semibold text-emerald-700">{destinationScenario(item, locale)}</p>
+                <h3 className="mt-1 line-clamp-1 font-bold">{destinationName(item, locale)}</h3>
+                <p className="mt-1 line-clamp-1 text-xs text-slate-500">{destinationFamilyHighlight(item, locale)}</p>
               </Link>
-            );
-          })}
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto mt-6 max-w-6xl">
+        <SectionHeader
+          title={pick(locale, "Near me", "离我最近去哪")}
+          subtitle={pick(locale, `Calculated from ${city}`, `按常住城市「${homeCity}」计算距离`)}
+          href={destinationListHref({ city: homeCity, scenario: "all", difficulty: "all", maxDistance: 50, needParking: false, needToilet: false })}
+          locale={locale}
+        />
+        <div className="grid gap-3 px-4 md:grid-cols-2">
+          {nearbyDestinations.map((item) => (
+            <CompactDestinationCard key={item.id} item={item} locale={locale} reason={pick(locale, "Closest option", "附近推荐")} />
+          ))}
+        </div>
+      </section>
+
+      <section className="mx-auto mt-6 max-w-6xl">
+        <SectionHeader
+          title={pick(locale, "Latest family shares", "最新用户分享")}
+          subtitle={pick(locale, "Fresh places families are checking", "最近被家庭关注的地点")}
+          href="/submit-spot"
+          locale={locale}
+        />
+        <div className="grid gap-3 px-4 md:grid-cols-2">
+          {latestShares.slice(0, 4).map((item) => (
+            <Link key={item.id} href={`/destinations/${item.id}`} className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100 transition hover:shadow-md">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-emerald-700">
+                    <Users className="mr-1 inline h-3.5 w-3.5" />
+                    {pick(locale, "User shared", "用户分享")}
+                  </p>
+                  <h3 className="mt-1 line-clamp-1 font-bold text-slate-950">{destinationName(item, locale)}</h3>
+                </div>
+                <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">{destinationScenario(item, locale)}</span>
+              </div>
+              <p className="mt-2 line-clamp-2 text-sm text-slate-600">{destinationDescription(item, locale)}</p>
+              <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-600">
+                <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1">
+                  <Navigation className="h-3.5 w-3.5" />
+                  {formatDistance(item.distanceKm, locale)}
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1">
+                  <Car className="h-3.5 w-3.5" />
+                  {item.hasParking ? "可停车" : "停车一般"}
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1">
+                  <Bath className="h-3.5 w-3.5" />
+                  {item.hasToilet ? "有厕所" : "厕所较少"}
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  {destinationSafety(item, locale)}
+                </span>
+              </div>
+            </Link>
+          ))}
         </div>
       </section>
     </main>
