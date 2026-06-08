@@ -174,50 +174,6 @@ function getPersonalizedDestinations(allDestinations: DestinationItem[], preferr
   return [...sortByHomeCity(matched, homeCity), ...sortByHomeCity(fallback, homeCity)].slice(0, 6);
 }
 
-function clampStars(value: number) {
-  return Math.max(1, Math.min(5, Math.round(value)));
-}
-
-function getWeatherScore(item: DestinationItem) {
-  const difficultyBonus = item.difficulty === "easy" ? 1 : item.difficulty === "moderate" ? 0.4 : 0;
-  const safetyBonus = item.safety === "low_risk" ? 1 : item.safety === "medium_risk" ? 0.4 : 0;
-  return clampStars(3 + difficultyBonus + safetyBonus + (item.rating >= 4.8 ? 0.5 : 0));
-}
-
-function getWaterScore(item: DestinationItem) {
-  if (item.scenario === "creek") return clampStars(item.safety === "low_risk" ? 5 : 4);
-  if (item.scenario === "picnic") return clampStars(item.name.toLowerCase().includes("lake") || (item.nameZh ?? "").includes("\u6e56") ? 4 : 3);
-  return item.safety === "low_risk" ? 3 : 2;
-}
-
-function getYoungKidScore(item: DestinationItem) {
-  const ageScore = item.minKidAge <= 0 ? 2 : item.minKidAge <= 3 ? 1.5 : item.minKidAge <= 6 ? 0.8 : 0;
-  const facilityScore = (item.hasParking ? 0.7 : 0) + (item.hasToilet ? 0.8 : 0);
-  const difficultyScore = item.difficulty === "easy" ? 1 : item.difficulty === "moderate" ? 0.3 : 0;
-  return clampStars(2 + ageScore + facilityScore + difficultyScore);
-}
-
-function getTopKidDestinations(items: DestinationItem[]) {
-  return [...items]
-    .filter((item) => isNearHomeCity(item, DEFAULT_HOME_CITY))
-    .sort((a, b) => {
-      const aScore = getWeatherScore(a) + getWaterScore(a) + getYoungKidScore(a) + a.rating / 2;
-      const bScore = getWeatherScore(b) + getWaterScore(b) + getYoungKidScore(b) + b.rating / 2;
-      return bScore - aScore;
-    })
-    .slice(0, 10);
-}
-
-function StarRating({ score }: { score: number }) {
-  return (
-    <span className="inline-flex items-center gap-0.5 text-amber-500" aria-label={`${score}/5`}>
-      {Array.from({ length: 5 }).map((_, index) => (
-        <Star key={index} className={`h-3.5 w-3.5 ${index < score ? "fill-current" : "text-slate-300"}`} />
-      ))}
-    </span>
-  );
-}
-
 export default async function HomePage() {
   const [locale, profile, rawDestinations] = await Promise.all([getLocale(), getMyProfile(), getAllDestinations()]);
   const zh = locale === "zh";
@@ -227,7 +183,6 @@ export default async function HomePage() {
   const weekend = getWeekendRecommendation(homeCity, preferredScenarios, locale);
   const allDestinations = withDistanceFromCity(rawDestinations, homeCity);
   const recommendations = getPersonalizedDestinations(allDestinations, preferredScenarios, homeCity);
-  const topKidDestinations = getTopKidDestinations(allDestinations);
 
   return (
     <main className="min-h-screen">
@@ -287,69 +242,6 @@ export default async function HomePage() {
               <p className="text-xs text-slate-500">{pick(locale, "Family popular", "\u4eb2\u5b50\u70ed\u95e8")}</p>
             </Link>
           ))}
-        </div>
-      </section>
-
-      <section className="mx-auto mt-8 max-w-6xl px-4 md:px-6">
-        <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
-          <div>
-            <p className="text-sm font-medium text-emerald-700">{pick(locale, "Wuhan weekly ranking", "\u6b66\u6c49\u672c\u5468\u699c\u5355")}</p>
-            <h2 className="mt-1 text-xl font-bold text-slate-900">{pick(locale, "Top 10 Family Outings in Wuhan This Week", "\u672c\u5468\u6b66\u6c49TOP10\u9044\u5a03\u5730")}</h2>
-          </div>
-          <Link href="/destinations?scenario=all&difficulty=all&maxDistance=120&needParking=false&needToilet=false" className="text-sm font-medium text-emerald-700 hover:text-emerald-800">
-            {pick(locale, "See all", "\u67e5\u770b\u5168\u90e8")}
-          </Link>
-        </div>
-
-        <div className="grid gap-3 md:grid-cols-2">
-          {topKidDestinations.map((item, index) => {
-            const image = getDestinationImage(item);
-            const weatherScore = getWeatherScore(item);
-            const waterScore = getWaterScore(item);
-            const youngKidScore = getYoungKidScore(item);
-
-            return (
-              <Link
-                key={item.id}
-                href={`/destinations/${item.id}`}
-                className="group grid grid-cols-[96px_1fr] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md"
-              >
-                <div className="relative min-h-32 overflow-hidden bg-slate-100">
-                  <img src={image.src} alt={destinationName(item, locale)} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
-                  <span className="absolute left-2 top-2 rounded-full bg-slate-950/80 px-2 py-0.5 text-xs font-bold text-white">#{index + 1}</span>
-                  {image.pending ? (
-                    <span className="absolute bottom-2 left-2 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800">
-                      {pick(locale, "Pending", "\u5f85\u8865\u5145")}
-                    </span>
-                  ) : null}
-                </div>
-                <div className="min-w-0 p-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <h3 className="truncate text-sm font-bold text-slate-900 group-hover:text-emerald-700">{destinationName(item, locale)}</h3>
-                      <p className="mt-0.5 truncate text-xs text-slate-500">{destinationRegion(item, locale)} - {formatDistance(item.distanceKm, locale)}</p>
-                    </div>
-                    <SceneBadge item={item} locale={locale} />
-                  </div>
-
-                  <div className="mt-3 grid gap-1.5 text-xs text-slate-700">
-                    <div className="flex items-center justify-between gap-2">
-                      <span>{pick(locale, "Best weather", "\u5929\u6c14\u6700\u4f73")}</span>
-                      <StarRating score={weatherScore} />
-                    </div>
-                    <div className="flex items-center justify-between gap-2">
-                      <span>{pick(locale, "Best water condition", "\u6c34\u51b5\u6700\u4f73")}</span>
-                      <StarRating score={waterScore} />
-                    </div>
-                    <div className="flex items-center justify-between gap-2">
-                      <span>{pick(locale, "Best for young kids", "\u6700\u9002\u5408\u4f4e\u9f84\u513f\u7ae5")}</span>
-                      <StarRating score={youngKidScore} />
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
         </div>
       </section>
 
