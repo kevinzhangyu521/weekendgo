@@ -10,14 +10,13 @@ import {
   Search,
   Sandwich,
   ShieldCheck,
-  Star,
   Tent,
   Users,
   Waves
 } from "lucide-react";
+import { Top10Carousel } from "@/components/home/top10-carousel";
 import { getDestinationImage } from "@/features/destinations/images";
 import {
-  destinationAgeRange,
   destinationDescription,
   destinationDifficultyShort,
   destinationFamilyHighlight,
@@ -151,6 +150,23 @@ function getTopDestinations(items: DestinationItem[], homeCity: string) {
   return [...source].sort((a, b) => worthScore(b) - worthScore(a)).slice(0, 10);
 }
 
+function getScenarioTopDestinations(items: DestinationItem[], homeCity: string, scenario: Scenario) {
+  const scenarioItems = items.filter((item) => item.scenario === scenario);
+  return scenarioItems.length > 0 ? getTopDestinations(scenarioItems, homeCity) : getTopDestinations(items, homeCity);
+}
+
+function getYoungKidTopDestinations(items: DestinationItem[], homeCity: string) {
+  const nearby = items.filter((item) => isNearHomeCity(item, homeCity));
+  const source = nearby.length > 0 ? nearby : items;
+  return [...source]
+    .sort((a, b) => {
+      const ageGap = a.minKidAge - b.minKidAge;
+      if (ageGap !== 0) return ageGap;
+      return worthScore(b) - worthScore(a);
+    })
+    .slice(0, 10);
+}
+
 function destinationListHref(params: Record<string, string | number | boolean>) {
   const searchParams = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => searchParams.set(key, String(value)));
@@ -171,43 +187,6 @@ function SectionHeader({ title, subtitle, href, locale }: { title: string; subti
         </Link>
       ) : null}
     </div>
-  );
-}
-
-function MiniDestinationCard({ item, locale, rank }: { item: DestinationItem; locale: Locale; rank?: number }) {
-  const image = getDestinationImage(item);
-
-  return (
-    <Link
-      href={`/destinations/${item.id}`}
-      className="group block w-64 shrink-0 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
-    >
-      <div className="relative h-32 overflow-hidden bg-slate-100">
-        <img
-          src={image.src}
-          alt={destinationName(item, locale)}
-          loading="lazy"
-          decoding="async"
-          className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-        />
-        {rank ? <span className="absolute left-2 top-2 rounded-full bg-slate-950/85 px-2 py-1 text-xs font-bold text-white">TOP {rank}</span> : null}
-        {image.pending ? <span className="absolute right-2 top-2 rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-800">待补充</span> : null}
-      </div>
-      <div className="space-y-2 p-3">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="line-clamp-1 text-sm font-bold text-slate-950">{destinationName(item, locale)}</h3>
-          <span className="inline-flex shrink-0 items-center gap-0.5 text-xs font-semibold text-amber-600">
-            <Star className="h-3.5 w-3.5 fill-current" />
-            {item.rating.toFixed(1)}
-          </span>
-        </div>
-        <p className="line-clamp-1 text-xs text-slate-500">{destinationRegion(item, locale)} · {formatDistance(item.distanceKm, locale)}</p>
-        <div className="flex flex-wrap gap-1.5 text-xs">
-          <span className="rounded-full bg-emerald-50 px-2 py-1 font-medium text-emerald-700">{destinationScenario(item, locale)}</span>
-          <span className="rounded-full bg-slate-100 px-2 py-1 text-slate-600">{destinationAgeRange(item, locale)}</span>
-        </div>
-      </div>
-    </Link>
   );
 }
 
@@ -243,6 +222,12 @@ export default async function HomePage() {
   const weekendWeather = getWeekendWeather(homeCity, preferredScenarios, locale);
   const allDestinations = withDistanceFromCity(rawDestinations, homeCity);
   const topDestinations = getTopDestinations(allDestinations, homeCity);
+  const topRankings = {
+    overall: topDestinations,
+    creek: getScenarioTopDestinations(allDestinations, homeCity, "creek"),
+    camping: getScenarioTopDestinations(allDestinations, homeCity, "camping"),
+    youngKids: getYoungKidTopDestinations(allDestinations, homeCity)
+  };
   const weatherDestinations = allDestinations
     .filter((item) => item.scenario === weekendWeather.scenario)
     .sort((a, b) => worthScore(b) - worthScore(a))
@@ -320,19 +305,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto mt-5 max-w-6xl">
-        <SectionHeader
-          title={pick(locale, `Top 10 family outings near ${city}`, `本周${homeCity}TOP10遛娃地`)}
-          subtitle={pick(locale, "Most worth tapping this week", "本周最值得点进去看的地方")}
-          href={destinationListHref({ city: homeCity, scenario: "all", difficulty: "all", maxDistance: 120, needParking: false, needToilet: false })}
-          locale={locale}
-        />
-        <div className="flex gap-3 overflow-x-auto px-4 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {topDestinations.map((item, index) => (
-            <MiniDestinationCard key={item.id} item={item} locale={locale} rank={index + 1} />
-          ))}
-        </div>
-      </section>
+      <Top10Carousel locale={locale} homeCity={homeCity} rankings={topRankings} />
 
       <section className="mx-auto mt-6 max-w-6xl px-4">
         <div className="rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-600 p-4 text-white shadow-sm">
