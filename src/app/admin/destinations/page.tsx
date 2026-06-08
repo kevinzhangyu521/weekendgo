@@ -4,6 +4,9 @@ import { getAdminDestinations } from "@/features/admin/destinations";
 import { getDestinationImage } from "@/features/destinations/images";
 import { toChineseRegionName } from "@/lib/geo/region-names";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const scenarioLabelMap = {
   camping: "\u9732\u8425",
   creek: "\u6eaf\u6eaa",
@@ -31,11 +34,11 @@ function AdminAccessRequired() {
           <p className="text-sm font-semibold text-amber-700">{"\u9700\u8981\u7ba1\u7406\u5458\u6743\u9650"}</p>
           <h1 className="mt-2 text-2xl font-bold text-slate-900">{"\u6682\u65f6\u65e0\u6cd5\u6253\u5f00\u76ee\u7684\u5730\u7ba1\u7406"}</h1>
           <p className="mt-3 text-sm leading-6 text-slate-600">
-            {"\u8bf7\u5148\u786e\u8ba4\u5df2\u767b\u5f55\u7ba1\u7406\u5458\u8d26\u53f7\u3002\u5982\u679c\u4f60\u5df2\u7ecf\u662f\u7ba1\u7406\u5458\uff0c\u8bf7\u5148\u9000\u51fa\u540e\u91cd\u65b0\u767b\u5f55\uff0c\u518d\u6253\u5f00\u672c\u9875\u3002"}
+            {"页面没有读取到服务端管理员登录状态。你现在页眉显示账号，说明浏览器端可能已登录，但服务端权限 cookie 还没有同步。请点击下方按钮重新登录一次。"}
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
             <Link href="/login?next=/admin/destinations" className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">
-              {"\u767b\u5f55\u7ba1\u7406\u5458\u8d26\u53f7"}
+              {"重新登录同步权限"}
             </Link>
             <Link href="/admin/submissions" className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700">
               {"\u53bb\u5ba1\u6838\u6295\u7a3f"}

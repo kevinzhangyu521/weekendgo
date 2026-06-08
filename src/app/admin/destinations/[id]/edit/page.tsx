@@ -2,6 +2,9 @@ import Link from "next/link";
 import { getAdminDestinationById } from "@/features/admin/destinations";
 import { EditDestinationForm } from "./edit-destination-form";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 function AdminEditUnavailable() {
   return (
     <main className="min-h-screen bg-slate-50">
