@@ -133,6 +133,7 @@ export function LoginForm({ locale, initialEmail }: Props) {
 
       const verifiedEmail = data.user.email ?? fields.email;
       window.localStorage.setItem("qimeide_auth_email", verifiedEmail);
+      document.cookie = `qimeide_auth_email=${encodeURIComponent(verifiedEmail)}; Path=/; Max-Age=34560000; SameSite=Lax`;
       setCurrentEmail(verifiedEmail);
       setMessage("登录成功，正在进入首页...");
       window.location.replace(next);

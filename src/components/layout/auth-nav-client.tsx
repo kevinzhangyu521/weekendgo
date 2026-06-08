@@ -72,6 +72,14 @@ export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
           user: { email: string | null } | null;
           isAdmin: boolean;
         };
+        if (!data.user?.email) {
+          const fallbackEmail = window.localStorage.getItem("qimeide_auth_email");
+          if (fallbackEmail) {
+            setEmail(fallbackEmail);
+            setIsAdmin(false);
+            return;
+          }
+        }
         setEmail(data.user?.email ?? null);
         setIsAdmin(Boolean(data.isAdmin));
       } catch {
@@ -114,7 +122,7 @@ export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
       const user = session?.user ?? null;
       await updateFromSession(user?.id, user?.email ?? null);
 
-      if (event === "SIGNED_IN" || event === "SIGNED_OUT") router.refresh();
+      if (event === "SIGNED_OUT") router.refresh();
     });
 
     return () => {
