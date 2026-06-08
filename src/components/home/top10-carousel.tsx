@@ -62,7 +62,7 @@ function Top10Card({ item, locale, rank }: { item: DestinationItem; locale: Loca
         </span>
         {topOne ? (
           <span className="absolute bottom-2 left-2 rounded-full bg-white/95 px-2.5 py-1 text-xs font-bold text-rose-600 shadow-sm">
-            {pick(locale, "Most worth going", "本周最值得去")}
+            {pick(locale, "Top 1 pick", "TOP1推荐")}
           </span>
         ) : null}
         {image.pending ? (
@@ -114,7 +114,7 @@ export function Top10Carousel({ locale, homeCity, rankings }: Props) {
   }
 
   return (
-    <section className="mx-auto mt-5 max-w-6xl">
+    <section id="top10" className="mx-auto mt-5 max-w-6xl scroll-mt-20">
       <div className="mb-3 flex items-end justify-between gap-3 px-4">
         <div>
           <h2 className="text-lg font-bold text-slate-950">

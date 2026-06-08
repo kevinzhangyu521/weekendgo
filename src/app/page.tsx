@@ -5,7 +5,6 @@ import {
   ChevronRight,
   CloudSun,
   Footprints,
-  MapPin,
   Navigation,
   Search,
   Sandwich,
@@ -93,23 +92,6 @@ const weatherByCity: Record<string, WeekendProfile> = {
 
 function displayCity(city: string, locale: Locale) {
   return pick(locale, cityNames[city] ?? city, city);
-}
-
-function getWeekendRange(locale: Locale) {
-  const now = new Date();
-  const day = now.getDay();
-  const daysUntilSaturday = (6 - day + 7) % 7;
-  const saturday = new Date(now);
-  saturday.setDate(now.getDate() + daysUntilSaturday);
-  const sunday = new Date(saturday);
-  sunday.setDate(saturday.getDate() + 1);
-
-  const formatter = new Intl.DateTimeFormat(locale === "zh" ? "zh-CN" : "en-US", {
-    month: "short",
-    day: "numeric"
-  });
-
-  return `${formatter.format(saturday)} - ${formatter.format(sunday)}`;
 }
 
 function getWeekendWeather(city: string, preferredScenarios: Scenario[], locale: Locale) {
@@ -234,73 +216,61 @@ export default async function HomePage() {
     .slice(0, 4);
   const nearbyDestinations = [...allDestinations].sort((a, b) => a.distanceKm - b.distanceKm).slice(0, 4);
   const latestShares = [...allDestinations].slice(0, 6);
-  const bestPick = topDestinations[0] ?? allDestinations[0];
 
   return (
     <main className="min-h-screen bg-slate-50 pb-10">
-      <section className="bg-white px-4 pb-4 pt-4 shadow-sm">
+      <section className="bg-white px-4 pb-3 pt-3 shadow-sm">
         <div className="mx-auto max-w-6xl">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold text-emerald-700">{pick(locale, "WeekendGo", "栖美地")}</p>
-              <h1 className="mt-1 text-2xl font-black leading-tight text-slate-950">
-                {pick(locale, `Where to take kids near ${city}?`, `${homeCity}本周去哪遛娃？`)}
-              </h1>
-              <p className="mt-1 text-sm text-slate-500">
-                {pick(locale, `This week · ${getWeekendRange(locale)}`, `本周 · ${getWeekendRange(locale)}`)}
-              </p>
-            </div>
-            {bestPick ? (
-              <Link href={`/destinations/${bestPick.id}`} className="hidden rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-sm md:block">
-                {pick(locale, "Best pick", "本周最值得去")}
-                <span className="mt-1 block max-w-36 truncate text-xs font-medium text-emerald-50">{destinationName(bestPick, locale)}</span>
-              </Link>
-            ) : null}
+          <div>
+            <p className="text-xs font-semibold text-emerald-700">{pick(locale, "WeekendGo", "栖美地")}</p>
+            <h1 className="mt-0.5 text-2xl font-black leading-tight text-slate-950 md:text-3xl">
+              {pick(locale, `Where to take kids near ${city}?`, `${homeCity}本周去哪遛娃？`)}
+            </h1>
+            <Link href={`/weather?city=${encodeURIComponent(homeCity)}`} className="mt-1 inline-flex text-sm font-medium text-slate-600 hover:text-emerald-700">
+              {pick(locale, `Live weather: ${weekendWeather.weather} · Play: ${weekendWeather.advice}`, `实时天气：${weekendWeather.weather} · 推荐玩法：${weekendWeather.advice}`)}
+            </Link>
           </div>
 
-          <form action="/destinations" className="mt-4 flex gap-2">
-            <div className="flex min-w-0 flex-1 items-center gap-2 rounded-2xl bg-slate-100 px-3 py-3">
-              <Search className="h-5 w-5 shrink-0 text-slate-400" />
-              <input
-                name="q"
-                type="search"
-                placeholder={pick(locale, "Search East Lake, creek, camping...", "搜索东湖、溯溪、露营地...")}
-                className="min-w-0 flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
-              />
+          <form action="/destinations" className="mt-3 grid gap-2 md:grid-cols-[1fr_160px_auto]">
+            <div className="flex min-w-0 items-center gap-2 rounded-full bg-slate-100 px-3 py-2.5">
+              <Search className="h-4 w-4 shrink-0 text-slate-400" />
+              <input name="q" type="search" placeholder={pick(locale, "Search East Lake, creek, camping...", "搜索东湖、溯溪、露营地...")} className="min-w-0 flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400" />
             </div>
-            <button type="submit" className="rounded-2xl bg-slate-950 px-4 text-sm font-bold text-white">
+            <select name="city" defaultValue={homeCity} className="rounded-full bg-slate-100 px-3 py-2.5 text-sm font-semibold text-slate-700 outline-none ring-0">
+              {cityOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            <button type="submit" className="rounded-full bg-slate-950 px-5 py-2.5 text-sm font-bold text-white">
               {pick(locale, "Search", "搜索")}
             </button>
           </form>
 
-          <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {cityOptions.map((option) => (
-              <Link
-                key={option}
-                href={destinationListHref({ city: option, scenario: "all", difficulty: "all", maxDistance: 120, needParking: false, needToilet: false })}
-                className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold ${
-                  option === homeCity ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-700"
-                }`}
-              >
-                <MapPin className="mr-1 inline h-3.5 w-3.5" />
-                {option}
-              </Link>
-            ))}
-          </div>
-
-          <div className="mt-4 grid grid-cols-4 gap-2">
+          <div className="mt-3 flex flex-wrap gap-2">
             {scenes.map((item) => (
               <Link
                 key={item.key}
                 href={destinationListHref({ scenario: item.key, difficulty: "all", maxDistance: 120, needParking: false, needToilet: false })}
-                className="rounded-2xl bg-slate-50 px-2 py-3 text-center ring-1 ring-slate-100 transition hover:bg-white hover:shadow-sm"
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition hover:shadow-sm ${item.color}`}
               >
-                <span className={`mx-auto flex h-9 w-9 items-center justify-center rounded-2xl ${item.color}`}>
-                  <item.icon className="h-5 w-5" />
-                </span>
-                <span className="mt-2 block text-xs font-bold text-slate-800">{zh ? item.labelZh : item.label}</span>
+                <item.icon className="h-3.5 w-3.5" />
+                {zh ? item.labelZh : item.label}
               </Link>
             ))}
+          </div>
+
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            <Link href="#top10" className="rounded-2xl bg-rose-50 px-3 py-2 text-center text-xs font-black text-rose-700">
+              🔥 {pick(locale, "Top 10", "本周TOP10")}
+            </Link>
+            <Link href="#nearby" className="rounded-2xl bg-emerald-50 px-3 py-2 text-center text-xs font-black text-emerald-700">
+              📍 {pick(locale, "Nearest", "离我最近")}
+            </Link>
+            <Link href={destinationListHref({ city: homeCity, scenario: "all", difficulty: "easy", maxDistance: 80, needParking: true, needToilet: true })} className="rounded-2xl bg-sky-50 px-3 py-2 text-center text-xs font-black text-sky-700">
+              👶 {pick(locale, "Young kids", "低龄宝宝")}
+            </Link>
           </div>
         </div>
       </section>
@@ -334,7 +304,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto mt-6 max-w-6xl">
+      <section id="nearby" className="mx-auto mt-6 max-w-6xl scroll-mt-20">
         <SectionHeader
           title={pick(locale, "Near me", "离我最近去哪")}
           subtitle={pick(locale, `Calculated from ${city}`, `按常住城市「${homeCity}」计算距离`)}
