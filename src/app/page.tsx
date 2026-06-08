@@ -157,7 +157,7 @@ function destinationListHref(params: Record<string, string | number | boolean>) 
 
 function SectionHeader({ title, subtitle, href, locale }: { title: string; subtitle?: string; href?: string; locale: Locale }) {
   return (
-    <div className="mb-3 flex items-end justify-between gap-3 px-4">
+    <div className="mb-3 flex items-end justify-between gap-3">
       <div>
         <h2 className="text-lg font-bold text-slate-950">{title}</h2>
         {subtitle ? <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p> : null}
@@ -304,28 +304,28 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section id="nearby" className="mx-auto mt-6 max-w-6xl scroll-mt-20">
+      <section id="nearby" className="mx-auto mt-6 max-w-6xl scroll-mt-20 px-4">
         <SectionHeader
           title={pick(locale, "Near me", "离我最近去哪")}
           subtitle={pick(locale, `Calculated from ${city}`, `按常住城市「${homeCity}」计算距离`)}
           href={destinationListHref({ city: homeCity, scenario: "all", difficulty: "all", maxDistance: 50, needParking: false, needToilet: false })}
           locale={locale}
         />
-        <div className="grid gap-3 px-4 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-2">
           {nearbyDestinations.map((item) => (
             <CompactDestinationCard key={item.id} item={item} locale={locale} reason={pick(locale, "Closest option", "附近推荐")} />
           ))}
         </div>
       </section>
 
-      <section className="mx-auto mt-6 max-w-6xl">
+      <section className="mx-auto mt-6 max-w-6xl px-4">
         <SectionHeader
           title={pick(locale, "Latest family shares", "最新用户分享")}
           subtitle={pick(locale, "Fresh places families are checking", "最近被家庭关注的地点")}
           href="/submit-spot"
           locale={locale}
         />
-        <div className="grid gap-3 px-4 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-2">
           {latestShares.slice(0, 4).map((item) => (
             <Link key={item.id} href={`/destinations/${item.id}`} className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100 transition hover:shadow-md">
               <div className="flex items-center justify-between gap-3">

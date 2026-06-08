@@ -44,11 +44,9 @@ function Top10Card({ item, locale, rank }: { item: DestinationItem; locale: Loca
   return (
     <Link
       href={`/destinations/${item.id}`}
-      className={`group block shrink-0 snap-start overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl ${
-        topOne ? "w-[19.2rem]" : "w-64"
-      }`}
+      className="group block w-64 shrink-0 snap-start overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
     >
-      <div className={`relative overflow-hidden bg-slate-100 ${topOne ? "h-[9.6rem]" : "h-32"}`}>
+      <div className="relative h-32 overflow-hidden bg-slate-100">
         <img
           src={image.src}
           alt={destinationName(item, locale)}
@@ -73,7 +71,7 @@ function Top10Card({ item, locale, rank }: { item: DestinationItem; locale: Loca
       </div>
       <div className="space-y-2 p-3">
         <div className="flex items-start justify-between gap-2">
-          <h3 className={`${topOne ? "text-base" : "text-sm"} line-clamp-1 font-bold text-slate-950`}>
+          <h3 className="line-clamp-1 text-sm font-bold text-slate-950">
             {destinationName(item, locale)}
           </h3>
           <span className="inline-flex shrink-0 items-center gap-0.5 text-xs font-semibold text-amber-600">
@@ -114,8 +112,8 @@ export function Top10Carousel({ locale, homeCity, rankings }: Props) {
   }
 
   return (
-    <section id="top10" className="mx-auto mt-5 max-w-6xl scroll-mt-20">
-      <div className="mb-3 flex items-end justify-between gap-3 px-4">
+    <section id="top10" className="mx-auto mt-5 max-w-6xl scroll-mt-20 px-4">
+      <div className="mb-3 flex items-end justify-between gap-3">
         <div>
           <h2 className="text-lg font-bold text-slate-950">
             {pick(locale, `Top 10 family outings near ${homeCity}`, `本周${homeCity}TOP10遛娃地`)}
@@ -142,7 +140,7 @@ export function Top10Carousel({ locale, homeCity, rankings }: Props) {
         </div>
       </div>
 
-      <div className="mb-3 flex gap-2 overflow-x-auto px-4 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="mb-3 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {rankingTabs.map((tab) => (
           <button
             key={tab.key}
@@ -190,14 +188,14 @@ export function Top10Carousel({ locale, homeCity, rankings }: Props) {
           dragRef.current.active = false;
           viewportRef.current?.classList.remove("cursor-grabbing");
         }}
-        className="flex cursor-grab snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-4 pb-2 select-none [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex cursor-grab snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth pb-2 select-none [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {items.map((item, index) => (
           <Top10Card key={`${activeTab}-${item.id}`} item={item} locale={locale} rank={index + 1} />
         ))}
       </div>
 
-      <div className="mt-2 flex justify-center gap-1.5 px-4 md:hidden">
+      <div className="mt-2 flex justify-center gap-1.5 md:hidden">
         {items.map((item, index) => (
           <span
             key={item.id}
