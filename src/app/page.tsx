@@ -218,7 +218,7 @@ export default async function HomePage() {
           </p>
           <Link
             href="/destinations?scenario=all&difficulty=all&maxDistance=120&needParking=false&needToilet=false"
-            className="mt-5 block max-w-xl rounded-2xl border border-white/40 bg-white/20 p-4 text-white shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/25 hover:shadow-xl md:absolute md:bottom-10 md:right-10 md:mt-0 md:w-80 md:p-4"
+            className="mt-5 block max-w-xl rounded-2xl border border-white/40 bg-white/20 p-4 text-white shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/25 hover:shadow-xl md:absolute md:right-10 md:top-10 md:mt-0 md:w-80 md:p-4"
           >
             <p className="text-xs font-semibold text-emerald-100">{pick(locale, "Wuhan family outing ranking", "\u6b66\u6c49\u4eb2\u5b50\u6237\u5916\u699c\u5355")}</p>
             <h2 className="mt-1 text-2xl font-bold leading-tight md:text-2xl">{pick(locale, "Top 10 Family Outings in Wuhan This Week", "\u672c\u5468\u6b66\u6c49TOP10\u9044\u5a03\u5730")}</h2>
