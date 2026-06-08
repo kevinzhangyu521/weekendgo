@@ -118,7 +118,8 @@ export function LoginForm({ locale, initialEmail }: Props) {
           cache: "no-store",
           body: JSON.stringify({
             access_token: data.session.access_token,
-            refresh_token: data.session.refresh_token
+            refresh_token: data.session.refresh_token,
+            session: data.session
           })
         }),
         6000
