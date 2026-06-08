@@ -201,7 +201,7 @@ export default async function HomePage() {
     <main className="min-h-screen">
       <section className="mx-auto mt-4 max-w-6xl px-4 md:px-6">
         <div
-          className="relative overflow-hidden rounded-2xl bg-cover bg-center p-6 md:p-10"
+          className="relative overflow-hidden rounded-2xl bg-cover bg-center p-6 md:min-h-[620px] md:p-10"
           style={{
             backgroundImage:
               "linear-gradient(rgba(15,23,42,.45), rgba(15,23,42,.35)), url('https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1800&q=80')"
@@ -218,11 +218,11 @@ export default async function HomePage() {
           </p>
           <Link
             href="/destinations?scenario=all&difficulty=all&maxDistance=120&needParking=false&needToilet=false"
-            className="mt-5 block max-w-xl rounded-2xl border border-white/40 bg-white/20 p-4 text-white shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/25 hover:shadow-xl md:max-w-lg"
+            className="mt-5 block max-w-xl rounded-2xl border border-white/40 bg-white/20 p-4 text-white shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/25 hover:shadow-xl md:absolute md:bottom-10 md:right-10 md:mt-0 md:w-80 md:p-4"
           >
             <p className="text-xs font-semibold text-emerald-100">{pick(locale, "Wuhan family outing ranking", "\u6b66\u6c49\u4eb2\u5b50\u6237\u5916\u699c\u5355")}</p>
-            <h2 className="mt-1 text-2xl font-bold leading-tight md:text-3xl">{pick(locale, "Top 10 Family Outings in Wuhan This Week", "\u672c\u5468\u6b66\u6c49TOP10\u9044\u5a03\u5730")}</h2>
-            <div className="mt-4 grid gap-2">
+            <h2 className="mt-1 text-2xl font-bold leading-tight md:text-2xl">{pick(locale, "Top 10 Family Outings in Wuhan This Week", "\u672c\u5468\u6b66\u6c49TOP10\u9044\u5a03\u5730")}</h2>
+            <div className="mt-3 grid gap-2">
               <HeroRatingLine label={pick(locale, "Best weather", "\u5929\u6c14\u6700\u4f73")} />
               <HeroRatingLine label={pick(locale, "Best water condition", "\u6c34\u51b5\u6700\u4f73")} />
               <HeroRatingLine label={pick(locale, "Best for young kids", "\u6700\u9002\u5408\u4f4e\u9f84\u513f\u7ae5")} />
@@ -237,7 +237,7 @@ export default async function HomePage() {
             advice={weekend.advice}
             detailHref={weatherDetailHref}
           />
-          <div className="mt-6 flex flex-col gap-3 rounded-xl bg-white/95 p-4 text-slate-800 shadow-sm backdrop-blur md:max-w-2xl md:flex-row md:items-center md:justify-between">
+          <div className="mt-6 flex flex-col gap-3 rounded-xl bg-white/95 p-4 text-slate-800 shadow-sm backdrop-blur md:max-w-lg md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">{pick(locale, "Recommended plan", "\u63a8\u8350\u73a9\u6cd5")}</p>
               <p className="mt-1 text-base font-bold text-slate-900">{weekend.scenes}</p>
