@@ -34,8 +34,8 @@ export function AuthNav({ locale, email, isAdmin }: Props) {
         </div>
 
         <div className="flex min-w-0 shrink-0 items-center gap-2">
-          <AuthNavClient locale={locale} initialEmail={email} initialIsAdmin={isAdmin} />
           <LocaleSwitcher locale={locale} />
+          <AuthNavClient locale={locale} initialEmail={email} initialIsAdmin={isAdmin} />
         </div>
       </div>
     </header>
