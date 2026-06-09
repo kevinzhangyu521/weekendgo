@@ -34,9 +34,9 @@ function pick(locale: Locale, en: string, zh: string) {
   return locale === "zh" ? zh : en;
 }
 
-function withTimeout<T>(promise: Promise<T>, timeoutMs = 30000): Promise<T> {
+function withTimeout<T>(promise: Promise<T>, timeoutMs = 30000, timeoutMessage = "\u8bf7\u6c42\u8d85\u65f6\uff0c\u8bf7\u68c0\u67e5\u7f51\u7edc\u540e\u518d\u8bd5\u3002"): Promise<T> {
   return new Promise((resolve, reject) => {
-    const timer = window.setTimeout(() => reject(new Error("\u8bf7\u6c42\u8d85\u65f6\uff0c\u8bf7\u68c0\u67e5\u7f51\u7edc\u540e\u518d\u8bd5\u3002")), timeoutMs);
+    const timer = window.setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);
     promise
       .then((value) => {
         window.clearTimeout(timer);
@@ -120,7 +120,8 @@ export function LoginForm({ locale, initialEmail }: Props) {
           next
         })
       }),
-      30000
+      45000,
+      "\u7f51\u7ad9\u767b\u5f55\u63a5\u53e3\u54cd\u5e94\u8d85\u65f6\uff0c\u53ef\u80fd\u662f\u5f53\u524d\u7f51\u7edc\u5230\u670d\u52a1\u5668\u8f83\u6162\uff0c\u6216\u670d\u52a1\u5668\u6b63\u5728\u51b7\u542f\u52a8\u3002\u8bf7\u518d\u8bd5\u4e00\u6b21\u3002"
     );
 
     const result = (await response.json()) as PasswordLoginResponse;
@@ -135,12 +136,20 @@ export function LoginForm({ locale, initialEmail }: Props) {
       throw new Error("\u6ca1\u6709\u6536\u5230\u6d4f\u89c8\u5668\u4f1a\u8bdd\uff0c\u8bf7\u91cd\u65b0\u767b\u5f55\u3002");
     }
 
-    const { error: sessionError } = await withTimeout(supabase.auth.setSession(result.session), 15000);
+    const { error: sessionError } = await withTimeout(
+      supabase.auth.setSession(result.session),
+      20000,
+      "\u767b\u5f55\u5df2\u901a\u8fc7\uff0c\u4f46\u6d4f\u89c8\u5668\u4fdd\u5b58\u767b\u5f55\u72b6\u6001\u8d85\u65f6\u3002\u8bf7\u68c0\u67e5\u662f\u5426\u4f7f\u7528\u4e86\u65e0\u75d5\u6a21\u5f0f\uff0c\u6216\u662f\u7981\u7528\u4e86 Cookie\u3002"
+    );
     if (sessionError) throw new Error(translateAuthError(sessionError.message));
 
     const {
       data: { session }
-    } = await withTimeout(supabase.auth.getSession(), 15000);
+    } = await withTimeout(
+      supabase.auth.getSession(),
+      20000,
+      "\u767b\u5f55\u5df2\u901a\u8fc7\uff0c\u4f46\u8bfb\u53d6\u6d4f\u89c8\u5668\u767b\u5f55\u72b6\u6001\u8d85\u65f6\u3002\u8bf7\u5237\u65b0\u9875\u9762\u540e\u518d\u8bd5\u3002"
+    );
 
     if (!session) {
       throw new Error("\u5f53\u524d\u6d4f\u89c8\u5668\u6ca1\u6709\u4fdd\u5b58\u767b\u5f55\u72b6\u6001\u3002\u8bf7\u5173\u95ed\u65e0\u75d5\u6a21\u5f0f\u6216\u5141\u8bb8\u7f51\u7ad9 Cookie \u540e\u518d\u8bd5\u3002");
