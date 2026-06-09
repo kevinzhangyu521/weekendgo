@@ -1,6 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { setSupabaseSessionCookies } from "@/lib/supabase/auth-session-cookie";
 
 type CookieToSet = {
   name: string;
@@ -111,9 +110,6 @@ export async function POST(request: NextRequest) {
   response.headers.set("Cache-Control", "no-store");
 
   cookiesToApply.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
-  if (data.session) {
-    authCookiesSet += setSupabaseSessionCookies(request, response, data.session);
-  }
   response.cookies.set("qimeide_auth_email", data.user.email ?? email, {
     path: "/",
     sameSite: "lax",
