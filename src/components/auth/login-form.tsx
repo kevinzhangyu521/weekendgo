@@ -131,34 +131,19 @@ export function LoginForm({ locale, initialEmail }: Props) {
     return result;
   }
 
-  async function persistBrowserSession(result: PasswordLoginResponse, fallbackEmail: string) {
-    if (!result.session?.access_token || !result.session.refresh_token) {
-      throw new Error("\u6ca1\u6709\u6536\u5230\u6d4f\u89c8\u5668\u4f1a\u8bdd\uff0c\u8bf7\u91cd\u65b0\u767b\u5f55\u3002");
-    }
-
-    const { error: sessionError } = await withTimeout(
-      supabase.auth.setSession(result.session),
-      20000,
-      "\u767b\u5f55\u5df2\u901a\u8fc7\uff0c\u4f46\u6d4f\u89c8\u5668\u4fdd\u5b58\u767b\u5f55\u72b6\u6001\u8d85\u65f6\u3002\u8bf7\u68c0\u67e5\u662f\u5426\u4f7f\u7528\u4e86\u65e0\u75d5\u6a21\u5f0f\uff0c\u6216\u662f\u7981\u7528\u4e86 Cookie\u3002"
-    );
-    if (sessionError) throw new Error(translateAuthError(sessionError.message));
-
-    const {
-      data: { session }
-    } = await withTimeout(
-      supabase.auth.getSession(),
-      20000,
-      "\u767b\u5f55\u5df2\u901a\u8fc7\uff0c\u4f46\u8bfb\u53d6\u6d4f\u89c8\u5668\u767b\u5f55\u72b6\u6001\u8d85\u65f6\u3002\u8bf7\u5237\u65b0\u9875\u9762\u540e\u518d\u8bd5\u3002"
-    );
-
-    if (!session) {
-      throw new Error("\u5f53\u524d\u6d4f\u89c8\u5668\u6ca1\u6709\u4fdd\u5b58\u767b\u5f55\u72b6\u6001\u3002\u8bf7\u5173\u95ed\u65e0\u75d5\u6a21\u5f0f\u6216\u5141\u8bb8\u7f51\u7ad9 Cookie \u540e\u518d\u8bd5\u3002");
-    }
-
-    const verifiedEmail = result.email ?? session.user.email ?? fallbackEmail;
+  function persistLocalAuthState(result: PasswordLoginResponse, fallbackEmail: string) {
+    const verifiedEmail = result.email ?? fallbackEmail;
     window.localStorage.setItem("qimeide_auth_email", verifiedEmail);
     document.cookie = `qimeide_auth_email=${encodeURIComponent(verifiedEmail)}; Path=/; Max-Age=34560000; SameSite=Lax`;
     setCurrentEmail(verifiedEmail);
+  }
+
+  function warmBrowserSession(result: PasswordLoginResponse) {
+    if (!result.session?.access_token || !result.session.refresh_token) return;
+
+    void supabase.auth.setSession(result.session).catch((sessionError) => {
+      console.warn("Browser auth session warm-up failed", sessionError);
+    });
   }
 
   async function login(event: FormEvent<HTMLFormElement>) {
@@ -172,7 +157,8 @@ export function LoginForm({ locale, initialEmail }: Props) {
 
     try {
       const result = await requestPasswordLogin(fields);
-      await persistBrowserSession(result, fields.email);
+      persistLocalAuthState(result, fields.email);
+      warmBrowserSession(result);
       setMessage("\u767b\u5f55\u6210\u529f\uff0c\u6b63\u5728\u8fdb\u5165\u9996\u9875...");
       window.location.replace(next);
     } catch (err) {
@@ -203,7 +189,8 @@ export function LoginForm({ locale, initialEmail }: Props) {
 
       if (data.session) {
         const result = await requestPasswordLogin(fields);
-        await persistBrowserSession(result, fields.email);
+        persistLocalAuthState(result, fields.email);
+        warmBrowserSession(result);
         setMessage("\u6ce8\u518c\u6210\u529f\uff0c\u6b63\u5728\u8fdb\u5165\u9996\u9875...");
         window.location.replace("/");
         return;
