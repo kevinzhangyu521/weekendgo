@@ -187,10 +187,10 @@ export function LoginForm({ locale, initialEmail }: Props) {
   return (
     <main className="min-h-screen bg-slate-50">
       <section className="mx-auto flex max-w-md flex-col px-4 py-10 md:px-0">
-        <p className="text-sm text-slate-500">{"\u6816\u7f8e\u5730\u8d26\u53f7"}</p>
+        <p className="text-sm text-slate-500">{"账号登录"}</p>
         <h1 className="mt-1 text-2xl font-bold text-slate-900">{pick(locale, "Email and password sign in", "\u90ae\u7bb1\u5bc6\u7801\u767b\u5f55")}</h1>
         <p className="mt-2 text-sm text-slate-600">
-          {pick(locale, "Use your email and password to sign in.", "\u4f7f\u7528\u90ae\u7bb1\u548c\u5bc6\u7801\u767b\u5f55\u6816\u7f8e\u5730\u3002")}
+          {pick(locale, "Use your email and password to sign in.", "使用邮箱和密码登录。")}
         </p>
 
         {confirmed ? (

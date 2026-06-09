@@ -47,7 +47,7 @@ export default async function AdminSubmissionsPage() {
   return (
     <main className="min-h-screen bg-slate-50">
       <section className="mx-auto max-w-5xl px-4 py-6 md:px-6">
-        <p className="text-sm text-slate-500">{"\u6816\u7f8e\u5730 Admin"}</p>
+        <p className="text-sm text-slate-500">{"管理后台"}</p>
         <h1 className="mt-1 text-2xl font-bold text-slate-900">{"\u5730\u70b9\u6295\u7a3f\u5ba1\u6838"}</h1>
         <p className="mt-2 text-sm text-slate-600">{"\u7528\u6237\u63d0\u4ea4\u7684\u4eb2\u5b50\u6237\u5916\u5730\u70b9\u4f1a\u51fa\u73b0\u5728\u8fd9\u91cc\uff0c\u5ba1\u6838\u901a\u8fc7\u540e\u5c06\u53d1\u5e03\u5230\u76ee\u7684\u5730\u5217\u8868\u3002"}</p>
 

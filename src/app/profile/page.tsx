@@ -31,7 +31,7 @@ export default async function ProfilePage() {
   return (
     <main className="min-h-screen bg-slate-50">
       <section className="mx-auto max-w-3xl px-4 py-6 md:px-6">
-        <p className="text-sm text-slate-500">{"\u6816\u7f8e\u5730"}</p>
+        <p className="text-sm text-slate-500">{"我的资料"}</p>
         <h1 className="mt-1 text-2xl font-bold text-slate-900">{"\u6211\u7684\u8d44\u6599"}</h1>
         <p className="mt-2 text-sm text-slate-600">{"\u8fd9\u4e9b\u4fe1\u606f\u5c06\u7528\u4e8e\u540e\u7eed\u63a8\u8350\u66f4\u9002\u5408\u4f60\u5bb6\u5ead\u7684\u5468\u672b\u6237\u5916\u5730\u70b9\u3002"}</p>
         <Link href="/reset-password" className="mt-4 inline-flex rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-medium text-emerald-700">
