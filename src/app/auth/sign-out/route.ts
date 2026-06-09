@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { clearQimeideSessionCookies } from "@/lib/auth/server-session-cookies";
 
 type CookieToSet = {
   name: string;
@@ -38,7 +39,7 @@ async function signOut(request: NextRequest) {
     .getAll()
     .filter((cookie) => cookie.name.startsWith("sb-"))
     .forEach((cookie) => response.cookies.set(cookie.name, "", { maxAge: 0, path: "/" }));
-  response.cookies.set("qimeide_auth_email", "", { maxAge: 0, path: "/" });
+  clearQimeideSessionCookies(response);
 
   return response;
 }

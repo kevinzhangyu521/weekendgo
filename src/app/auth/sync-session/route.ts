@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { setQimeideSessionCookies } from "@/lib/auth/server-session-cookies";
 
 type CookieToSet = {
   name: string;
@@ -52,12 +53,10 @@ export async function POST(request: NextRequest) {
   const response = NextResponse.json({ ok: true, email: data.user.email ?? null });
   response.headers.set("Cache-Control", "no-store");
   cookiesToApply.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
-  response.cookies.set("qimeide_auth_email", data.user.email ?? "", {
-    path: "/",
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 400 * 24 * 60 * 60
-  });
+  setQimeideSessionCookies(response, {
+    access_token: payload.access_token,
+    refresh_token: payload.refresh_token
+  }, data.user.email ?? "");
 
   return response;
 }
