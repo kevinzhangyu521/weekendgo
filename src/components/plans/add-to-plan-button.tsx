@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/lib/i18n/config";
 import { getAddToPlanMessages } from "@/lib/i18n/messages";
+import { hasLocalAuthState } from "@/lib/auth/client-auth-state";
 
 type Props = {
   destinationId: string;
@@ -42,8 +43,8 @@ export function AddToPlanButton({ destinationId, locale }: Props) {
         data: { user }
       } = await supabase.auth.getUser();
       if (!user) {
-        setNeedsLogin(true);
-        setError(text.needSignIn);
+        setNeedsLogin(!hasLocalAuthState());
+        setError(hasLocalAuthState() ? "\u767b\u5f55\u72b6\u6001\u6b63\u5728\u540c\u6b65\uff0c\u8bf7\u5237\u65b0\u540e\u518d\u8bd5\u3002" : text.needSignIn);
         return;
       }
 

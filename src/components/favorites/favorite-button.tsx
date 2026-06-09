@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Heart } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { hasLocalAuthState } from "@/lib/auth/client-auth-state";
 
 type Props = {
   destinationId: string;
@@ -31,6 +32,10 @@ export function FavoriteButton({
   const [errorText, setErrorText] = useState("");
 
   useEffect(() => {
+    if (hasLocalAuthState()) {
+      setIsLoggedIn(true);
+    }
+
     if (hasInitialState) return;
 
     let mounted = true;
@@ -43,7 +48,7 @@ export function FavoriteButton({
         if (!mounted) return;
 
         if (!user) {
-          setIsLoggedIn(false);
+          setIsLoggedIn(hasLocalAuthState());
           setIsFavorite(false);
           setLoading(false);
           return;
@@ -83,8 +88,8 @@ export function FavoriteButton({
       } = await supabase.auth.getUser();
 
       if (!user) {
-        setIsLoggedIn(false);
-        setErrorText("\u8bf7\u5148\u767b\u5f55\u518d\u6536\u85cf\u3002");
+        setIsLoggedIn(hasLocalAuthState());
+        setErrorText("\u767b\u5f55\u72b6\u6001\u6b63\u5728\u540c\u6b65\uff0c\u8bf7\u5237\u65b0\u540e\u518d\u8bd5\u3002");
         return;
       }
 

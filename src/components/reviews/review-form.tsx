@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import type { DestinationReview } from "@/features/reviews/types";
 import { saveDestinationReview, type ReviewFormState } from "@/app/destinations/[id]/review-actions";
+import { hasLocalAuthState } from "@/lib/auth/client-auth-state";
 
 type Props = {
   destinationId: string;
@@ -13,14 +14,16 @@ type Props = {
 export function ReviewForm({ destinationId, initialReview, isSignedIn }: Props) {
   const [state, formAction] = useActionState<ReviewFormState, FormData>(saveDestinationReview, { ok: false, message: "" });
   const [rating, setRating] = useState(initialReview?.rating ?? 5);
+  const [locallySignedIn, setLocallySignedIn] = useState(isSignedIn);
 
   useEffect(() => {
+    if (hasLocalAuthState()) setLocallySignedIn(true);
     if (state.ok && !initialReview) {
       setRating(5);
     }
   }, [initialReview, state.ok]);
 
-  if (!isSignedIn) {
+  if (!locallySignedIn) {
     return (
       <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
         {"\u767b\u5f55\u540e\u53ef\u4ee5\u7559\u4e0b\u771f\u5b9e\u4f53\u9a8c\uff0c\u5e2e\u52a9\u5176\u4ed6\u4eb2\u5b50\u5bb6\u5ead\u5224\u65ad\u662f\u5426\u9002\u5408\u524d\u5f80\u3002"}

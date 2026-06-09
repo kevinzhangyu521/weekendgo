@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { DestinationItem } from "@/features/destinations/types";
 import { getAmapNavigationUrl } from "@/lib/maps/navigation";
+import { hasLocalAuthState } from "@/lib/auth/client-auth-state";
 
 type Props = {
   destination: DestinationItem;
@@ -31,6 +32,11 @@ function getCurrentPosition() {
 
 export function AmapNavigationButton({ destination, label, className = "", isSignedIn = true, loginHref = "/login", signedOutLabel = "登录后导航" }: Props) {
   const [loading, setLoading] = useState(false);
+  const [locallySignedIn, setLocallySignedIn] = useState(isSignedIn);
+
+  useEffect(() => {
+    if (hasLocalAuthState()) setLocallySignedIn(true);
+  }, []);
 
   async function openNavigation() {
     setLoading(true);
@@ -50,7 +56,7 @@ export function AmapNavigationButton({ destination, label, className = "", isSig
     }
   }
 
-  if (!isSignedIn) {
+  if (!locallySignedIn) {
     return (
       <Link
         href={loginHref}
