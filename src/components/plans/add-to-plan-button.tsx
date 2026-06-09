@@ -50,6 +50,7 @@ export function AddToPlanButton({ destinationId, locale }: Props) {
     setNeedsLogin(false);
 
     try {
+      setMessage("\u6b63\u5728\u52a0\u5165\u8ba1\u5212...");
       let { response, result } = await requestAddToPlan();
 
       if (response.status === 401 && hasLocalAuthState()) {
@@ -68,13 +69,15 @@ export function AddToPlanButton({ destinationId, locale }: Props) {
       if (!response.ok || !result.ok) throw new Error(result.message ?? "Add to plan failed");
 
       if (result.alreadyInPlan) {
-        setMessage(text.alreadyInPlan);
+        setMessage(result.message ?? text.alreadyInPlan);
         return;
       }
 
-      setMessage(text.added);
-    } catch {
-      setError(text.addFailed);
+      setMessage(result.message ?? text.added);
+    } catch (error) {
+      const detail = error instanceof Error && error.message !== "Add to plan failed" ? error.message : text.addFailed;
+      setError(detail);
+      setMessage("");
     } finally {
       setLoading(false);
     }

@@ -44,7 +44,7 @@ export async function POST(request: Request) {
   if (existing) {
     const { error } = await supabase.from("favorites").delete().eq("id", existing.id);
     if (error) return NextResponse.json({ ok: false, message: "取消收藏失败。" }, { status: 500 });
-    return NextResponse.json({ ok: true, isFavorite: false });
+    return NextResponse.json({ ok: true, isFavorite: false, message: "已取消收藏。" });
   }
 
   const { error } = await supabase.from("favorites").insert({
@@ -54,5 +54,5 @@ export async function POST(request: Request) {
 
   if (error) return NextResponse.json({ ok: false, message: "加入收藏失败。" }, { status: 500 });
 
-  return NextResponse.json({ ok: true, isFavorite: true });
+  return NextResponse.json({ ok: true, isFavorite: true, message: "已加入收藏。" });
 }

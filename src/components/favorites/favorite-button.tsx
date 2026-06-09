@@ -34,7 +34,8 @@ export function FavoriteButton({
   const [saving, setSaving] = useState(false);
   const [isFavorite, setIsFavorite] = useState(Boolean(initialIsFavorite));
   const [isLoggedIn, setIsLoggedIn] = useState(Boolean(initialIsLoggedIn));
-  const [errorText, setErrorText] = useState("");
+  const [feedbackText, setFeedbackText] = useState("");
+  const [feedbackType, setFeedbackType] = useState<"success" | "error">("success");
 
   async function requestToggleFavorite() {
     const response = await fetch("/api/favorites/toggle", {
@@ -62,10 +63,11 @@ export function FavoriteButton({
 
   async function toggleFavorite() {
     if (loading || saving) return;
-    setErrorText("");
+    setFeedbackText("");
 
     try {
       setSaving(true);
+      setFeedbackText("");
       let { response, result } = await requestToggleFavorite();
 
       if (response.status === 401 && hasLocalAuthState()) {
@@ -77,7 +79,8 @@ export function FavoriteButton({
 
       if (response.status === 401) {
         setIsLoggedIn(hasLocalAuthState());
-        setErrorText(hasLocalAuthState() ? "\u767b\u5f55\u5df2\u6210\u529f\uff0c\u4f46\u670d\u52a1\u5668\u6682\u65f6\u6ca1\u8bfb\u5230\u8d26\u53f7\u72b6\u6001\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002" : "\u767b\u5f55\u540e\u53ef\u4ee5\u6536\u85cf\u3002");
+        setFeedbackType("error");
+        setFeedbackText(hasLocalAuthState() ? "\u767b\u5f55\u5df2\u6210\u529f\uff0c\u4f46\u670d\u52a1\u5668\u6682\u65f6\u6ca1\u8bfb\u5230\u8d26\u53f7\u72b6\u6001\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002" : "\u767b\u5f55\u540e\u53ef\u4ee5\u6536\u85cf\u3002");
         return;
       }
 
@@ -85,8 +88,12 @@ export function FavoriteButton({
 
       setIsLoggedIn(true);
       setIsFavorite(Boolean(result.isFavorite));
-    } catch {
-      setErrorText("\u4fdd\u5b58\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002");
+      setFeedbackType("success");
+      setFeedbackText(result.message ?? (result.isFavorite ? "已加入收藏。" : "已取消收藏。"));
+    } catch (error) {
+      const message = error instanceof Error && error.message !== "Save favorite failed" ? error.message : "\u4fdd\u5b58\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002";
+      setFeedbackType("error");
+      setFeedbackText(message);
     } finally {
       setSaving(false);
     }
@@ -109,7 +116,8 @@ export function FavoriteButton({
       >
         <Heart className={`${iconSize} ${isFavorite ? "fill-current" : ""}`} />
       </button>
-      {errorText ? <p className="mt-1 text-xs text-rose-600">{errorText}</p> : null}
+      {saving ? <p className="mt-1 text-xs text-slate-500">{"正在保存..."}</p> : null}
+      {feedbackText ? <p className={`mt-1 text-xs ${feedbackType === "success" ? "text-emerald-700" : "text-rose-600"}`}>{feedbackText}</p> : null}
       {!isLoggedIn && !loading ? (
         <Link href={`/login?next=${encodeURIComponent(pathname || "/")}`} className="mt-1 inline-flex text-xs text-emerald-700 hover:underline">
           {"\u767b\u5f55\u540e\u6536\u85cf"}

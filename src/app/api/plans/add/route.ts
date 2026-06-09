@@ -80,7 +80,7 @@ export async function POST(request: Request) {
   }
 
   if (existingItem) {
-    return NextResponse.json({ ok: true, alreadyInPlan: true, planId });
+    return NextResponse.json({ ok: true, alreadyInPlan: true, planId, message: "已经在计划里。" });
   }
 
   const { data: itemRows } = await supabase
@@ -101,5 +101,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, message: "加入计划失败。" }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, alreadyInPlan: false, planId });
+  return NextResponse.json({ ok: true, alreadyInPlan: false, planId, message: "已加入计划。" });
 }
