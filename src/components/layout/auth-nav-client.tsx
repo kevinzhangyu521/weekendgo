@@ -26,24 +26,24 @@ const navItems: Record<Locale, NavItem[]> = {
     { href: "/map", label: "\u5730\u56fe" },
     { href: "/favorites", label: "\u6536\u85cf" },
     { href: "/plans", label: "\u6211\u7684\u8ba1\u5212" },
-    { href: "/submit-spot", label: "\u6dfb\u52a0\u63a8\u8350\u5730\u70b9", authOnly: true },
+    { href: "/submit-spot", label: "\u6dfb\u52a0\u5730\u70b9", authOnly: true },
     { href: "/my-submissions", label: "\u6211\u7684\u6295\u7a3f", authOnly: true },
     { href: "/profile", label: "\u6211\u7684\u8d44\u6599", authOnly: true },
-    { href: "/admin/submissions", label: "\u5ba1\u6838\u6295\u7a3f", adminOnly: true },
-    { href: "/admin/destinations", label: "\u76ee\u7684\u5730\u7ba1\u7406", adminOnly: true },
-    { href: "/admin/settings", label: "\u7ba1\u7406\u5458\u8bbe\u7f6e", adminOnly: true }
+    { href: "/admin/submissions", label: "\u5ba1\u6838", adminOnly: true },
+    { href: "/admin/destinations", label: "\u5730\u70b9\u7ba1\u7406", adminOnly: true },
+    { href: "/admin/settings", label: "\u7ba1\u7406\u8bbe\u7f6e", adminOnly: true }
   ],
   en: [
     { href: "/destinations", label: "Destinations" },
     { href: "/map", label: "Map" },
     { href: "/favorites", label: "Favorites" },
     { href: "/plans", label: "My Plans" },
-    { href: "/submit-spot", label: "Add Spot", authOnly: true },
+    { href: "/submit-spot", label: "Add", authOnly: true },
     { href: "/my-submissions", label: "My Submissions", authOnly: true },
     { href: "/profile", label: "Profile", authOnly: true },
     { href: "/admin/submissions", label: "Review", adminOnly: true },
-    { href: "/admin/destinations", label: "Destination Admin", adminOnly: true },
-    { href: "/admin/settings", label: "Admin Settings", adminOnly: true }
+    { href: "/admin/destinations", label: "Manage", adminOnly: true },
+    { href: "/admin/settings", label: "Settings", adminOnly: true }
   ]
 };
 
@@ -166,7 +166,7 @@ export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
   return (
     <div className="flex items-center gap-2 text-sm">
       {desktopItems.length > 0 ? (
-        <nav className="hidden max-w-[520px] items-center gap-3 overflow-x-auto whitespace-nowrap md:flex">
+        <nav className="scrollbar-none hidden max-w-[480px] items-center gap-3 overflow-x-auto whitespace-nowrap md:flex">
           {desktopItems.map((item) => (
             <Link
               key={item.href}
@@ -192,7 +192,7 @@ export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
 
       {email ? (
         <div className="flex items-center gap-2">
-          <span className="hidden max-w-[220px] truncate text-slate-600 md:inline">{email}</span>
+          <span className="hidden max-w-[180px] truncate text-slate-600 md:inline">{email}</span>
           <Link
             href="/auth/sign-out"
             onClick={prepareSignOut}
