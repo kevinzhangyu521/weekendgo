@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import type { Locale } from "@/lib/i18n/config";
 import { getAddToPlanMessages } from "@/lib/i18n/messages";
 import { hasLocalAuthState } from "@/lib/auth/client-auth-state";
+import { syncBrowserSessionToServer } from "@/lib/auth/sync-browser-session";
 
 type Props = {
   destinationId: string;
@@ -27,6 +28,20 @@ export function AddToPlanButton({ destinationId, locale }: Props) {
   const [error, setError] = useState("");
   const [needsLogin, setNeedsLogin] = useState(false);
 
+  async function requestAddToPlan() {
+    const response = await fetch("/api/plans/add", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      credentials: "include",
+      cache: "no-store",
+      body: JSON.stringify({ destinationId })
+    });
+    const result = (await response.json()) as AddToPlanResponse;
+    return { response, result };
+  }
+
   async function handleAdd() {
     if (loading) return;
     setLoading(true);
@@ -35,20 +50,18 @@ export function AddToPlanButton({ destinationId, locale }: Props) {
     setNeedsLogin(false);
 
     try {
-      const response = await fetch("/api/plans/add", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include",
-        cache: "no-store",
-        body: JSON.stringify({ destinationId })
-      });
-      const result = (await response.json()) as AddToPlanResponse;
+      let { response, result } = await requestAddToPlan();
+
+      if (response.status === 401 && hasLocalAuthState()) {
+        const synced = await syncBrowserSessionToServer();
+        if (synced) {
+          ({ response, result } = await requestAddToPlan());
+        }
+      }
 
       if (response.status === 401) {
         setNeedsLogin(!hasLocalAuthState());
-        setError(hasLocalAuthState() ? "\u767b\u5f55\u5df2\u6210\u529f\uff0c\u4f46\u670d\u52a1\u5668\u8fd8\u6ca1\u8bfb\u5230\u8d26\u53f7\u72b6\u6001\uff0c\u8bf7\u9000\u51fa\u540e\u91cd\u65b0\u767b\u5f55\u4e00\u6b21\u3002" : text.needSignIn);
+        setError(hasLocalAuthState() ? "\u767b\u5f55\u5df2\u6210\u529f\uff0c\u4f46\u670d\u52a1\u5668\u6682\u65f6\u6ca1\u8bfb\u5230\u8d26\u53f7\u72b6\u6001\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002" : text.needSignIn);
         return;
       }
 

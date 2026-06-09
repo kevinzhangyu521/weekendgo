@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Heart } from "lucide-react";
 import { hasLocalAuthState } from "@/lib/auth/client-auth-state";
+import { syncBrowserSessionToServer } from "@/lib/auth/sync-browser-session";
 
 type Props = {
   destinationId: string;
@@ -35,6 +36,20 @@ export function FavoriteButton({
   const [isLoggedIn, setIsLoggedIn] = useState(Boolean(initialIsLoggedIn));
   const [errorText, setErrorText] = useState("");
 
+  async function requestToggleFavorite() {
+    const response = await fetch("/api/favorites/toggle", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      credentials: "include",
+      cache: "no-store",
+      body: JSON.stringify({ destinationId })
+    });
+    const result = (await response.json()) as ToggleFavoriteResponse;
+    return { response, result };
+  }
+
   useEffect(() => {
     if (hasLocalAuthState()) {
       setIsLoggedIn(true);
@@ -51,20 +66,18 @@ export function FavoriteButton({
 
     try {
       setSaving(true);
-      const response = await fetch("/api/favorites/toggle", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include",
-        cache: "no-store",
-        body: JSON.stringify({ destinationId })
-      });
-      const result = (await response.json()) as ToggleFavoriteResponse;
+      let { response, result } = await requestToggleFavorite();
+
+      if (response.status === 401 && hasLocalAuthState()) {
+        const synced = await syncBrowserSessionToServer();
+        if (synced) {
+          ({ response, result } = await requestToggleFavorite());
+        }
+      }
 
       if (response.status === 401) {
         setIsLoggedIn(hasLocalAuthState());
-        setErrorText(hasLocalAuthState() ? "\u767b\u5f55\u5df2\u6210\u529f\uff0c\u4f46\u670d\u52a1\u5668\u8fd8\u6ca1\u8bfb\u5230\u8d26\u53f7\u72b6\u6001\uff0c\u8bf7\u9000\u51fa\u540e\u91cd\u65b0\u767b\u5f55\u4e00\u6b21\u3002" : "\u767b\u5f55\u540e\u53ef\u4ee5\u6536\u85cf\u3002");
+        setErrorText(hasLocalAuthState() ? "\u767b\u5f55\u5df2\u6210\u529f\uff0c\u4f46\u670d\u52a1\u5668\u6682\u65f6\u6ca1\u8bfb\u5230\u8d26\u53f7\u72b6\u6001\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002" : "\u767b\u5f55\u540e\u53ef\u4ee5\u6536\u85cf\u3002");
         return;
       }
 
