@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Lock, Pencil, RotateCcw, Trash2, Unlock } from "lucide-react";
+import { AuthSyncRequired } from "@/components/auth/auth-sync-required";
 import { createClient } from "@/lib/supabase/server";
 import { getMyNotifications } from "@/features/notifications/repository";
 import { getMySubmissions, purgeExpiredDeletedSubmissions } from "@/features/submissions/repository";
@@ -139,17 +140,11 @@ export default async function MySubmissionsPage() {
 
   if (!user) {
     return (
-      <main className="min-h-screen bg-slate-50">
-        <section className="mx-auto max-w-3xl px-4 py-8 md:px-6">
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h1 className="text-2xl font-bold text-slate-900">{"\u6211\u7684\u6295\u7a3f"}</h1>
-            <p className="mt-2 text-sm text-slate-600">{"\u8bf7\u5148\u767b\u5f55\uff0c\u7136\u540e\u67e5\u770b\u4f60\u63d0\u4ea4\u7684\u5730\u70b9\u5ba1\u6838\u7ed3\u679c\u3002"}</p>
-            <Link href="/login?next=/my-submissions" className="mt-4 inline-flex rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">
-              {"\u53bb\u767b\u5f55"}
-            </Link>
-          </div>
-        </section>
-      </main>
+      <AuthSyncRequired
+        title="我的投稿"
+        description="请先登录，然后查看你提交的地点审核结果。"
+        loginHref="/login?next=/my-submissions"
+      />
     );
   }
 
