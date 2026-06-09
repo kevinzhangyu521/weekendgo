@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Heart } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 import { hasLocalAuthState } from "@/lib/auth/client-auth-state";
 
 type Props = {
@@ -15,6 +14,12 @@ type Props = {
   initialIsLoggedIn?: boolean;
 };
 
+type ToggleFavoriteResponse = {
+  ok?: boolean;
+  isFavorite?: boolean;
+  message?: string;
+};
+
 export function FavoriteButton({
   destinationId,
   size = "md",
@@ -23,7 +28,6 @@ export function FavoriteButton({
   initialIsLoggedIn
 }: Props) {
   const pathname = usePathname();
-  const supabase = useMemo(() => createClient(), []);
   const hasInitialState = typeof initialIsFavorite === "boolean" || typeof initialIsLoggedIn === "boolean";
   const [loading, setLoading] = useState(!hasInitialState);
   const [saving, setSaving] = useState(false);
@@ -38,80 +42,36 @@ export function FavoriteButton({
 
     if (hasInitialState) return;
 
-    let mounted = true;
-
-    async function load() {
-      try {
-        const {
-          data: { user }
-        } = await supabase.auth.getUser();
-        if (!mounted) return;
-
-        if (!user) {
-          setIsLoggedIn(hasLocalAuthState());
-          setIsFavorite(false);
-          setLoading(false);
-          return;
-        }
-
-        setIsLoggedIn(true);
-        const { data } = await supabase
-          .from("favorites")
-          .select("id")
-          .eq("user_id", user.id)
-          .eq("destination_id", destinationId)
-          .maybeSingle();
-
-        if (!mounted) return;
-        setIsFavorite(Boolean(data));
-      } catch {
-        if (!mounted) return;
-        setErrorText("\u6536\u85cf\u72b6\u6001\u52a0\u8f7d\u5931\u8d25\u3002");
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    }
-
-    void load();
-    return () => {
-      mounted = false;
-    };
-  }, [destinationId, hasInitialState, supabase]);
+    setLoading(false);
+  }, [hasInitialState]);
 
   async function toggleFavorite() {
     if (loading || saving) return;
     setErrorText("");
 
     try {
-      const {
-        data: { user }
-      } = await supabase.auth.getUser();
+      setSaving(true);
+      const response = await fetch("/api/favorites/toggle", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        credentials: "include",
+        cache: "no-store",
+        body: JSON.stringify({ destinationId })
+      });
+      const result = (await response.json()) as ToggleFavoriteResponse;
 
-      if (!user) {
+      if (response.status === 401) {
         setIsLoggedIn(hasLocalAuthState());
-        setErrorText("\u767b\u5f55\u72b6\u6001\u6b63\u5728\u540c\u6b65\uff0c\u8bf7\u5237\u65b0\u540e\u518d\u8bd5\u3002");
+        setErrorText(hasLocalAuthState() ? "\u767b\u5f55\u5df2\u6210\u529f\uff0c\u4f46\u670d\u52a1\u5668\u8fd8\u6ca1\u8bfb\u5230\u8d26\u53f7\u72b6\u6001\uff0c\u8bf7\u9000\u51fa\u540e\u91cd\u65b0\u767b\u5f55\u4e00\u6b21\u3002" : "\u767b\u5f55\u540e\u53ef\u4ee5\u6536\u85cf\u3002");
         return;
       }
 
-      setIsLoggedIn(true);
-      setSaving(true);
+      if (!response.ok || !result.ok) throw new Error(result.message ?? "Save favorite failed");
 
-      if (isFavorite) {
-        const { error } = await supabase
-          .from("favorites")
-          .delete()
-          .eq("user_id", user.id)
-          .eq("destination_id", destinationId);
-        if (error) throw error;
-        setIsFavorite(false);
-      } else {
-        const { error } = await supabase.from("favorites").insert({
-          user_id: user.id,
-          destination_id: destinationId
-        });
-        if (error) throw error;
-        setIsFavorite(true);
-      }
+      setIsLoggedIn(true);
+      setIsFavorite(Boolean(result.isFavorite));
     } catch {
       setErrorText("\u4fdd\u5b58\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002");
     } finally {
