@@ -8,6 +8,18 @@ const SESSION_MAX_AGE = 400 * 24 * 60 * 60;
 
 type CookieOptions = Parameters<NextResponse["cookies"]["set"]>[2];
 
+export function getQimeideCookieDomain() {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? process.env.VERCEL_PROJECT_PRODUCTION_URL ?? "";
+  if (siteUrl.includes("qimeide.com")) return ".qimeide.com";
+  if (process.env.NODE_ENV === "production") return ".qimeide.com";
+  return undefined;
+}
+
+function withSharedDomain(options: CookieOptions): CookieOptions {
+  const domain = getQimeideCookieDomain();
+  return domain ? { ...options, domain } : options;
+}
+
 const sessionCookieOptions: CookieOptions = {
   path: "/",
   sameSite: "lax",
@@ -24,13 +36,19 @@ const emailCookieOptions: CookieOptions = {
 };
 
 export function setQimeideSessionCookies(response: NextResponse, session: { access_token: string; refresh_token: string }, email: string) {
-  response.cookies.set(QIMEIDE_ACCESS_COOKIE, session.access_token, sessionCookieOptions);
-  response.cookies.set(QIMEIDE_REFRESH_COOKIE, session.refresh_token, sessionCookieOptions);
-  response.cookies.set(QIMEIDE_EMAIL_COOKIE, email, emailCookieOptions);
+  response.cookies.set(QIMEIDE_ACCESS_COOKIE, session.access_token, withSharedDomain(sessionCookieOptions));
+  response.cookies.set(QIMEIDE_REFRESH_COOKIE, session.refresh_token, withSharedDomain(sessionCookieOptions));
+  response.cookies.set(QIMEIDE_EMAIL_COOKIE, email, withSharedDomain(emailCookieOptions));
 }
 
 export function clearQimeideSessionCookies(response: NextResponse) {
   response.cookies.set(QIMEIDE_ACCESS_COOKIE, "", { path: "/", maxAge: 0 });
   response.cookies.set(QIMEIDE_REFRESH_COOKIE, "", { path: "/", maxAge: 0 });
   response.cookies.set(QIMEIDE_EMAIL_COOKIE, "", { path: "/", maxAge: 0 });
+  const domain = getQimeideCookieDomain();
+  if (domain) {
+    response.cookies.set(QIMEIDE_ACCESS_COOKIE, "", { path: "/", domain, maxAge: 0 });
+    response.cookies.set(QIMEIDE_REFRESH_COOKIE, "", { path: "/", domain, maxAge: 0 });
+    response.cookies.set(QIMEIDE_EMAIL_COOKIE, "", { path: "/", domain, maxAge: 0 });
+  }
 }
