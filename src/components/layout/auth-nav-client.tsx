@@ -58,10 +58,6 @@ export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
 
   useEffect(() => {
     let mounted = true;
-    const savedEmail = window.localStorage.getItem("qimeide_auth_email");
-    const savedIsAdmin = window.localStorage.getItem("qimeide_is_admin") === "1";
-    if (savedEmail) setEmail(savedEmail);
-    if (savedIsAdmin) setIsAdmin(true);
 
     async function updateFromServer() {
       try {
@@ -75,11 +71,11 @@ export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
           isAdmin: boolean;
         };
         if (!data.user?.email) {
-          const fallbackEmail = window.localStorage.getItem("qimeide_auth_email");
-          if (fallbackEmail) {
-            setEmail(fallbackEmail);
-            return;
-          }
+          setEmail(null);
+          setIsAdmin(false);
+          window.localStorage.removeItem("qimeide_auth_email");
+          window.localStorage.removeItem("qimeide_is_admin");
+          return;
         }
         setEmail(data.user?.email ?? null);
         setIsAdmin(Boolean(data.isAdmin));
@@ -97,11 +93,6 @@ export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
       if (!mounted) return;
 
       if (!userId) {
-        const fallbackEmail = window.localStorage.getItem("qimeide_auth_email");
-        if (fallbackEmail) {
-          setEmail(fallbackEmail);
-          return;
-        }
         await updateFromServer();
         return;
       }

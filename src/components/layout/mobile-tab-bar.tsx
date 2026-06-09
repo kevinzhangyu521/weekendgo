@@ -37,7 +37,6 @@ export function MobileTabBar({ locale, isSignedIn }: Props) {
 
   useEffect(() => {
     let mounted = true;
-    if (window.localStorage.getItem("qimeide_auth_email")) setSignedIn(true);
 
     async function updateFromServer() {
       try {
@@ -48,6 +47,10 @@ export function MobileTabBar({ locale, isSignedIn }: Props) {
         if (!response.ok || !mounted) return;
         const data = (await response.json()) as { user: unknown | null };
         setSignedIn(Boolean(data.user));
+        if (!data.user) {
+          window.localStorage.removeItem("qimeide_auth_email");
+          window.localStorage.removeItem("qimeide_is_admin");
+        }
       } catch {
         // Keep the last known tab state if this background check fails.
       }
@@ -59,12 +62,7 @@ export function MobileTabBar({ locale, isSignedIn }: Props) {
       if (user) {
         setSignedIn(true);
       } else {
-        const fallbackEmail = window.localStorage.getItem("qimeide_auth_email");
-        if (fallbackEmail) {
-          setSignedIn(true);
-        } else {
-          void updateFromServer();
-        }
+        void updateFromServer();
       }
     });
 
@@ -75,6 +73,7 @@ export function MobileTabBar({ locale, isSignedIn }: Props) {
       setSignedIn(Boolean(user));
       if (event === "SIGNED_OUT") {
         window.localStorage.removeItem("qimeide_auth_email");
+        window.localStorage.removeItem("qimeide_is_admin");
         document.cookie = "qimeide_auth_email=; Path=/; Max-Age=0; SameSite=Lax";
       }
     });
