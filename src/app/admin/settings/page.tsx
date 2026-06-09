@@ -16,8 +16,7 @@ export default async function AdminSettingsPage() {
   return (
     <main className="min-h-screen bg-slate-50">
       <section className="mx-auto max-w-3xl px-4 py-10 md:px-6">
-        <p className="text-sm text-slate-500">{"管理后台"}</p>
-        <h1 className="mt-1 text-2xl font-bold text-slate-900">{"管理员设置"}</h1>
+        <h1 className="text-2xl font-bold text-slate-900">{"管理员设置"}</h1>
         <p className="mt-2 text-sm leading-6 text-slate-600">
           {"用于在网站内部恢复或初始化管理员权限。为了安全，只有系统还没有管理员时，当前登录账号才能成为首个管理员。"}
         </p>

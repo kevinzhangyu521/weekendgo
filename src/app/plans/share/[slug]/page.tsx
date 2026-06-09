@@ -71,8 +71,7 @@ export default async function SharedPlanPage({
         ) : null}
 
         <div className="mb-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm print-card">
-          <p className="text-sm font-medium text-emerald-700">{pick(locale, "Shared Plan", "分享计划")}</p>
-          <h1 className="mt-1 text-2xl font-bold text-slate-900">{displayPlanTitle(plan.title)}</h1>
+          <h1 className="text-2xl font-bold text-slate-900">{displayPlanTitle(plan.title)}</h1>
 
           <div className={`mt-3 grid gap-2 text-sm text-slate-600 ${cardView ? "grid-cols-2" : "md:grid-cols-3"}`}>
             <span className="inline-flex items-center gap-1">

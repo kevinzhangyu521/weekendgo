@@ -21,7 +21,6 @@ export default async function FavoritesPage() {
     <main className="min-h-screen bg-slate-50">
       <section className="mx-auto max-w-6xl px-4 py-6 md:px-6">
         <div className="mb-5">
-          <p className="text-sm text-slate-500">{"我的收藏"}</p>
           <h1 className="inline-flex items-center gap-2 text-2xl font-bold text-slate-900">
             <Heart className="h-6 w-6 text-rose-600" />
             {pick(locale, "My Favorites", "\u6211\u7684\u6536\u85cf")}

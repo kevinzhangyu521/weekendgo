@@ -103,8 +103,7 @@ export function ResetPasswordForm() {
   return (
     <main className="min-h-screen bg-slate-50">
       <section className="mx-auto flex max-w-md flex-col px-4 py-10 md:px-0">
-        <p className="text-sm text-slate-500">{"账号安全"}</p>
-        <h1 className="mt-1 text-2xl font-bold text-slate-900">{mode === "update" ? "设置新密码" : "找回密码"}</h1>
+        <h1 className="text-2xl font-bold text-slate-900">{mode === "update" ? "设置新密码" : "找回密码"}</h1>
         <p className="mt-2 text-sm text-slate-600">
           {mode === "update" ? "请输入新密码，保存后即可使用新密码登录。" : "输入注册邮箱，我们会发送一封找回密码邮件。"}
         </p>

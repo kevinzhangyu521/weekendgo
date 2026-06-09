@@ -62,8 +62,7 @@ export default async function DestinationsPage({
     <main className="min-h-screen bg-slate-50">
       <section className="mx-auto max-w-6xl px-4 py-6 md:px-6">
         <div className="mb-5">
-          <p className="text-sm text-slate-500">{pick(locale, "Destinations", "目的地")}</p>
-          <h1 className="mt-1 text-2xl font-bold text-slate-900">{pick(locale, "Family-Friendly Weekend Picks", "\u4eb2\u5b50\u5468\u672b\u63a8\u8350")}</h1>
+          <h1 className="text-2xl font-bold text-slate-900">{pick(locale, "Family-Friendly Weekend Picks", "\u4eb2\u5b50\u5468\u672b\u63a8\u8350")}</h1>
         </div>
 
         <div className="mb-4 rounded-xl border border-slate-200 bg-white p-3 md:p-4">
