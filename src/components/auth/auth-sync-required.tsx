@@ -35,6 +35,7 @@ export function AuthSyncRequired({ title, description, loginHref }: Props) {
       setSyncing(true);
       const ok = await syncBrowserSessionToServer().catch(() => false);
       if (cancelled) return;
+
       if (ok) {
         router.refresh();
         return;
@@ -53,13 +54,14 @@ export function AuthSyncRequired({ title, description, loginHref }: Props) {
     };
   }, [router]);
 
-  const message = hasLocalLogin && !failed
-    ? syncing
-      ? "正在恢复登录状态，请稍候..."
-      : "正在检查登录状态..."
-    : failed
-      ? "登录状态已过期，请重新登录一次。"
-      : description;
+  const message =
+    hasLocalLogin && !failed
+      ? syncing
+        ? "正在恢复登录状态，请稍候..."
+        : "正在检查登录状态..."
+      : failed
+        ? "登录状态已过期，请重新登录一次。"
+        : description;
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -69,7 +71,7 @@ export function AuthSyncRequired({ title, description, loginHref }: Props) {
           <p className="mt-2 text-sm text-slate-600">{message}</p>
           {hasLocalLogin && !failed ? null : (
             <Link href={loginHref} className="mt-4 inline-flex rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">
-              {"去登录"}
+              去登录
             </Link>
           )}
         </div>

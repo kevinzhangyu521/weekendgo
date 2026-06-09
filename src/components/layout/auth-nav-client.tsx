@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { usePathname } from "next/navigation";
 import type { Locale } from "@/lib/i18n/config";
 
 type Props = {
@@ -48,9 +47,7 @@ const navItems: Record<Locale, NavItem[]> = {
 };
 
 export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
-  const router = useRouter();
   const pathname = usePathname();
-  const supabase = useMemo(() => createClient(), []);
   const [email, setEmail] = useState<string | null>(initialEmail);
   const [isAdmin, setIsAdmin] = useState(initialIsAdmin);
   const [loading, setLoading] = useState(false);
@@ -85,55 +82,21 @@ export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
           window.localStorage.removeItem("qimeide_is_admin");
         }
       } catch {
-        // Keep the last known navigation state if this background check fails.
-      }
-    }
-
-    async function updateFromSession(userId?: string, userEmail?: string | null) {
-      if (!mounted) return;
-
-      if (!userId) {
-        await updateFromServer();
-        return;
-      }
-
-      setEmail(userEmail ?? null);
-      if (userEmail) window.localStorage.setItem("qimeide_auth_email", userEmail);
-      const { data } = await supabase.from("admin_users").select("user_id").eq("user_id", userId).maybeSingle();
-      if (mounted) {
-        const nextIsAdmin = Boolean(data);
-        setIsAdmin(nextIsAdmin);
-        if (nextIsAdmin) {
-          window.localStorage.setItem("qimeide_is_admin", "1");
-        } else {
+        if (!initialEmail) {
+          setEmail(null);
+          setIsAdmin(false);
+          window.localStorage.removeItem("qimeide_auth_email");
           window.localStorage.removeItem("qimeide_is_admin");
         }
       }
     }
 
-    supabase.auth.getSession().then(({ data }) => {
-      const user = data.session?.user ?? null;
-      if (user) {
-        void updateFromSession(user.id, user.email ?? null);
-      } else {
-        void updateFromServer();
-      }
-    });
-
-    const {
-      data: { subscription }
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      const user = session?.user ?? null;
-      await updateFromSession(user?.id, user?.email ?? null);
-
-      if (event === "SIGNED_OUT") router.refresh();
-    });
+    void updateFromServer();
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
     };
-  }, [router, supabase]);
+  }, [initialEmail]);
 
   function prepareSignOut() {
     setLoading(true);
