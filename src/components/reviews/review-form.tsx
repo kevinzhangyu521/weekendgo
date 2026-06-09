@@ -60,7 +60,7 @@ export function ReviewForm({ destinationId, initialReview, isSignedIn }: Props) 
         minLength={4}
         maxLength={500}
         required
-        placeholder="\u4f8b\u5982\uff1a\u505c\u8f66\u662f\u5426\u65b9\u4fbf\u3001\u5b69\u5b50\u73a9\u5f97\u600e\u4e48\u6837\u3001\u6709\u6ca1\u6709\u9700\u8981\u907f\u5751\u7684\u5730\u65b9\u3002"
+        placeholder="例如：停车方便吗？孩子玩得开心吗？厕所、遮阴、人流和安全情况怎么样？可以写给其他家长看的真实提醒。"
         className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-emerald-400"
       />
 
