@@ -1,12 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { setQimeideSessionCookies } from "@/lib/auth/server-session-cookies";
-import { setSupabaseSessionCookies } from "@/lib/supabase/auth-session-cookie";
 
 type CookieToSet = {
   name: string;
   value: string;
-  options?: Parameters<NextResponse["cookies"]["set"]>[2];
 };
 
 type LoginPayload = {
@@ -90,8 +88,8 @@ export async function POST(request: NextRequest) {
     }
   } catch {
     return contentType.includes("application/json")
-      ? NextResponse.json({ ok: false, message: "\u8bf7\u586b\u5199\u90ae\u7bb1\u548c\u5bc6\u7801\u3002" }, { status: 400 })
-      : redirectWithError(request, "\u8bf7\u586b\u5199\u90ae\u7bb1\u548c\u5bc6\u7801\u3002");
+      ? NextResponse.json({ ok: false, message: "请填写邮箱和密码。" }, { status: 400 })
+      : redirectWithError(request, "请填写邮箱和密码。");
   }
 
   const email = payload.email?.trim();
@@ -100,48 +98,37 @@ export async function POST(request: NextRequest) {
 
   if (!isValidEmail(email) || !isValidPassword(password)) {
     return contentType.includes("application/json")
-      ? NextResponse.json({ ok: false, message: "\u8bf7\u586b\u5199\u6b63\u786e\u7684\u90ae\u7bb1\u548c\u81f3\u5c11 6 \u4f4d\u5bc6\u7801\u3002" }, { status: 400 })
-      : redirectWithError(request, "\u8bf7\u586b\u5199\u6b63\u786e\u7684\u90ae\u7bb1\u548c\u81f3\u5c11 6 \u4f4d\u5bc6\u7801\u3002");
+      ? NextResponse.json({ ok: false, message: "请填写正确的邮箱和至少 6 位密码。" }, { status: 400 })
+      : redirectWithError(request, "请填写正确的邮箱和至少 6 位密码。");
   }
 
-  const cookiesToApply: CookieToSet[] = [];
-  let authCookiesSet = 0;
   const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
-    cookieOptions: {
-      path: "/",
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production"
-    },
     cookies: {
       getAll() {
         return request.cookies.getAll();
       },
       setAll(cookiesToSet: CookieToSet[]) {
-        authCookiesSet += cookiesToSet.filter((cookie) => cookie.name.startsWith("sb-")).length;
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-        cookiesToApply.push(...cookiesToSet);
       }
     }
   });
 
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-  if (error || !data.user) {
+  if (error || !data.user || !data.session) {
     return contentType.includes("application/json")
-      ? NextResponse.json({ ok: false, message: "\u90ae\u7bb1\u6216\u5bc6\u7801\u4e0d\u6b63\u786e\uff0c\u8bf7\u68c0\u67e5\u540e\u518d\u8bd5\u3002" }, { status: 401 })
-      : redirectWithError(request, "\u90ae\u7bb1\u6216\u5bc6\u7801\u4e0d\u6b63\u786e\uff0c\u8bf7\u68c0\u67e5\u540e\u518d\u8bd5\u3002");
+      ? NextResponse.json({ ok: false, message: "邮箱或密码不正确，请检查后再试。" }, { status: 401 })
+      : redirectWithError(request, "邮箱或密码不正确，请检查后再试。");
   }
 
   const response = contentType.includes("application/json")
     ? NextResponse.json({
         ok: true,
         email: data.user.email ?? email,
-        session: data.session
-          ? {
-              access_token: data.session.access_token,
-              refresh_token: data.session.refresh_token
-            }
-          : null
+        session: {
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token
+        }
       })
     : new NextResponse(loginSuccessPage(next), {
         status: 200,
@@ -149,18 +136,11 @@ export async function POST(request: NextRequest) {
           "Content-Type": "text/html; charset=utf-8"
         }
       });
-  response.headers.set("Cache-Control", "no-store");
 
-  cookiesToApply.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
-  if (data.session) {
-    authCookiesSet += setSupabaseSessionCookies(request, response, data.session);
-    setQimeideSessionCookies(response, data.session, data.user.email ?? email);
-    response.headers.set("X-Qimeide-Session-Cookies", "set");
-  } else {
-    response.headers.set("X-Qimeide-Session-Cookies", "missing-session");
-  }
-  await supabase.auth.getSession();
-  response.headers.set("X-Qimeide-Auth-Cookies", String(authCookiesSet));
+  response.headers.set("Cache-Control", "no-store");
+  response.headers.set("X-Qimeide-Session-Cookies", "set");
+  response.headers.set("X-Qimeide-Auth-Cookies", "3");
+  setQimeideSessionCookies(response, data.session, data.user.email ?? email);
 
   return response;
 }

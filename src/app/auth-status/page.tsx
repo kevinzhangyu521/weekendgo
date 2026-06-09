@@ -12,6 +12,7 @@ export default async function AuthStatusPage() {
   const qimeideEmail = cookieStore.get(QIMEIDE_EMAIL_COOKIE)?.value ?? null;
   const hasQimeideAccessToken = Boolean(cookieStore.get(QIMEIDE_ACCESS_COOKIE)?.value);
   const hasQimeideRefreshToken = Boolean(cookieStore.get(QIMEIDE_REFRESH_COOKIE)?.value);
+  const cookieTest = cookieStore.get("qimeide_cookie_test")?.value ?? null;
 
   const supabase = await createClient();
   const {
@@ -32,6 +33,7 @@ export default async function AuthStatusPage() {
           <p>{`站内账号 Cookie：${qimeideEmail || "未收到"}`}</p>
           <p>{`站内 Access Token：${hasQimeideAccessToken ? "已收到" : "未收到"}`}</p>
           <p>{`站内 Refresh Token：${hasQimeideRefreshToken ? "已收到" : "未收到"}`}</p>
+          <p>{`测试 Cookie：${cookieTest ? "已收到" : "未收到"}`}</p>
           <p>{`服务端用户：${user?.email ?? "未读取到"}`}</p>
           {error ? <p className="text-rose-600">{`错误：${error.message}`}</p> : null}
         </div>
