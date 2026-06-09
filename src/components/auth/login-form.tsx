@@ -34,7 +34,7 @@ function pick(locale: Locale, en: string, zh: string) {
   return locale === "zh" ? zh : en;
 }
 
-function withTimeout<T>(promise: Promise<T>, timeoutMs = 12000): Promise<T> {
+function withTimeout<T>(promise: Promise<T>, timeoutMs = 30000): Promise<T> {
   return new Promise((resolve, reject) => {
     const timer = window.setTimeout(() => reject(new Error("\u8bf7\u6c42\u8d85\u65f6\uff0c\u8bf7\u68c0\u67e5\u7f51\u7edc\u540e\u518d\u8bd5\u3002")), timeoutMs);
     promise
@@ -120,7 +120,7 @@ export function LoginForm({ locale, initialEmail }: Props) {
           next
         })
       }),
-      10000
+      30000
     );
 
     const result = (await response.json()) as PasswordLoginResponse;
@@ -135,12 +135,12 @@ export function LoginForm({ locale, initialEmail }: Props) {
       throw new Error("\u6ca1\u6709\u6536\u5230\u6d4f\u89c8\u5668\u4f1a\u8bdd\uff0c\u8bf7\u91cd\u65b0\u767b\u5f55\u3002");
     }
 
-    const { error: sessionError } = await withTimeout(supabase.auth.setSession(result.session), 6000);
+    const { error: sessionError } = await withTimeout(supabase.auth.setSession(result.session), 15000);
     if (sessionError) throw new Error(translateAuthError(sessionError.message));
 
     const {
       data: { session }
-    } = await withTimeout(supabase.auth.getSession(), 6000);
+    } = await withTimeout(supabase.auth.getSession(), 15000);
 
     if (!session) {
       throw new Error("\u5f53\u524d\u6d4f\u89c8\u5668\u6ca1\u6709\u4fdd\u5b58\u767b\u5f55\u72b6\u6001\u3002\u8bf7\u5173\u95ed\u65e0\u75d5\u6a21\u5f0f\u6216\u5141\u8bb8\u7f51\u7ad9 Cookie \u540e\u518d\u8bd5\u3002");
@@ -159,7 +159,7 @@ export function LoginForm({ locale, initialEmail }: Props) {
     if (!fields) return;
 
     setLoadingAction("login");
-    setMessage("\u6b63\u5728\u767b\u5f55\uff0c\u8bf7\u7a0d\u5019...");
+    setMessage("\u6b63\u5728\u767b\u5f55\uff0c\u5982\u679c\u7f51\u7edc\u8f83\u6162\u8bf7\u7a0d\u5019...");
 
     try {
       const result = await requestPasswordLogin(fields);
