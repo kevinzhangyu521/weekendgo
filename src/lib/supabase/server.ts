@@ -4,14 +4,13 @@ import { QIMEIDE_ACCESS_COOKIE } from "@/lib/auth/server-session-cookies";
 
 export async function createClient() {
   const cookieStore = await cookies();
-  const hasSupabaseAuthCookie = cookieStore.getAll().some((cookie) => cookie.name.startsWith("sb-") && cookie.name.includes("-auth-token"));
-  const fallbackAccessToken = hasSupabaseAuthCookie ? null : cookieStore.get(QIMEIDE_ACCESS_COOKIE)?.value;
+  const qimeideAccessToken = cookieStore.get(QIMEIDE_ACCESS_COOKIE)?.value;
 
   const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
-    global: fallbackAccessToken
+    global: qimeideAccessToken
       ? {
           headers: {
-            Authorization: `Bearer ${fallbackAccessToken}`
+            Authorization: `Bearer ${qimeideAccessToken}`
           }
         }
       : undefined,
@@ -24,6 +23,11 @@ export async function createClient() {
       }
     }
   });
+
+  if (qimeideAccessToken) {
+    const getUser = supabase.auth.getUser.bind(supabase.auth);
+    supabase.auth.getUser = ((jwt?: string) => getUser(jwt ?? qimeideAccessToken)) as typeof supabase.auth.getUser;
+  }
 
   return supabase;
 }
