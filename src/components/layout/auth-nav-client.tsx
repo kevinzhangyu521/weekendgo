@@ -24,8 +24,8 @@ const navItems: Record<Locale, NavItem[]> = {
   zh: [
     { href: "/destinations", label: "\u76ee\u7684\u5730" },
     { href: "/map", label: "\u5730\u56fe" },
-    { href: "/favorites", label: "\u6536\u85cf" },
-    { href: "/plans", label: "\u6211\u7684\u8ba1\u5212" },
+    { href: "/favorites", label: "\u6536\u85cf", authOnly: true },
+    { href: "/plans", label: "\u6211\u7684\u8ba1\u5212", authOnly: true },
     { href: "/submit-spot", label: "\u6dfb\u52a0\u5730\u70b9", authOnly: true },
     { href: "/my-submissions", label: "\u6211\u7684\u6295\u7a3f", authOnly: true },
     { href: "/profile", label: "\u6211\u7684\u8d44\u6599", authOnly: true },
@@ -36,8 +36,8 @@ const navItems: Record<Locale, NavItem[]> = {
   en: [
     { href: "/destinations", label: "Destinations" },
     { href: "/map", label: "Map" },
-    { href: "/favorites", label: "Favorites" },
-    { href: "/plans", label: "My Plans" },
+    { href: "/favorites", label: "Favorites", authOnly: true },
+    { href: "/plans", label: "My Plans", authOnly: true },
     { href: "/submit-spot", label: "Add", authOnly: true },
     { href: "/my-submissions", label: "My Submissions", authOnly: true },
     { href: "/profile", label: "Profile", authOnly: true },

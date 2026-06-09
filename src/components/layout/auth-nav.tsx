@@ -24,12 +24,6 @@ export function AuthNav({ locale, email, isAdmin }: Props) {
             <Link href="/map" className="shrink-0 hover:text-slate-900">
               {pick(locale, "Map", "\u5730\u56fe")}
             </Link>
-            <Link href="/favorites" className="shrink-0 hover:text-slate-900">
-              {pick(locale, "Favorites", "\u6536\u85cf")}
-            </Link>
-            <Link href="/plans" className="shrink-0 hover:text-slate-900">
-              {pick(locale, "My Plans", "\u6211\u7684\u8ba1\u5212")}
-            </Link>
           </nav>
         </div>
 
