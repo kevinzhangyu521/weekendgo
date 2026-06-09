@@ -37,6 +37,42 @@ function redirectWithError(request: NextRequest, message: string, status = 303) 
   return NextResponse.redirect(url, { status });
 }
 
+function htmlEscape(value: string) {
+  return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function loginSuccessPage(next: string) {
+  const safeNext = htmlEscape(next);
+  return `<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="refresh" content="1;url=${safeNext}" />
+    <title>登录成功 - 栖美地</title>
+    <style>
+      body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #f8fafc; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .card { width: min(92vw, 420px); border: 1px solid #dbe5ee; border-radius: 18px; background: white; padding: 28px; box-shadow: 0 10px 30px rgba(15, 23, 42, .08); }
+      h1 { margin: 0; font-size: 24px; }
+      p { margin: 12px 0 0; color: #475569; line-height: 1.7; }
+      a { display: inline-flex; margin-top: 18px; border-radius: 999px; background: #059669; color: white; padding: 10px 16px; text-decoration: none; font-weight: 700; }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <h1>登录成功</h1>
+      <p>正在保存登录状态，并为你进入网站...</p>
+      <a href="${safeNext}">如果没有自动跳转，请点这里进入</a>
+      <script>
+        window.setTimeout(function () {
+          window.location.replace(${JSON.stringify(next)});
+        }, 700);
+      </script>
+    </main>
+  </body>
+</html>`;
+}
+
 export async function POST(request: NextRequest) {
   let payload: LoginPayload = {};
   const contentType = request.headers.get("content-type") ?? "";
@@ -68,7 +104,6 @@ export async function POST(request: NextRequest) {
       : redirectWithError(request, "\u8bf7\u586b\u5199\u6b63\u786e\u7684\u90ae\u7bb1\u548c\u81f3\u5c11 6 \u4f4d\u5bc6\u7801\u3002");
   }
 
-  const { origin } = new URL(request.url);
   const cookiesToApply: CookieToSet[] = [];
   let authCookiesSet = 0;
   const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
@@ -108,13 +143,21 @@ export async function POST(request: NextRequest) {
             }
           : null
       })
-    : NextResponse.redirect(`${origin}${next}`, { status: 303 });
+    : new NextResponse(loginSuccessPage(next), {
+        status: 200,
+        headers: {
+          "Content-Type": "text/html; charset=utf-8"
+        }
+      });
   response.headers.set("Cache-Control", "no-store");
 
   cookiesToApply.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
   if (data.session) {
     authCookiesSet += setSupabaseSessionCookies(request, response, data.session);
     setQimeideSessionCookies(response, data.session, data.user.email ?? email);
+    response.headers.set("X-Qimeide-Session-Cookies", "set");
+  } else {
+    response.headers.set("X-Qimeide-Session-Cookies", "missing-session");
   }
   await supabase.auth.getSession();
   response.headers.set("X-Qimeide-Auth-Cookies", String(authCookiesSet));
