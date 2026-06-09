@@ -15,6 +15,16 @@ type LoginPayload = {
 
 export const runtime = "nodejs";
 
+const messages = {
+  missingFields: "\u8bf7\u586b\u5199\u90ae\u7bb1\u548c\u5bc6\u7801\u3002",
+  invalidFields: "\u8bf7\u586b\u5199\u6b63\u786e\u7684\u90ae\u7bb1\u548c\u81f3\u5c11 6 \u4f4d\u5bc6\u7801\u3002",
+  invalidLogin: "\u90ae\u7bb1\u6216\u5bc6\u7801\u4e0d\u6b63\u786e\uff0c\u8bf7\u68c0\u67e5\u540e\u518d\u8bd5\u3002",
+  successTitle: "\u767b\u5f55\u6210\u529f",
+  successSaving: "\u6b63\u5728\u4fdd\u5b58\u767b\u5f55\u72b6\u6001\uff0c\u5e76\u4e3a\u4f60\u8fdb\u5165\u7f51\u7ad9...",
+  successLink: "\u5982\u679c\u6ca1\u6709\u81ea\u52a8\u8df3\u8f6c\uff0c\u8bf7\u70b9\u8fd9\u91cc\u8fdb\u5165",
+  brand: "\u6816\u7f8e\u5730"
+};
+
 function isValidEmail(value: unknown): value is string {
   return typeof value === "string" && value.includes("@") && value.length <= 254;
 }
@@ -47,7 +57,7 @@ function loginSuccessPage(next: string) {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta http-equiv="refresh" content="1;url=${safeNext}" />
-    <title>登录成功 - 栖美地</title>
+    <title>${messages.successTitle} - ${messages.brand}</title>
     <style>
       body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #f8fafc; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
       .card { width: min(92vw, 420px); border: 1px solid #dbe5ee; border-radius: 18px; background: white; padding: 28px; box-shadow: 0 10px 30px rgba(15, 23, 42, .08); }
@@ -58,9 +68,9 @@ function loginSuccessPage(next: string) {
   </head>
   <body>
     <main class="card">
-      <h1>登录成功</h1>
-      <p>正在保存登录状态，并为你进入网站...</p>
-      <a href="${safeNext}">如果没有自动跳转，请点这里进入</a>
+      <h1>${messages.successTitle}</h1>
+      <p>${messages.successSaving}</p>
+      <a href="${safeNext}">${messages.successLink}</a>
       <script>
         window.setTimeout(function () {
           window.location.replace(${JSON.stringify(next)});
@@ -88,8 +98,8 @@ export async function POST(request: NextRequest) {
     }
   } catch {
     return contentType.includes("application/json")
-      ? NextResponse.json({ ok: false, message: "请填写邮箱和密码。" }, { status: 400 })
-      : redirectWithError(request, "请填写邮箱和密码。");
+      ? NextResponse.json({ ok: false, message: messages.missingFields }, { status: 400 })
+      : redirectWithError(request, messages.missingFields);
   }
 
   const email = payload.email?.trim();
@@ -98,8 +108,8 @@ export async function POST(request: NextRequest) {
 
   if (!isValidEmail(email) || !isValidPassword(password)) {
     return contentType.includes("application/json")
-      ? NextResponse.json({ ok: false, message: "请填写正确的邮箱和至少 6 位密码。" }, { status: 400 })
-      : redirectWithError(request, "请填写正确的邮箱和至少 6 位密码。");
+      ? NextResponse.json({ ok: false, message: messages.invalidFields }, { status: 400 })
+      : redirectWithError(request, messages.invalidFields);
   }
 
   const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
@@ -117,8 +127,8 @@ export async function POST(request: NextRequest) {
 
   if (error || !data.user || !data.session) {
     return contentType.includes("application/json")
-      ? NextResponse.json({ ok: false, message: "邮箱或密码不正确，请检查后再试。" }, { status: 401 })
-      : redirectWithError(request, "邮箱或密码不正确，请检查后再试。");
+      ? NextResponse.json({ ok: false, message: messages.invalidLogin }, { status: 401 })
+      : redirectWithError(request, messages.invalidLogin);
   }
 
   const response = contentType.includes("application/json")
@@ -140,6 +150,7 @@ export async function POST(request: NextRequest) {
   response.headers.set("Cache-Control", "no-store");
   response.headers.set("X-Qimeide-Session-Cookies", "set");
   response.headers.set("X-Qimeide-Auth-Cookies", "3");
+  response.headers.set("X-Qimeide-User", data.user.email ?? email);
   setQimeideSessionCookies(response, data.session, data.user.email ?? email);
 
   return response;
