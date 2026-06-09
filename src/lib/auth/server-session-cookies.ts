@@ -3,6 +3,7 @@ import type { NextResponse } from "next/server";
 export const QIMEIDE_ACCESS_COOKIE = "qimeide_access_token";
 export const QIMEIDE_REFRESH_COOKIE = "qimeide_refresh_token";
 export const QIMEIDE_EMAIL_COOKIE = "qimeide_auth_email";
+export const QIMEIDE_COOKIE_TEST = "qimeide_cookie_test";
 
 const SESSION_MAX_AGE = 400 * 24 * 60 * 60;
 
@@ -45,10 +46,12 @@ export function clearQimeideSessionCookies(response: NextResponse) {
   response.cookies.set(QIMEIDE_ACCESS_COOKIE, "", { path: "/", maxAge: 0 });
   response.cookies.set(QIMEIDE_REFRESH_COOKIE, "", { path: "/", maxAge: 0 });
   response.cookies.set(QIMEIDE_EMAIL_COOKIE, "", { path: "/", maxAge: 0 });
+  response.cookies.set(QIMEIDE_COOKIE_TEST, "", { path: "/", maxAge: 0 });
   const domain = getQimeideCookieDomain();
   if (domain) {
     response.cookies.set(QIMEIDE_ACCESS_COOKIE, "", { path: "/", domain, maxAge: 0 });
     response.cookies.set(QIMEIDE_REFRESH_COOKIE, "", { path: "/", domain, maxAge: 0 });
     response.cookies.set(QIMEIDE_EMAIL_COOKIE, "", { path: "/", domain, maxAge: 0 });
+    response.cookies.set(QIMEIDE_COOKIE_TEST, "", { path: "/", domain, maxAge: 0 });
   }
 }

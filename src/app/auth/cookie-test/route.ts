@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getQimeideCookieDomain } from "@/lib/auth/server-session-cookies";
+import { QIMEIDE_COOKIE_TEST, getQimeideCookieDomain } from "@/lib/auth/server-session-cookies";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -17,7 +17,7 @@ export async function GET() {
     }
   );
 
-  response.cookies.set("qimeide_cookie_test", "ok", {
+  response.cookies.set(QIMEIDE_COOKIE_TEST, "ok", {
     path: "/",
     domain: getQimeideCookieDomain(),
     sameSite: "lax",

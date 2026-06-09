@@ -8,7 +8,7 @@ export async function GET() {
   const response = NextResponse.json(
     {
       ok: true,
-      message: "已尝试写入站内登录测试 Cookie。"
+      message: "\u5df2\u5c1d\u8bd5\u5199\u5165\u7ad9\u5185\u767b\u5f55\u6d4b\u8bd5 Cookie\u3002"
     },
     {
       headers: {
