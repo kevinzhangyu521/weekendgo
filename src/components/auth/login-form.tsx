@@ -146,28 +146,16 @@ export function LoginForm({ locale, initialEmail }: Props) {
     });
   }
 
-  async function login(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  function login(event: FormEvent<HTMLFormElement>) {
     resetFeedback();
     const fields = validateFields();
-    if (!fields) return;
+    if (!fields) {
+      event.preventDefault();
+      return;
+    }
 
     setLoadingAction("login");
     setMessage("\u6b63\u5728\u767b\u5f55\uff0c\u5982\u679c\u7f51\u7edc\u8f83\u6162\u8bf7\u7a0d\u5019...");
-
-    try {
-      const result = await requestPasswordLogin(fields);
-      persistLocalAuthState(result, fields.email);
-      warmBrowserSession(result);
-      setMessage("\u767b\u5f55\u6210\u529f\uff0c\u6b63\u5728\u8fdb\u5165\u9996\u9875...");
-      window.location.replace(next);
-    } catch (err) {
-      const detail = err instanceof Error ? err.message : "\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002";
-      setMessage("");
-      setError(`\u767b\u5f55\u5931\u8d25\uff1a${detail}`);
-    } finally {
-      setLoadingAction(null);
-    }
   }
 
   async function signUp() {
@@ -240,7 +228,8 @@ export function LoginForm({ locale, initialEmail }: Props) {
         ) : null}
 
         {!isSignedIn ? (
-          <form onSubmit={login} className="mt-6 space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+          <form action="/auth/password-login" method="post" onSubmit={login} className="mt-6 space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+            <input type="hidden" name="next" value={next} />
             <label className="text-sm font-bold text-slate-900" htmlFor="email">
               {"\u90ae\u7bb1"}
             </label>
@@ -250,6 +239,7 @@ export function LoginForm({ locale, initialEmail }: Props) {
                 id="email"
                 name="email"
                 type="email"
+                required
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 placeholder={pick(locale, "For example: yourname@qq.com", "\u4f8b\u5982\uff1ayourname@qq.com")}
@@ -266,6 +256,8 @@ export function LoginForm({ locale, initialEmail }: Props) {
                 id="password"
                 name="password"
                 type="password"
+                required
+                minLength={6}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder={pick(locale, "At least 6 characters, safe and easy to remember", "\u81f3\u5c11 6 \u4f4d\uff0c\u5efa\u8bae\u5b89\u5168\u597d\u8bb0")}
