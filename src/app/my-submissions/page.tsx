@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Lock, Pencil, RotateCcw, Trash2, Unlock } from "lucide-react";
 import { AuthSyncRequired } from "@/components/auth/auth-sync-required";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth/current-user";
 import { getMyNotifications } from "@/features/notifications/repository";
 import { getMySubmissions, purgeExpiredDeletedSubmissions } from "@/features/submissions/repository";
 import type { SpotSubmission } from "@/features/submissions/types";
@@ -133,10 +133,7 @@ function SubmissionCard({ item, deleted = false }: { item: SpotSubmission; delet
 }
 
 export default async function MySubmissionsPage() {
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   if (!user) {
     return (

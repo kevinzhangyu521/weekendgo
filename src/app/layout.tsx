@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { AuthNav } from "@/components/layout/auth-nav";
 import { MobileTabBar } from "@/components/layout/mobile-tab-bar";
 import { InstallPrompt } from "@/components/pwa/install-prompt";
+import { getCurrentAuthWithAdmin } from "@/lib/auth/current-user";
 import { getLocale } from "@/lib/i18n/server";
-import { createClient } from "@/lib/supabase/server";
 import "./globals.css";
 
 export const dynamic = "force-dynamic";
@@ -39,16 +39,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const locale = await getLocale();
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
-  let isAdmin = false;
-
-  if (user) {
-    const { data } = await supabase.from("admin_users").select("user_id").eq("user_id", user.id).maybeSingle();
-    isAdmin = Boolean(data);
-  }
+  const { user, isAdmin } = await getCurrentAuthWithAdmin();
 
   return (
     <html lang="zh-CN">

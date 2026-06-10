@@ -1,8 +1,7 @@
 import { destinationMockData } from "./mock-data";
 import { filterDestinations } from "./filter";
 import type { DestinationFilters, DestinationItem } from "./types";
-import { createClient } from "@/lib/supabase/server";
-import { hasSupabaseAuthCookie } from "@/lib/supabase/auth-cookie";
+import { getCurrentAuth } from "@/lib/auth/current-user";
 import { createPublicClient } from "@/lib/supabase/public";
 import { unstable_cache } from "next/cache";
 
@@ -118,13 +117,9 @@ export async function getRelatedDestinations(id: string, limit = 3): Promise<Des
 
 export async function getMyFavoriteDestinations(): Promise<DestinationItem[]> {
   if (!hasSupabaseEnv()) return [];
-  if (!(await hasSupabaseAuthCookie())) return [];
 
   try {
-    const supabase = await createClient();
-    const {
-      data: { user }
-    } = await supabase.auth.getUser();
+    const { supabase, user } = await getCurrentAuth();
 
     if (!user) return [];
 
@@ -154,13 +149,9 @@ export async function getMyFavoriteDestinations(): Promise<DestinationItem[]> {
 
 export async function getMyFavoriteDestinationIds(): Promise<string[]> {
   if (!hasSupabaseEnv()) return [];
-  if (!(await hasSupabaseAuthCookie())) return [];
 
   try {
-    const supabase = await createClient();
-    const {
-      data: { user }
-    } = await supabase.auth.getUser();
+    const { supabase, user } = await getCurrentAuth();
 
     if (!user) return [];
 

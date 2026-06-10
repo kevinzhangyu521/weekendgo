@@ -5,11 +5,10 @@ import { destinationName, destinationRegion, destinationScenario } from "@/featu
 import { getPublicPlanBySlug } from "@/features/plans/repository";
 import { displayPlanTitle } from "@/features/plans/title";
 import type { PlanDetail } from "@/features/plans/types";
+import { getCurrentUser } from "@/lib/auth/current-user";
 import { DEFAULT_HOME_CITY, withDistanceFromCity } from "@/lib/geo/distance";
 import { getAmapNavigationUrl } from "@/lib/maps/navigation";
 import { getLocale, pick } from "@/lib/i18n/server";
-import { hasSupabaseAuthCookie } from "@/lib/supabase/auth-cookie";
-import { createClient } from "@/lib/supabase/server";
 
 function formatDistance(distanceKm: number, locale: "en" | "zh") {
   if (!distanceKm || distanceKm <= 0) return pick(locale, "Distance pending", "\u8ddd\u79bb\u5f85\u8ba1\u7b97");
@@ -46,11 +45,7 @@ export default async function SharedPlanPage({
   const rawPlan = await getPublicPlanBySlug(slug);
   if (!rawPlan) notFound();
   const plan = withPlanDistances(rawPlan);
-  const hasAuthCookie = await hasSupabaseAuthCookie();
-  const supabase = hasAuthCookie ? await createClient() : null;
-  const {
-    data: { user }
-  } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
+  const user = await getCurrentUser();
   const isSignedIn = Boolean(user);
 
   return (

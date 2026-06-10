@@ -24,10 +24,9 @@ import {
 import { getAllDestinations } from "@/features/destinations/repository";
 import { getMyProfile } from "@/features/profiles/repository";
 import { getDestinationReviewsForUser } from "@/features/reviews/repository";
+import { getCurrentUser } from "@/lib/auth/current-user";
 import { DEFAULT_HOME_CITY, withDistanceFromCity } from "@/lib/geo/distance";
 import { getLocale, pick } from "@/lib/i18n/server";
-import { hasSupabaseAuthCookie } from "@/lib/supabase/auth-cookie";
-import { createClient } from "@/lib/supabase/server";
 
 function formatDistance(distanceKm: number, locale: "en" | "zh") {
   if (!distanceKm || distanceKm <= 0) return pick(locale, "Distance pending", "\u8ddd\u79bb\u5f85\u8ba1\u7b97");
@@ -41,15 +40,7 @@ export default async function DestinationDetailPage({
 }) {
   const [locale, { id }] = await Promise.all([getLocale(), params]);
   const isZh = locale === "zh";
-  const hasAuthCookie = await hasSupabaseAuthCookie();
-  const supabase = hasAuthCookie ? await createClient() : null;
-  const [
-    {
-      data: { user }
-    },
-    profile,
-    allDestinationsRaw
-  ] = await Promise.all([supabase ? supabase.auth.getUser() : Promise.resolve({ data: { user: null } }), getMyProfile(), getAllDestinations()]);
+  const [user, profile, allDestinationsRaw] = await Promise.all([getCurrentUser(), getMyProfile(), getAllDestinations()]);
   const homeCity = profile?.homeCity?.trim() || DEFAULT_HOME_CITY;
   const destinationRaw = allDestinationsRaw.find((item) => item.id === id) ?? null;
 
@@ -107,7 +98,7 @@ export default async function DestinationDetailPage({
             <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">{destinationName(destination, locale)}</h1>
             <p className="rounded-xl bg-emerald-50 px-4 py-3 text-base font-semibold text-emerald-800">{destinationFamilyHighlight(destination, locale)}</p>
             <div className="flex items-center gap-2">
-              <FavoriteButton destinationId={destination.id} />
+              <FavoriteButton destinationId={destination.id} initialIsLoggedIn={Boolean(user)} />
               <AddToPlanButton destinationId={destination.id} locale={locale} />
               <div className="hidden md:block">
                 <AmapNavigationButton

@@ -1,5 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
-import { hasSupabaseAuthCookie } from "@/lib/supabase/auth-cookie";
+import { getCurrentAuth } from "@/lib/auth/current-user";
 import type { Scenario } from "@/features/destinations/types";
 import type { UserProfile } from "./types";
 
@@ -19,13 +18,7 @@ function normalizeScenarios(values: FormDataEntryValue[]) {
 }
 
 export async function getMyProfile(): Promise<UserProfile | null> {
-  if (!(await hasSupabaseAuthCookie())) return null;
-
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
-
+  const { supabase, user } = await getCurrentAuth();
   if (!user) return null;
 
   const { data } = await supabase.from("user_profiles").select("user_id,nickname,home_city,kid_age,preferred_scenarios,receive_notifications").eq("user_id", user.id).maybeSingle();
@@ -43,10 +36,7 @@ export async function getMyProfile(): Promise<UserProfile | null> {
 }
 
 export async function saveMyProfile(formData: FormData) {
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getCurrentAuth();
 
   if (!user) return { ok: false, message: "\u8bf7\u5148\u767b\u5f55\u3002" };
 
