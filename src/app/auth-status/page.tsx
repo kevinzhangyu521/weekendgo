@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
-import { QIMEIDE_ACCESS_COOKIE, QIMEIDE_EMAIL_COOKIE, QIMEIDE_REFRESH_COOKIE, getQimeideCookieDomain } from "@/lib/auth/server-session-cookies";
+import { QIMEIDE_ACCESS_COOKIE, QIMEIDE_EMAIL_COOKIE, QIMEIDE_LOGIN_DEBUG_COOKIE, QIMEIDE_REFRESH_COOKIE, getQimeideCookieDomain } from "@/lib/auth/server-session-cookies";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -13,6 +13,7 @@ export default async function AuthStatusPage() {
   const hasQimeideAccessToken = Boolean(cookieStore.get(QIMEIDE_ACCESS_COOKIE)?.value);
   const hasQimeideRefreshToken = Boolean(cookieStore.get(QIMEIDE_REFRESH_COOKIE)?.value);
   const cookieTest = cookieStore.get("qimeide_cookie_test")?.value ?? null;
+  const loginDebug = cookieStore.get(QIMEIDE_LOGIN_DEBUG_COOKIE)?.value ?? null;
 
   const supabase = await createClient();
   const {
@@ -35,6 +36,7 @@ export default async function AuthStatusPage() {
           <p>{`\u7ad9\u5185 Access Token\uff1a${hasQimeideAccessToken ? "\u5df2\u6536\u5230" : "\u672a\u6536\u5230"}`}</p>
           <p>{`\u7ad9\u5185 Refresh Token\uff1a${hasQimeideRefreshToken ? "\u5df2\u6536\u5230" : "\u672a\u6536\u5230"}`}</p>
           <p>{`\u6d4b\u8bd5 Cookie\uff1a${cookieTest ? "\u5df2\u6536\u5230" : "\u672a\u6536\u5230"}`}</p>
+          <p>{`\u6700\u8fd1\u767b\u5f55\u8bca\u65ad\uff1a${loginDebug || "\u672a\u6536\u5230"}`}</p>
           <p>{`\u670d\u52a1\u7aef\u7528\u6237\uff1a${user?.email ?? "\u672a\u8bfb\u53d6\u5230"}`}</p>
           {error ? <p className="text-rose-600">{`\u9519\u8bef\uff1a${error.message}`}</p> : null}
         </div>

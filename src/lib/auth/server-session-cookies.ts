@@ -4,6 +4,7 @@ export const QIMEIDE_ACCESS_COOKIE = "qimeide_access_token";
 export const QIMEIDE_REFRESH_COOKIE = "qimeide_refresh_token";
 export const QIMEIDE_EMAIL_COOKIE = "qimeide_auth_email";
 export const QIMEIDE_COOKIE_TEST = "qimeide_cookie_test";
+export const QIMEIDE_LOGIN_DEBUG_COOKIE = "qimeide_login_debug";
 
 const SESSION_MAX_AGE = 400 * 24 * 60 * 60;
 
@@ -42,16 +43,22 @@ export function setQimeideSessionCookies(response: NextResponse, session: { acce
   response.cookies.set(QIMEIDE_EMAIL_COOKIE, email, withSharedDomain(emailCookieOptions));
 }
 
+export function setQimeideDebugCookie(response: NextResponse, value: string) {
+  response.cookies.set(QIMEIDE_LOGIN_DEBUG_COOKIE, value, withSharedDomain({ ...emailCookieOptions, maxAge: 10 * 60 }));
+}
+
 export function clearQimeideSessionCookies(response: NextResponse) {
   response.cookies.set(QIMEIDE_ACCESS_COOKIE, "", { path: "/", maxAge: 0 });
   response.cookies.set(QIMEIDE_REFRESH_COOKIE, "", { path: "/", maxAge: 0 });
   response.cookies.set(QIMEIDE_EMAIL_COOKIE, "", { path: "/", maxAge: 0 });
   response.cookies.set(QIMEIDE_COOKIE_TEST, "", { path: "/", maxAge: 0 });
+  response.cookies.set(QIMEIDE_LOGIN_DEBUG_COOKIE, "", { path: "/", maxAge: 0 });
   const domain = getQimeideCookieDomain();
   if (domain) {
     response.cookies.set(QIMEIDE_ACCESS_COOKIE, "", { path: "/", domain, maxAge: 0 });
     response.cookies.set(QIMEIDE_REFRESH_COOKIE, "", { path: "/", domain, maxAge: 0 });
     response.cookies.set(QIMEIDE_EMAIL_COOKIE, "", { path: "/", domain, maxAge: 0 });
     response.cookies.set(QIMEIDE_COOKIE_TEST, "", { path: "/", domain, maxAge: 0 });
+    response.cookies.set(QIMEIDE_LOGIN_DEBUG_COOKIE, "", { path: "/", domain, maxAge: 0 });
   }
 }

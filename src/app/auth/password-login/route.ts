@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { setQimeideSessionCookies } from "@/lib/auth/server-session-cookies";
+import { setQimeideDebugCookie, setQimeideSessionCookies } from "@/lib/auth/server-session-cookies";
 
 type CookieToSet = {
   name: string;
@@ -126,9 +126,11 @@ export async function POST(request: NextRequest) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error || !data.user || !data.session) {
-    return contentType.includes("application/json")
+    const response = contentType.includes("application/json")
       ? NextResponse.json({ ok: false, message: messages.invalidLogin }, { status: 401 })
       : redirectWithError(request, messages.invalidLogin);
+    setQimeideDebugCookie(response, error ? `failed:${error.message.slice(0, 80)}` : "failed:no-session");
+    return response;
   }
 
   const response = contentType.includes("application/json")
@@ -151,6 +153,7 @@ export async function POST(request: NextRequest) {
   response.headers.set("X-Qimeide-Session-Cookies", "set");
   response.headers.set("X-Qimeide-Auth-Cookies", "3");
   response.headers.set("X-Qimeide-User", data.user.email ?? email);
+  setQimeideDebugCookie(response, `success:${data.user.email ?? email}`);
   setQimeideSessionCookies(response, data.session, data.user.email ?? email);
 
   return response;
