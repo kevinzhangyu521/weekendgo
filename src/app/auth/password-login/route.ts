@@ -1,7 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import type { AuthError, Session, User } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
-import { setQimeideDebugCookie, setQimeideSessionCookies } from "@/lib/auth/server-session-cookies";
+import { createPublicClient } from "@/lib/supabase/public";
+import { setQimeideDebugCookie, setQimeideSessionCookies, setQimeideSessionIdCookie } from "@/lib/auth/server-session-cookies";
 
 type CookieToSet = {
   name: string;
@@ -86,6 +87,25 @@ function loginSuccessPage(next: string) {
     </main>
   </body>
 </html>`;
+}
+
+function sessionExpiresAt(session: Session) {
+  if (session.expires_at) return new Date(session.expires_at * 1000).toISOString();
+  return new Date(Date.now() + 60 * 60 * 1000).toISOString();
+}
+
+async function saveServerSession(sessionId: string, user: User, session: Session) {
+  const supabase = createPublicClient();
+  const { error } = await supabase.rpc("save_auth_session", {
+    p_session_id: sessionId,
+    p_user_id: user.id,
+    p_email: user.email ?? null,
+    p_access_token: session.access_token,
+    p_refresh_token: session.refresh_token,
+    p_expires_at: sessionExpiresAt(session)
+  });
+
+  return error;
 }
 
 export async function GET() {
@@ -190,7 +210,19 @@ export async function POST(request: NextRequest) {
   response.headers.set("X-Qimeide-Session-Cookies", "set");
   response.headers.set("X-Qimeide-Auth-Cookies", "3");
   response.headers.set("X-Qimeide-User", data.user.email ?? email);
-  withDebug(response, `success:${data.user.email ?? email}`);
+  const sessionId = crypto.randomUUID();
+  const saveError = await saveServerSession(sessionId, data.user, data.session);
+  if (saveError) {
+    return withDebug(
+      contentType.includes("application/json")
+        ? NextResponse.json({ ok: false, message: `登录成功，但保存服务端会话失败：${saveError.message}` }, { status: 500 })
+        : redirectWithError(request, `登录成功，但保存服务端会话失败：${saveError.message}`),
+      `failed:save-session:${saveError.message}`
+    );
+  }
+
+  withDebug(response, `success:${data.user.email ?? email}:session-id`);
+  setQimeideSessionIdCookie(response, sessionId);
   setQimeideSessionCookies(response, data.session, data.user.email ?? email);
 
   return response;
