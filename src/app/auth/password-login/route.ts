@@ -233,6 +233,12 @@ export async function POST(request: NextRequest) {
   response.headers.set("X-Qimeide-Login-Has-Session", data.session ? "true" : "false");
   response.headers.set("X-Qimeide-Supabase-Set-Cookie-Count", String(cookiesToApply.length));
   cookiesToApply.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+  console.info("[auth/password-login]", {
+    redirectTo: new URL(next, request.url).toString(),
+    hasSession: Boolean(data.session),
+    setCookieCount: cookiesToApply.length,
+    host: request.nextUrl.host
+  });
   withDebug(response, `success:${data.user.email ?? email}:session-id`);
   setQimeideSessionIdCookie(response, sessionId);
   setQimeideSessionCookies(response, data.session, data.user.email ?? email);
