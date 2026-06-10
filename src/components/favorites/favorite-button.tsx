@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Heart } from "lucide-react";
 import { hasLocalAuthState } from "@/lib/auth/client-auth-state";
-import { syncBrowserSessionToServer } from "@/lib/auth/sync-browser-session";
 
 type Props = {
   destinationId: string;
@@ -68,19 +67,12 @@ export function FavoriteButton({
     try {
       setSaving(true);
       setFeedbackText("");
-      let { response, result } = await requestToggleFavorite();
-
-      if (response.status === 401 && hasLocalAuthState()) {
-        const synced = await syncBrowserSessionToServer();
-        if (synced) {
-          ({ response, result } = await requestToggleFavorite());
-        }
-      }
+      const { response, result } = await requestToggleFavorite();
 
       if (response.status === 401) {
-        setIsLoggedIn(hasLocalAuthState());
+        setIsLoggedIn(false);
         setFeedbackType("error");
-        setFeedbackText(hasLocalAuthState() ? "\u767b\u5f55\u5df2\u6210\u529f\uff0c\u4f46\u670d\u52a1\u5668\u6682\u65f6\u6ca1\u8bfb\u5230\u8d26\u53f7\u72b6\u6001\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002" : "\u767b\u5f55\u540e\u53ef\u4ee5\u6536\u85cf\u3002");
+        setFeedbackText(result.message ?? "\u767b\u5f55\u540e\u53ef\u4ee5\u6536\u85cf\u3002");
         return;
       }
 

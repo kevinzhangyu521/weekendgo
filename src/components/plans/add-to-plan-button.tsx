@@ -6,8 +6,6 @@ import { CalendarPlus } from "lucide-react";
 import { usePathname } from "next/navigation";
 import type { Locale } from "@/lib/i18n/config";
 import { getAddToPlanMessages } from "@/lib/i18n/messages";
-import { hasLocalAuthState } from "@/lib/auth/client-auth-state";
-import { syncBrowserSessionToServer } from "@/lib/auth/sync-browser-session";
 
 type Props = {
   destinationId: string;
@@ -51,18 +49,11 @@ export function AddToPlanButton({ destinationId, locale }: Props) {
 
     try {
       setMessage("\u6b63\u5728\u52a0\u5165\u8ba1\u5212...");
-      let { response, result } = await requestAddToPlan();
-
-      if (response.status === 401 && hasLocalAuthState()) {
-        const synced = await syncBrowserSessionToServer();
-        if (synced) {
-          ({ response, result } = await requestAddToPlan());
-        }
-      }
+      const { response, result } = await requestAddToPlan();
 
       if (response.status === 401) {
-        setNeedsLogin(!hasLocalAuthState());
-        setError(hasLocalAuthState() ? "\u767b\u5f55\u5df2\u6210\u529f\uff0c\u4f46\u670d\u52a1\u5668\u6682\u65f6\u6ca1\u8bfb\u5230\u8d26\u53f7\u72b6\u6001\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002" : text.needSignIn);
+        setNeedsLogin(true);
+        setError(result.message ?? text.needSignIn);
         return;
       }
 
