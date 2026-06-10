@@ -1,11 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Heart, Home, MapPinned, Route, User } from "lucide-react";
 import { usePathname } from "next/navigation";
 import type { Locale } from "@/lib/i18n/config";
-import { createClient } from "@/lib/supabase/client";
 
 type Props = {
   locale: Locale;
@@ -31,7 +30,6 @@ const labels = {
 
 export function MobileTabBar({ locale, isSignedIn }: Props) {
   const pathname = usePathname();
-  const supabase = useMemo(() => createClient(), []);
   const [signedIn, setSignedIn] = useState(isSignedIn);
   const text = labels[locale];
 
@@ -56,33 +54,12 @@ export function MobileTabBar({ locale, isSignedIn }: Props) {
       }
     }
 
-    supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return;
-      const user = data.session?.user ?? null;
-      if (user) {
-        setSignedIn(true);
-      } else {
-        void updateFromServer();
-      }
-    });
-
-    const {
-      data: { subscription }
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      const user = session?.user ?? null;
-      setSignedIn(Boolean(user));
-      if (event === "SIGNED_OUT") {
-        window.localStorage.removeItem("qimeide_auth_email");
-        window.localStorage.removeItem("qimeide_is_admin");
-        document.cookie = "qimeide_auth_email=; Path=/; Max-Age=0; SameSite=Lax";
-      }
-    });
+    void updateFromServer();
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, []);
 
   const mineHref = signedIn ? "/profile" : `/login?next=${encodeURIComponent(pathname || "/")}`;
 

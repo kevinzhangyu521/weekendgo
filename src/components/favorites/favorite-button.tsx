@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { Heart } from "lucide-react";
-import { hasLocalAuthState } from "@/lib/auth/client-auth-state";
+import { usePathname } from "next/navigation";
 
 type Props = {
   destinationId: string;
@@ -51,12 +50,7 @@ export function FavoriteButton({
   }
 
   useEffect(() => {
-    if (hasLocalAuthState()) {
-      setIsLoggedIn(true);
-    }
-
     if (hasInitialState) return;
-
     setLoading(false);
   }, [hasInitialState]);
 

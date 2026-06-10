@@ -76,11 +76,7 @@ export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
         }
         setEmail(data.user?.email ?? null);
         setIsAdmin(Boolean(data.isAdmin));
-        if (data.isAdmin) {
-          window.localStorage.setItem("qimeide_is_admin", "1");
-        } else if (data.user?.email) {
-          window.localStorage.removeItem("qimeide_is_admin");
-        }
+        window.localStorage.removeItem("qimeide_is_admin");
       } catch {
         if (!initialEmail) {
           setEmail(null);
