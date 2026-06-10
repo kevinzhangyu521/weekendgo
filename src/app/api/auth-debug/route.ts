@@ -29,6 +29,11 @@ export async function GET() {
 
   const requestCookies = cookieStore.getAll();
   const hasSupabaseAuthCookie = requestCookies.some((cookie) => cookie.name.startsWith("sb-") && cookie.name.includes("-auth-token"));
+  const hasQimeideEmail = Boolean(cookieStore.get(QIMEIDE_EMAIL_COOKIE)?.value);
+  const hasQimeideAccessToken = Boolean(cookieStore.get(QIMEIDE_ACCESS_COOKIE)?.value);
+  const hasQimeideRefreshToken = Boolean(cookieStore.get(QIMEIDE_REFRESH_COOKIE)?.value);
+  const hasQimeideSessionId = Boolean(cookieStore.get(QIMEIDE_SESSION_ID_COOKIE)?.value);
+  const hasLoginDebug = Boolean(cookieStore.get(QIMEIDE_LOGIN_DEBUG_COOKIE)?.value);
   const redirectUrl = `${protocol}://${host}/auth/callback`;
 
   return NextResponse.json(
@@ -45,11 +50,20 @@ export async function GET() {
       },
       cookies: {
         hasSupabaseAuthCookie,
-        hasQimeideEmail: Boolean(cookieStore.get(QIMEIDE_EMAIL_COOKIE)?.value),
-        hasQimeideAccessToken: Boolean(cookieStore.get(QIMEIDE_ACCESS_COOKIE)?.value),
-        hasQimeideRefreshToken: Boolean(cookieStore.get(QIMEIDE_REFRESH_COOKIE)?.value),
-        hasQimeideSessionId: Boolean(cookieStore.get(QIMEIDE_SESSION_ID_COOKIE)?.value),
-        hasLoginDebug: Boolean(cookieStore.get(QIMEIDE_LOGIN_DEBUG_COOKIE)?.value)
+        hasQimeideEmail,
+        hasQimeideAccessToken,
+        hasQimeideRefreshToken,
+        hasQimeideSessionId,
+        hasLoginDebug
+      },
+      readable: {
+        "Supabase Auth Cookie": hasSupabaseAuthCookie ? "已收到" : "未收到",
+        "账号Cookie": hasQimeideEmail ? "已收到" : "未收到",
+        "SessionID": hasQimeideSessionId ? "已收到" : "未收到",
+        "AccessToken": hasQimeideAccessToken ? "已收到" : "未收到",
+        "RefreshToken": hasQimeideRefreshToken ? "已收到" : "未收到",
+        "最近登录": hasLoginDebug ? "已收到" : "未收到",
+        "服务端用户": user?.email ?? "未读取到"
       },
       getUser: {
         ok: Boolean(user),

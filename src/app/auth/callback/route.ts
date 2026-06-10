@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code");
   const next = safeNextPath(searchParams.get("next"));
   let response = NextResponse.redirect(`${origin}${next}`, { status: 303 });
+  let setCookieCount = 0;
 
   if (code) {
     const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
@@ -34,6 +35,7 @@ export async function GET(request: NextRequest) {
         setAll(cookiesToSet: CookieToSet[]) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+          setCookieCount += cookiesToSet.length;
         }
       }
     });
@@ -44,8 +46,11 @@ export async function GET(request: NextRequest) {
       return response;
     }
     if (data.session) await supabase.auth.getUser();
+    response.headers.set("X-Qimeide-Callback-Has-Session", data.session ? "true" : "false");
   }
 
   response.headers.set("Cache-Control", "no-store");
+  response.headers.set("X-Qimeide-Callback-Has-Code", code ? "true" : "false");
+  response.headers.set("X-Qimeide-Callback-Set-Cookie-Count", String(setCookieCount));
   return response;
 }

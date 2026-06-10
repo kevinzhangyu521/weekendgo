@@ -7,6 +7,7 @@ import { setQimeideDebugCookie, setQimeideSessionCookies, setQimeideSessionIdCoo
 type CookieToSet = {
   name: string;
   value: string;
+  options?: Parameters<NextResponse["cookies"]["set"]>[2];
 };
 
 type LoginPayload = {
@@ -133,6 +134,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   let payload: LoginPayload = {};
   const contentType = request.headers.get("content-type") ?? "";
+  const cookiesToApply: CookieToSet[] = [];
 
   try {
     if (contentType.includes("application/json")) {
@@ -174,6 +176,7 @@ export async function POST(request: NextRequest) {
         },
         setAll(cookiesToSet: CookieToSet[]) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+          cookiesToApply.push(...cookiesToSet);
         }
       }
     });
@@ -226,6 +229,10 @@ export async function POST(request: NextRequest) {
   response.headers.set("X-Qimeide-Session-Cookies", "set");
   response.headers.set("X-Qimeide-Auth-Cookies", "3");
   response.headers.set("X-Qimeide-User", data.user.email ?? email);
+  response.headers.set("X-Qimeide-Login-Redirect-To", next);
+  response.headers.set("X-Qimeide-Login-Has-Session", data.session ? "true" : "false");
+  response.headers.set("X-Qimeide-Supabase-Set-Cookie-Count", String(cookiesToApply.length));
+  cookiesToApply.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
   withDebug(response, `success:${data.user.email ?? email}:session-id`);
   setQimeideSessionIdCookie(response, sessionId);
   setQimeideSessionCookies(response, data.session, data.user.email ?? email);
