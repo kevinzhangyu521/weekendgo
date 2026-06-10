@@ -5,13 +5,26 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET() {
-  const response = NextResponse.json(
+  const response = new NextResponse(
+    `<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>已清理登录状态</title>
+  </head>
+  <body>
+    <p>已清理登录状态，请重新登录。</p>
+    <script>
+      window.localStorage.removeItem("qimeide_auth_email");
+      window.localStorage.removeItem("qimeide_is_admin");
+    </script>
+  </body>
+</html>`,
     {
-      ok: true,
-      message: "\u5df2\u6e05\u7406\u7ad9\u5185\u767b\u5f55 Cookie\uff0c\u8bf7\u91cd\u65b0\u767b\u5f55\u3002"
-    },
-    {
+      status: 200,
       headers: {
+        "Content-Type": "text/html; charset=utf-8",
         "Cache-Control": "no-store"
       }
     }
