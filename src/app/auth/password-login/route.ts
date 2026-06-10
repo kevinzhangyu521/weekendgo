@@ -57,8 +57,15 @@ function htmlEscape(value: string) {
   return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-function loginSuccessPage(next: string) {
+function cookieDomainAttribute(request: NextRequest) {
+  const hostname = new URL(request.url).hostname;
+  return hostname.endsWith("qimeide.com") ? "; Domain=.qimeide.com" : "";
+}
+
+function loginSuccessPage(next: string, sessionId: string, email: string, domainAttribute: string) {
   const safeNext = htmlEscape(next);
+  const encodedSessionId = encodeURIComponent(sessionId);
+  const encodedEmail = encodeURIComponent(email);
   return `<!doctype html>
 <html lang="zh-CN">
   <head>
@@ -80,6 +87,9 @@ function loginSuccessPage(next: string) {
       <p>${messages.successSaving}</p>
       <a href="${safeNext}">${messages.successLink}</a>
       <script>
+        document.cookie = "qimeide_session_id=${encodedSessionId}; Path=/; Max-Age=34560000; SameSite=Lax${domainAttribute}";
+        document.cookie = "qimeide_auth_email=${encodedEmail}; Path=/; Max-Age=34560000; SameSite=Lax${domainAttribute}";
+        document.cookie = "qimeide_login_debug=${encodeURIComponent(`success:${email}:session-id:browser`)}; Path=/; Max-Age=600; SameSite=Lax${domainAttribute}";
         window.setTimeout(function () {
           window.location.replace(${JSON.stringify(next)});
         }, 700);
@@ -210,7 +220,12 @@ export async function POST(request: NextRequest) {
           refresh_token: data.session.refresh_token
         }
       })
-    : NextResponse.redirect(new URL(next, request.url), { status: 303 });
+    : new NextResponse(loginSuccessPage(next, sessionId, data.user.email ?? email, cookieDomainAttribute(request)), {
+        status: 200,
+        headers: {
+          "Content-Type": "text/html; charset=utf-8"
+        }
+      });
 
   response.headers.set("Cache-Control", "no-store");
   response.headers.set("X-Qimeide-Session-Cookies", "set");
