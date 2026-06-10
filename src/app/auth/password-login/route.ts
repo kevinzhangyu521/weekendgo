@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import type { AuthError, Session, User } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { setQimeideDebugCookie, setQimeideSessionCookies } from "@/lib/auth/server-session-cookies";
 
@@ -45,6 +46,12 @@ function redirectWithError(request: NextRequest, message: string, status = 303) 
   return NextResponse.redirect(url, { status });
 }
 
+function withDebug(response: NextResponse, value: string) {
+  setQimeideDebugCookie(response, value.slice(0, 180));
+  response.headers.set("X-Qimeide-Login-Debug", value.slice(0, 180));
+  return response;
+}
+
 function htmlEscape(value: string) {
   return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
@@ -81,6 +88,23 @@ function loginSuccessPage(next: string) {
 </html>`;
 }
 
+export async function GET() {
+  return withDebug(
+    NextResponse.json(
+      {
+        ok: true,
+        message: "password-login route is reachable"
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store"
+        }
+      }
+    ),
+    "route-get:password-login"
+  );
+}
+
 export async function POST(request: NextRequest) {
   let payload: LoginPayload = {};
   const contentType = request.headers.get("content-type") ?? "";
@@ -97,9 +121,10 @@ export async function POST(request: NextRequest) {
       };
     }
   } catch {
-    return contentType.includes("application/json")
+    const response = contentType.includes("application/json")
       ? NextResponse.json({ ok: false, message: messages.missingFields }, { status: 400 })
       : redirectWithError(request, messages.missingFields);
+    return withDebug(response, "failed:parse-body");
   }
 
   const email = payload.email?.trim();
@@ -107,30 +132,42 @@ export async function POST(request: NextRequest) {
   const next = safeNextPath(payload.next);
 
   if (!isValidEmail(email) || !isValidPassword(password)) {
-    return contentType.includes("application/json")
+    const response = contentType.includes("application/json")
       ? NextResponse.json({ ok: false, message: messages.invalidFields }, { status: 400 })
       : redirectWithError(request, messages.invalidFields);
+    return withDebug(response, "failed:invalid-fields");
   }
 
-  const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
-    cookies: {
-      getAll() {
-        return request.cookies.getAll();
-      },
-      setAll(cookiesToSet: CookieToSet[]) {
-        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-      }
-    }
-  });
+  let data: { user: User | null; session: Session | null };
+  let error: AuthError | null;
 
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  try {
+    const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet: CookieToSet[]) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+        }
+      }
+    });
+    const result = await supabase.auth.signInWithPassword({ email, password });
+    data = result.data;
+    error = result.error;
+  } catch (err) {
+    const response = contentType.includes("application/json")
+      ? NextResponse.json({ ok: false, message: messages.invalidLogin }, { status: 500 })
+      : redirectWithError(request, messages.invalidLogin);
+    const detail = err instanceof Error ? err.message : "unknown-error";
+    return withDebug(response, `failed:exception:${detail}`);
+  }
 
   if (error || !data.user || !data.session) {
     const response = contentType.includes("application/json")
       ? NextResponse.json({ ok: false, message: messages.invalidLogin }, { status: 401 })
       : redirectWithError(request, messages.invalidLogin);
-    setQimeideDebugCookie(response, error ? `failed:${error.message.slice(0, 80)}` : "failed:no-session");
-    return response;
+    return withDebug(response, error ? `failed:${error.message}` : "failed:no-session");
   }
 
   const response = contentType.includes("application/json")
@@ -153,7 +190,7 @@ export async function POST(request: NextRequest) {
   response.headers.set("X-Qimeide-Session-Cookies", "set");
   response.headers.set("X-Qimeide-Auth-Cookies", "3");
   response.headers.set("X-Qimeide-User", data.user.email ?? email);
-  setQimeideDebugCookie(response, `success:${data.user.email ?? email}`);
+  withDebug(response, `success:${data.user.email ?? email}`);
   setQimeideSessionCookies(response, data.session, data.user.email ?? email);
 
   return response;
