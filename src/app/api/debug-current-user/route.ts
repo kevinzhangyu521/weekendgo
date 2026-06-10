@@ -9,12 +9,14 @@ export async function GET() {
   const cookieStore = await cookies();
   const { user } = await getCurrentAuth();
   const cookiesReceived = cookieStore.getAll().map((cookie) => cookie.name).sort();
+  const hasSupabaseAuthCookie = cookiesReceived.some((name) => name.startsWith("sb-") && name.includes("auth-token"));
 
   return NextResponse.json(
     {
       hasUser: Boolean(user),
       email: user?.email ?? null,
       authMethod: "supabase-ssr-getUser",
+      hasSupabaseAuthCookie,
       cookiesReceived
     },
     {
