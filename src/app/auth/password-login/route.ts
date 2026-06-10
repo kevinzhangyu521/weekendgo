@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import type { Session } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 
 type CookieToSet = {
@@ -6,6 +7,9 @@ type CookieToSet = {
   value: string;
   options?: Parameters<NextResponse["cookies"]["set"]>[2];
 };
+
+const MAX_COOKIE_CHUNK_SIZE = 3180;
+const AUTH_COOKIE_MAX_AGE = 400 * 24 * 60 * 60;
 
 export const runtime = "nodejs";
 
@@ -18,6 +22,72 @@ function redirectToLogin(request: NextRequest, message: string) {
   const url = new URL("/login", request.url);
   url.searchParams.set("loginError", message);
   return NextResponse.redirect(url, { status: 303 });
+}
+
+function getProjectRef() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!url) return null;
+
+  try {
+    return new URL(url).hostname.split(".")[0] || null;
+  } catch {
+    return null;
+  }
+}
+
+function toBase64Url(value: string) {
+  return Buffer.from(value, "utf8").toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+function chunkCookie(name: string, value: string) {
+  const encodedValue = encodeURIComponent(value);
+  if (encodedValue.length <= MAX_COOKIE_CHUNK_SIZE) return [{ name, value }];
+
+  const chunks: string[] = [];
+  let rest = encodedValue;
+
+  while (rest.length > 0) {
+    let head = rest.slice(0, MAX_COOKIE_CHUNK_SIZE);
+    const lastEscape = head.lastIndexOf("%");
+    if (lastEscape > MAX_COOKIE_CHUNK_SIZE - 3) head = head.slice(0, lastEscape);
+
+    let decoded = "";
+    while (head.length > 0) {
+      try {
+        decoded = decodeURIComponent(head);
+        break;
+      } catch (error) {
+        if (error instanceof URIError && head.at(-3) === "%" && head.length > 3) {
+          head = head.slice(0, head.length - 3);
+          continue;
+        }
+        throw error;
+      }
+    }
+
+    chunks.push(decoded);
+    rest = rest.slice(head.length);
+  }
+
+  return chunks.map((chunk, index) => ({ name: `${name}.${index}`, value: chunk }));
+}
+
+function setSupabaseAuthCookie(response: NextResponse, session: Session) {
+  const projectRef = getProjectRef();
+  if (!projectRef) return [];
+
+  const cookieName = `sb-${projectRef}-auth-token`;
+  const cookieValue = `base64-${toBase64Url(JSON.stringify(session))}`;
+  const chunks = chunkCookie(cookieName, cookieValue);
+  const options: NonNullable<CookieToSet["options"]> = {
+    path: "/",
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: AUTH_COOKIE_MAX_AGE
+  };
+
+  chunks.forEach(({ name, value }) => response.cookies.set(name, value, options));
+  return chunks.map((chunk) => chunk.name);
 }
 
 export async function GET() {
@@ -82,11 +152,14 @@ export async function POST(request: NextRequest) {
     refresh_token: data.session.refresh_token
   });
 
+  const manualCookieNames = setSupabaseAuthCookie(response, data.session);
+
   response.headers.set("Cache-Control", "no-store");
   response.headers.set("X-Qimeide-Auth-Method", "supabase-ssr-password");
   response.headers.set("X-Qimeide-Login-Has-Session", "true");
   response.headers.set("X-Qimeide-Supabase-Set-Cookie-Count", String(setCookieCount));
   response.headers.set("X-Qimeide-Supabase-Cookie-Names", cookieNames.join(","));
+  response.headers.set("X-Qimeide-Manual-Supabase-Cookie-Names", manualCookieNames.join(","));
 
   console.info("[auth/password-login]", {
     authMethod: "supabase-ssr-password",
@@ -94,6 +167,7 @@ export async function POST(request: NextRequest) {
     hasSession: true,
     setCookieCount,
     cookieNames,
+    manualCookieNames,
     host: request.nextUrl.host
   });
 
