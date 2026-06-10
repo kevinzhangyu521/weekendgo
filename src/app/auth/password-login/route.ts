@@ -77,6 +77,11 @@ export async function POST(request: NextRequest) {
     return redirectToLogin(request, "邮箱或密码不正确，请检查后再试。");
   }
 
+  await supabase.auth.setSession({
+    access_token: data.session.access_token,
+    refresh_token: data.session.refresh_token
+  });
+
   response.headers.set("Cache-Control", "no-store");
   response.headers.set("X-Qimeide-Auth-Method", "supabase-ssr-password");
   response.headers.set("X-Qimeide-Login-Has-Session", "true");
