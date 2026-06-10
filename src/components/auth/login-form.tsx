@@ -153,29 +153,16 @@ export function LoginForm({ locale, initialEmail }: Props) {
     });
   }
 
-  async function login(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  function login(event: FormEvent<HTMLFormElement>) {
     resetFeedback();
     const fields = validateFields();
     if (!fields) {
+      event.preventDefault();
       return;
     }
 
     setLoadingAction("login");
-    setMessage("\u6b63\u5728\u767b\u5f55\uff0c\u5982\u679c\u7f51\u7edc\u8f83\u6162\u8bf7\u7a0d\u5019...");
-
-    try {
-      const result = await requestPasswordLogin(fields);
-      persistLocalAuthState(result, fields.email);
-      warmBrowserSession(result);
-      setMessage("\u767b\u5f55\u6210\u529f\uff0c\u6b63\u5728\u8fdb\u5165\u7f51\u7ad9...");
-      window.location.replace(next);
-    } catch (err) {
-      const detail = err instanceof Error ? err.message : "\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002";
-      setMessage("");
-      setError(`\u767b\u5f55\u5931\u8d25\uff1a${detail}`);
-      setLoadingAction(null);
-    }
+    setMessage("\u6b63\u5728\u767b\u5f55\uff0c\u8bf7\u7a0d\u5019...");
   }
 
   async function signUp() {
@@ -248,7 +235,7 @@ export function LoginForm({ locale, initialEmail }: Props) {
         ) : null}
 
         {!isSignedIn ? (
-          <form onSubmit={login} className="mt-6 space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+          <form action="/auth/password-login" method="post" onSubmit={login} className="mt-6 space-y-3 rounded-xl border border-slate-200 bg-white p-4">
             <input type="hidden" name="next" value={next} />
             <label className="text-sm font-bold text-slate-900" htmlFor="email">
               {"\u90ae\u7bb1"}
