@@ -24,11 +24,14 @@ type PasswordLoginResponse = {
   ok?: boolean;
   email?: string | null;
   message?: string;
+  debug?: string | null;
   session?: {
     access_token: string;
     refresh_token: string;
   } | null;
 };
+
+const LOGIN_FORM_VERSION = "login-flow-2026-06-10-v2";
 
 function pick(locale: Locale, en: string, zh: string) {
   return locale === "zh" ? zh : en;
@@ -78,6 +81,7 @@ export function LoginForm({ locale, initialEmail }: Props) {
   const [loadingAction, setLoadingAction] = useState<AuthAction | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [loginDebug, setLoginDebug] = useState("");
 
   function resetFeedback() {
     setError("");
@@ -106,6 +110,7 @@ export function LoginForm({ locale, initialEmail }: Props) {
   }
 
   async function requestPasswordLogin(fields: LoginFields) {
+    setLoginDebug("正在请求 /auth/password-login");
     const response = await withTimeout(
       fetch("/auth/password-login", {
         method: "POST",
@@ -125,6 +130,8 @@ export function LoginForm({ locale, initialEmail }: Props) {
     );
 
     const result = (await response.json()) as PasswordLoginResponse;
+    const serverDebug = response.headers.get("X-Qimeide-Login-Debug") ?? result.debug ?? "未收到服务端诊断头";
+    setLoginDebug(serverDebug);
     if (!response.ok || !result.ok) {
       throw new Error(translateAuthError(result.message ?? "\u8bf7\u68c0\u67e5\u90ae\u7bb1\u548c\u5bc6\u7801\u540e\u518d\u8bd5\u3002"));
     }
@@ -291,6 +298,7 @@ export function LoginForm({ locale, initialEmail }: Props) {
             </button>
 
             {message ? <p className="text-sm text-emerald-700">{message}</p> : null}
+            {loginDebug ? <p className="text-xs text-slate-500">{"登录请求诊断："}{loginDebug}</p> : null}
             {loginError ? (
               <p className="text-sm text-rose-600">
                 {"\u767b\u5f55\u5931\u8d25\uff1a"}
@@ -309,6 +317,7 @@ export function LoginForm({ locale, initialEmail }: Props) {
             {text.home}
           </Link>
         </div>
+        <p className="mt-3 text-center text-[11px] text-slate-400">{LOGIN_FORM_VERSION}</p>
       </section>
     </main>
   );
