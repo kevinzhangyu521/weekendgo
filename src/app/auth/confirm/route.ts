@@ -1,7 +1,6 @@
 import { type EmailOtpType } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { setSupabaseSessionCookies } from "@/lib/supabase/auth-session-cookie";
 
 type CookieToSet = {
   name: string;
@@ -21,10 +20,10 @@ export async function GET(request: NextRequest) {
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
   const next = safeNextPath(searchParams.get("next"));
-  const response = NextResponse.redirect(type === "signup" ? `${origin}/login?confirmed=1` : `${origin}${next}`);
+  const response = NextResponse.redirect(type === "signup" ? `${origin}/login?confirmed=1` : `${origin}${next}`, { status: 303 });
 
   if (!tokenHash || !type) {
-    return NextResponse.redirect(`${origin}/login?authError=missing_link`);
+    return NextResponse.redirect(`${origin}/login?authError=missing_link`, { status: 303 });
   }
 
   const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
@@ -49,13 +48,11 @@ export async function GET(request: NextRequest) {
   });
 
   if (error) {
-    return NextResponse.redirect(`${origin}/login?authError=invalid_link`);
+    return NextResponse.redirect(`${origin}/login?authError=invalid_link`, { status: 303 });
   }
 
-  if (data.session) {
-    setSupabaseSessionCookies(request, response, data.session);
-  }
-  await supabase.auth.getSession();
+  if (data.session) await supabase.auth.getUser();
 
+  response.headers.set("Cache-Control", "no-store");
   return response;
 }

@@ -12,15 +12,11 @@ const SESSION_MAX_AGE = 400 * 24 * 60 * 60;
 type CookieOptions = Parameters<NextResponse["cookies"]["set"]>[2];
 
 export function getQimeideCookieDomain() {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? process.env.VERCEL_PROJECT_PRODUCTION_URL ?? "";
-  if (siteUrl.includes("qimeide.com")) return ".qimeide.com";
-  if (process.env.NODE_ENV === "production") return ".qimeide.com";
   return undefined;
 }
 
 function withSharedDomain(options: CookieOptions): CookieOptions {
-  const domain = getQimeideCookieDomain();
-  return domain ? { ...options, domain } : options;
+  return options;
 }
 
 const sessionCookieOptions: CookieOptions = {
@@ -59,13 +55,4 @@ export function clearQimeideSessionCookies(response: NextResponse) {
   response.cookies.set(QIMEIDE_SESSION_ID_COOKIE, "", { path: "/", maxAge: 0 });
   response.cookies.set(QIMEIDE_COOKIE_TEST, "", { path: "/", maxAge: 0 });
   response.cookies.set(QIMEIDE_LOGIN_DEBUG_COOKIE, "", { path: "/", maxAge: 0 });
-  const domain = getQimeideCookieDomain();
-  if (domain) {
-    response.cookies.set(QIMEIDE_ACCESS_COOKIE, "", { path: "/", domain, maxAge: 0 });
-    response.cookies.set(QIMEIDE_REFRESH_COOKIE, "", { path: "/", domain, maxAge: 0 });
-    response.cookies.set(QIMEIDE_EMAIL_COOKIE, "", { path: "/", domain, maxAge: 0 });
-    response.cookies.set(QIMEIDE_SESSION_ID_COOKIE, "", { path: "/", domain, maxAge: 0 });
-    response.cookies.set(QIMEIDE_COOKIE_TEST, "", { path: "/", domain, maxAge: 0 });
-    response.cookies.set(QIMEIDE_LOGIN_DEBUG_COOKIE, "", { path: "/", domain, maxAge: 0 });
-  }
 }

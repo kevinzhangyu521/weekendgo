@@ -1,6 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { setSupabaseSessionCookies } from "@/lib/supabase/auth-session-cookie";
 
 type CookieToSet = {
   name: string;
@@ -19,7 +18,7 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const next = safeNextPath(searchParams.get("next"));
-  const response = NextResponse.redirect(`${origin}${next}`);
+  let response = NextResponse.redirect(`${origin}${next}`, { status: 303 });
 
   if (code) {
     const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
@@ -40,13 +39,13 @@ export async function GET(request: NextRequest) {
     });
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (error) {
-      return NextResponse.redirect(`${origin}/login?authError=invalid_link`);
+      response = NextResponse.redirect(`${origin}/login?authError=invalid_link`, { status: 303 });
+      response.headers.set("Cache-Control", "no-store");
+      return response;
     }
-    if (data.session) {
-      setSupabaseSessionCookies(request, response, data.session);
-    }
-    await supabase.auth.getSession();
+    if (data.session) await supabase.auth.getUser();
   }
 
+  response.headers.set("Cache-Control", "no-store");
   return response;
 }

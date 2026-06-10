@@ -57,12 +57,7 @@ function htmlEscape(value: string) {
   return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-function cookieDomainAttribute(request: NextRequest) {
-  const hostname = new URL(request.url).hostname;
-  return hostname.endsWith("qimeide.com") ? "; Domain=.qimeide.com" : "";
-}
-
-function loginSuccessPage(next: string, sessionId: string, email: string, domainAttribute: string) {
+function loginSuccessPage(next: string, sessionId: string, email: string) {
   const safeNext = htmlEscape(next);
   const encodedSessionId = encodeURIComponent(sessionId);
   const encodedEmail = encodeURIComponent(email);
@@ -87,9 +82,9 @@ function loginSuccessPage(next: string, sessionId: string, email: string, domain
       <p>${messages.successSaving}</p>
       <a href="${safeNext}">${messages.successLink}</a>
       <script>
-        document.cookie = "qimeide_session_id=${encodedSessionId}; Path=/; Max-Age=34560000; SameSite=Lax${domainAttribute}";
-        document.cookie = "qimeide_auth_email=${encodedEmail}; Path=/; Max-Age=34560000; SameSite=Lax${domainAttribute}";
-        document.cookie = "qimeide_login_debug=${encodeURIComponent(`success:${email}:session-id:browser`)}; Path=/; Max-Age=600; SameSite=Lax${domainAttribute}";
+        document.cookie = "qimeide_session_id=${encodedSessionId}; Path=/; Max-Age=34560000; SameSite=Lax";
+        document.cookie = "qimeide_auth_email=${encodedEmail}; Path=/; Max-Age=34560000; SameSite=Lax";
+        document.cookie = "qimeide_login_debug=${encodeURIComponent(`success:${email}:session-id:browser`)}; Path=/; Max-Age=600; SameSite=Lax";
         window.setTimeout(function () {
           window.location.replace(${JSON.stringify(next)});
         }, 700);
@@ -220,7 +215,7 @@ export async function POST(request: NextRequest) {
           refresh_token: data.session.refresh_token
         }
       })
-    : new NextResponse(loginSuccessPage(next, sessionId, data.user.email ?? email, cookieDomainAttribute(request)), {
+    : new NextResponse(loginSuccessPage(next, sessionId, data.user.email ?? email), {
         status: 200,
         headers: {
           "Content-Type": "text/html; charset=utf-8"
