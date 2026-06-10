@@ -190,26 +190,6 @@ export async function POST(request: NextRequest) {
     return withDebug(response, error ? `failed:${error.message}` : "failed:no-session");
   }
 
-  const response = contentType.includes("application/json")
-    ? NextResponse.json({
-        ok: true,
-        email: data.user.email ?? email,
-        session: {
-          access_token: data.session.access_token,
-          refresh_token: data.session.refresh_token
-        }
-      })
-    : new NextResponse(loginSuccessPage(next), {
-        status: 200,
-        headers: {
-          "Content-Type": "text/html; charset=utf-8"
-        }
-      });
-
-  response.headers.set("Cache-Control", "no-store");
-  response.headers.set("X-Qimeide-Session-Cookies", "set");
-  response.headers.set("X-Qimeide-Auth-Cookies", "3");
-  response.headers.set("X-Qimeide-User", data.user.email ?? email);
   const sessionId = crypto.randomUUID();
   const saveError = await saveServerSession(sessionId, data.user, data.session);
   if (saveError) {
@@ -221,6 +201,21 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const response = contentType.includes("application/json")
+    ? NextResponse.json({
+        ok: true,
+        email: data.user.email ?? email,
+        session: {
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token
+        }
+      })
+    : NextResponse.redirect(new URL(next, request.url), { status: 303 });
+
+  response.headers.set("Cache-Control", "no-store");
+  response.headers.set("X-Qimeide-Session-Cookies", "set");
+  response.headers.set("X-Qimeide-Auth-Cookies", "3");
+  response.headers.set("X-Qimeide-User", data.user.email ?? email);
   withDebug(response, `success:${data.user.email ?? email}:session-id`);
   setQimeideSessionIdCookie(response, sessionId);
   setQimeideSessionCookies(response, data.session, data.user.email ?? email);
