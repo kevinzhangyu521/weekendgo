@@ -89,7 +89,7 @@ export default async function LoginPage({ searchParams }: { searchParams?: Promi
             首页
           </Link>
         </div>
-        <p className="mt-3 text-center text-[11px] text-slate-400">login-server-form-2026-06-10-v3</p>
+        <p className="mt-3 text-center text-[11px] text-slate-400">login-server-form-2026-06-11-v4</p>
       </section>
     </main>
   );
