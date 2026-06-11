@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
   try {
     payload = await readPayload(request);
   } catch {
-    return redirectToLogin(request, "请填写邮箱和密码。");
+    return redirectToLogin(request, "Please enter email and password.");
   }
 
   const email = payload.email?.trim() ?? "";
@@ -161,7 +161,7 @@ export async function POST(request: NextRequest) {
   const wantsJson = (request.headers.get("content-type") ?? "").includes("application/json");
 
   if (!email || !email.includes("@") || password.length < 6) {
-    const errorMessage = "请填写正确的邮箱和至少 6 位密码。";
+    const errorMessage = "Please enter a valid email and a password with at least 6 characters.";
     if (wantsJson) return NextResponse.json({ ok: false, error: errorMessage }, { status: 400 });
     return redirectToLogin(request, errorMessage);
   }
@@ -173,6 +173,11 @@ export async function POST(request: NextRequest) {
 
   const setCookieNames: string[] = [];
   const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+    cookieOptions: {
+      path: "/",
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production"
+    },
     cookies: {
       getAll() {
         return readRequestCookies(request);
@@ -203,7 +208,7 @@ export async function POST(request: NextRequest) {
       setCookieNames
     });
 
-    const errorMessage = "邮箱或密码不正确，请检查后再试。";
+    const errorMessage = "Email or password is incorrect.";
     if (wantsJson) return NextResponse.json({ ok: false, error: error?.message ?? errorMessage }, { status: 400 });
     return redirectToLogin(request, errorMessage);
   }
