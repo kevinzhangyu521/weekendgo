@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import type { DestinationItem } from "@/features/destinations/types";
+import { useCurrentUser } from "@/lib/auth/use-current-user";
 import { getAmapNavigationUrl } from "@/lib/maps/navigation";
 
 type Props = {
@@ -29,8 +30,17 @@ function getCurrentPosition() {
   });
 }
 
-export function AmapNavigationButton({ destination, label, className = "", isSignedIn = true, loginHref = "/login", signedOutLabel = "登录后导航" }: Props) {
+export function AmapNavigationButton({
+  destination,
+  label,
+  className = "",
+  isSignedIn = true,
+  loginHref = "/login",
+  signedOutLabel = "\u767b\u5f55\u540e\u5bfc\u822a"
+}: Props) {
   const [loading, setLoading] = useState(false);
+  const currentUser = useCurrentUser();
+  const signedIn = currentUser.isLoading ? isSignedIn : currentUser.isAuthenticated;
 
   async function openNavigation() {
     setLoading(true);
@@ -50,7 +60,7 @@ export function AmapNavigationButton({ destination, label, className = "", isSig
     }
   }
 
-  if (!isSignedIn) {
+  if (!signedIn) {
     return (
       <Link
         href={loginHref}

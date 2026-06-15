@@ -2,6 +2,7 @@
 import { notFound } from "next/navigation";
 import { AlertTriangle, Backpack, Bath, Car, ChevronLeft, Clock, MapPinned, ShieldCheck, Star, TentTree, Users } from "lucide-react";
 import { FavoriteButton } from "@/components/favorites/favorite-button";
+import { AuthActionHint } from "@/components/auth/auth-action-hint";
 import { AddToPlanButton } from "@/components/plans/add-to-plan-button";
 import { AmapNavigationButton } from "@/components/plans/amap-navigation-button";
 import { ReviewForm } from "@/components/reviews/review-form";
@@ -102,14 +103,7 @@ export default async function DestinationDetailPage({
                 <FavoriteButton destinationId={destination.id} initialIsLoggedIn={Boolean(user)} />
                 <AddToPlanButton destinationId={destination.id} locale={locale} />
               </div>
-              {!user ? (
-                <div className="flex flex-wrap items-center gap-3 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-800">
-                  <p className="min-w-[180px] flex-1">{pick(locale, "Sign in to save destinations and add them to your weekend plan.", "\u767b\u5f55\u540e\u53ef\u6536\u85cf\u5730\u70b9\u3001\u52a0\u5165\u5468\u672b\u8ba1\u5212")}</p>
-                  <Link href={loginHref} className="inline-flex h-10 items-center rounded-xl bg-emerald-600 px-4 font-medium text-white hover:bg-emerald-700">
-                    {pick(locale, "Sign in now", "\u7acb\u5373\u767b\u5f55")}
-                  </Link>
-                </div>
-              ) : null}
+              <AuthActionHint text={pick(locale, "Sign in to save destinations and add them to your weekend plan.", "\u767b\u5f55\u540e\u53ef\u6536\u85cf\u5730\u70b9\u3001\u52a0\u5165\u5468\u672b\u8ba1\u5212")} />
               <div className="hidden md:block">
                 <AmapNavigationButton
                   destination={destination}

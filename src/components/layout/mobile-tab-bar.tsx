@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { Heart, Home, MapPinned, Route, User } from "lucide-react";
 import { usePathname } from "next/navigation";
 import type { Locale } from "@/lib/i18n/config";
+import { useCurrentUser } from "@/lib/auth/use-current-user";
 
 type Props = {
   locale: Locale;
@@ -30,36 +30,9 @@ const labels = {
 
 export function MobileTabBar({ locale, isSignedIn }: Props) {
   const pathname = usePathname();
-  const [signedIn, setSignedIn] = useState(isSignedIn);
+  const currentUser = useCurrentUser();
+  const signedIn = currentUser.isLoading ? isSignedIn : currentUser.isAuthenticated;
   const text = labels[locale];
-
-  useEffect(() => {
-    let mounted = true;
-
-    async function updateFromServer() {
-      try {
-        const response = await fetch("/auth/me", {
-          cache: "no-store",
-          credentials: "include"
-        });
-        if (!response.ok || !mounted) return;
-        const data = (await response.json()) as { user: unknown | null };
-        setSignedIn(Boolean(data.user));
-        if (!data.user) {
-          window.localStorage.removeItem("qimeide_auth_email");
-          window.localStorage.removeItem("qimeide_is_admin");
-        }
-      } catch {
-        // Keep the last known tab state if this background check fails.
-      }
-    }
-
-    void updateFromServer();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   const mineHref = signedIn ? "/profile" : `/login?next=${encodeURIComponent(pathname || "/")}`;
 
