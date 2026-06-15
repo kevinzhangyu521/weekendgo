@@ -1,4 +1,7 @@
 import type { User } from "@supabase/supabase-js";
+import { cookies } from "next/headers";
+import { QIMEIDE_ACCESS_TOKEN_COOKIE } from "@/lib/auth/server-session-cookies";
+import { createAuthenticatedPublicClient } from "@/lib/supabase/public";
 import { createClient } from "@/lib/supabase/server";
 
 export type CurrentAuth = {
@@ -16,8 +19,20 @@ export async function getCurrentAuth(): Promise<CurrentAuth> {
 
     return { supabase, user };
   } catch {
-    return { supabase, user: null };
+    // Fall through to the small first-party session cookie below.
   }
+
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get(QIMEIDE_ACCESS_TOKEN_COOKIE)?.value;
+  if (!accessToken) return { supabase, user: null };
+
+  const authenticatedSupabase = createAuthenticatedPublicClient(accessToken) as unknown as CurrentAuth["supabase"];
+  const {
+    data: { user },
+    error
+  } = await authenticatedSupabase.auth.getUser(accessToken);
+
+  return { supabase: authenticatedSupabase, user: error ? null : user };
 }
 
 export async function getCurrentUser() {

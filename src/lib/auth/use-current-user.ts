@@ -6,6 +6,7 @@ export type CurrentUserState = {
   hasUser: boolean;
   email: string | null;
   hasSupabaseAuthCookie: boolean;
+  hasSiteSessionCookie: boolean;
   isLoading: boolean;
 };
 
@@ -13,6 +14,7 @@ type DebugCurrentUserResponse = {
   hasUser?: boolean;
   email?: string | null;
   hasSupabaseAuthCookie?: boolean;
+  hasSiteSessionCookie?: boolean;
 };
 
 export function useCurrentUser() {
@@ -20,6 +22,7 @@ export function useCurrentUser() {
     hasUser: false,
     email: null,
     hasSupabaseAuthCookie: false,
+    hasSiteSessionCookie: false,
     isLoading: true
   });
 
@@ -39,6 +42,7 @@ export function useCurrentUser() {
           hasUser: Boolean(data.hasUser),
           email: data.email ?? null,
           hasSupabaseAuthCookie: Boolean(data.hasSupabaseAuthCookie),
+          hasSiteSessionCookie: Boolean(data.hasSiteSessionCookie),
           isLoading: false
         });
       } catch {
@@ -47,6 +51,7 @@ export function useCurrentUser() {
           hasUser: false,
           email: null,
           hasSupabaseAuthCookie: false,
+          hasSiteSessionCookie: false,
           isLoading: false
         });
       }
@@ -62,7 +67,7 @@ export function useCurrentUser() {
   return useMemo(
     () => ({
       ...state,
-      isAuthenticated: state.hasUser && state.hasSupabaseAuthCookie
+      isAuthenticated: state.hasUser && (state.hasSupabaseAuthCookie || state.hasSiteSessionCookie)
     }),
     [state]
   );
