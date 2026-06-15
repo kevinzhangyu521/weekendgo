@@ -34,6 +34,16 @@ export function PasswordLoginForm({ next, loginError }: Props) {
       return;
     }
 
+    const {
+      data: { session }
+    } = await supabase.auth.getSession();
+
+    if (!session?.user) {
+      setStatus("\u767b\u5f55\u5df2\u901a\u8fc7\uff0c\u4f46\u6d4f\u89c8\u5668\u6ca1\u6709\u4fdd\u5b58\u4f1a\u8bdd\u3002\u8bf7\u5173\u95ed\u65e0\u75d5\u6a21\u5f0f\uff0c\u5e76\u786e\u8ba4\u6d4f\u89c8\u5668\u5141\u8bb8\u672c\u7ad9\u4fdd\u5b58\u6570\u636e\u3002");
+      setIsSubmitting(false);
+      return;
+    }
+
     setStatus("\u767b\u5f55\u6210\u529f\uff0c\u6b63\u5728\u8fdb\u5165\u7f51\u7ad9...");
     window.location.assign(next || "/");
   }

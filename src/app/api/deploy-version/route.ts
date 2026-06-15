@@ -7,13 +7,13 @@ export async function GET() {
   return NextResponse.json(
     {
       ok: true,
-      localExpectedCommit: "pending-client-session-auth",
+      localExpectedCommit: "pending-localstorage-session-auth",
       vercelCommit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 8) ?? null,
       vercelBranch: process.env.VERCEL_GIT_COMMIT_REF ?? null,
       nextPublicSiteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? null,
       hasSiteUrl: Boolean(process.env.SITE_URL),
       passwordLoginMarker: "supabase-ssr-cookie-bridge",
-      loginPageMarker: "client-session-auth-2026-06-15-v8"
+      loginPageMarker: "browser-local-session-auth-2026-06-15-v9"
     },
     {
       headers: {
