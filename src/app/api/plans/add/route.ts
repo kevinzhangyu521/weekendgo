@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { getCurrentAuth } from "@/lib/auth/current-user";
+import { getRequestAuth } from "@/lib/auth/request-auth";
 
 type AddToPlanPayload = {
   destinationId?: string;
@@ -29,17 +29,18 @@ function getNextSaturdayISO() {
   return now.toISOString().slice(0, 10);
 }
 
-async function getAuthDiagnostic() {
+async function getAuthDiagnostic(authSource: string) {
   const cookieStore = await cookies();
   const cookieNames = cookieStore.getAll().map((cookie) => cookie.name).sort();
   return {
+    authSource,
     hasSupabaseAuthCookie: cookieNames.some((name) => name.startsWith("sb-") && name.includes("auth-token")),
     cookiesReceived: cookieNames
   };
 }
 
 function authDiagnosticMessage(diagnostic: Awaited<ReturnType<typeof getAuthDiagnostic>>) {
-  return `${text.signInRequired}诊断：Supabase Auth Cookie=${diagnostic.hasSupabaseAuthCookie ? "已收到" : "未收到"}`;
+  return `${text.signInRequired}\u8bca\u65ad\uff1aSupabase Auth Cookie=${diagnostic.hasSupabaseAuthCookie ? "\u5df2\u6536\u5230" : "\u672a\u6536\u5230"}\uff0cAuthSource=${diagnostic.authSource}`;
 }
 
 export async function POST(request: Request) {
@@ -55,10 +56,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, message: text.missingDestination }, { status: 400 });
   }
 
-  const { supabase, user } = await getCurrentAuth();
+  const { supabase, user, authSource } = await getRequestAuth(request);
 
   if (!user) {
-    const diagnostic = await getAuthDiagnostic();
+    const diagnostic = await getAuthDiagnostic(authSource);
     return NextResponse.json({ ok: false, message: authDiagnosticMessage(diagnostic), diagnostic }, { status: 401 });
   }
 
@@ -104,7 +105,7 @@ export async function POST(request: Request) {
   }
 
   if (existingItem) {
-    return NextResponse.json({ ok: true, alreadyInPlan: true, planId, message: text.alreadyInPlan });
+    return NextResponse.json({ ok: true, alreadyInPlan: true, planId, message: text.alreadyInPlan, authSource });
   }
 
   const { data: itemRows } = await supabase
@@ -125,5 +126,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, message: text.insertFailed }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, alreadyInPlan: false, planId, message: text.added });
+  return NextResponse.json({ ok: true, alreadyInPlan: false, planId, message: text.added, authSource });
 }

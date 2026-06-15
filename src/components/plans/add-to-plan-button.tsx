@@ -6,6 +6,7 @@ import { CalendarPlus } from "lucide-react";
 import { usePathname } from "next/navigation";
 import type { Locale } from "@/lib/i18n/config";
 import { getAddToPlanMessages } from "@/lib/i18n/messages";
+import { createClient } from "@/lib/supabase/client";
 
 type Props = {
   destinationId: string;
@@ -27,11 +28,18 @@ export function AddToPlanButton({ destinationId, locale }: Props) {
   const [needsLogin, setNeedsLogin] = useState(false);
 
   async function requestAddToPlan() {
+    const supabase = createClient();
+    const {
+      data: { session }
+    } = await supabase.auth.getSession();
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json"
+    };
+    if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
+
     const response = await fetch("/api/plans/add", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers,
       credentials: "include",
       cache: "no-store",
       body: JSON.stringify({ destinationId })

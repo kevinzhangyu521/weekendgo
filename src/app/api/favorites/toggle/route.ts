@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { getCurrentAuth } from "@/lib/auth/current-user";
+import { getRequestAuth } from "@/lib/auth/request-auth";
 
 type ToggleFavoritePayload = {
   destinationId?: string;
@@ -20,17 +20,18 @@ const text = {
   added: "\u5df2\u52a0\u5165\u6536\u85cf\u3002"
 };
 
-async function getAuthDiagnostic() {
+async function getAuthDiagnostic(authSource: string) {
   const cookieStore = await cookies();
   const cookieNames = cookieStore.getAll().map((cookie) => cookie.name).sort();
   return {
+    authSource,
     hasSupabaseAuthCookie: cookieNames.some((name) => name.startsWith("sb-") && name.includes("auth-token")),
     cookiesReceived: cookieNames
   };
 }
 
 function authDiagnosticMessage(diagnostic: Awaited<ReturnType<typeof getAuthDiagnostic>>) {
-  return `${text.signInRequired}诊断：Supabase Auth Cookie=${diagnostic.hasSupabaseAuthCookie ? "已收到" : "未收到"}`;
+  return `${text.signInRequired}\u8bca\u65ad\uff1aSupabase Auth Cookie=${diagnostic.hasSupabaseAuthCookie ? "\u5df2\u6536\u5230" : "\u672a\u6536\u5230"}\uff0cAuthSource=${diagnostic.authSource}`;
 }
 
 export async function POST(request: Request) {
@@ -46,10 +47,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, message: text.missingDestination }, { status: 400 });
   }
 
-  const { supabase, user } = await getCurrentAuth();
+  const { supabase, user, authSource } = await getRequestAuth(request);
 
   if (!user) {
-    const diagnostic = await getAuthDiagnostic();
+    const diagnostic = await getAuthDiagnostic(authSource);
     return NextResponse.json({ ok: false, message: authDiagnosticMessage(diagnostic), diagnostic }, { status: 401 });
   }
 
@@ -67,7 +68,7 @@ export async function POST(request: Request) {
   if (existing) {
     const { error } = await supabase.from("favorites").delete().eq("id", existing.id);
     if (error) return NextResponse.json({ ok: false, message: text.removeFailed }, { status: 500 });
-    return NextResponse.json({ ok: true, isFavorite: false, message: text.removed });
+    return NextResponse.json({ ok: true, isFavorite: false, message: text.removed, authSource });
   }
 
   const { error } = await supabase.from("favorites").insert({
@@ -77,5 +78,5 @@ export async function POST(request: Request) {
 
   if (error) return NextResponse.json({ ok: false, message: text.addFailed }, { status: 500 });
 
-  return NextResponse.json({ ok: true, isFavorite: true, message: text.added });
+  return NextResponse.json({ ok: true, isFavorite: true, message: text.added, authSource });
 }

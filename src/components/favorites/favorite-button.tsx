@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Heart } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 type Props = {
   destinationId: string;
@@ -36,11 +37,18 @@ export function FavoriteButton({
   const [feedbackType, setFeedbackType] = useState<"success" | "error">("success");
 
   async function requestToggleFavorite() {
+    const supabase = createClient();
+    const {
+      data: { session }
+    } = await supabase.auth.getSession();
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json"
+    };
+    if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
+
     const response = await fetch("/api/favorites/toggle", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers,
       credentials: "include",
       cache: "no-store",
       body: JSON.stringify({ destinationId })
