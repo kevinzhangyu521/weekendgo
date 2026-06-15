@@ -17,6 +17,34 @@ type Props = {
   locale: Locale;
 };
 
+type SupabaseMutationError = { message: string } | null;
+
+type WeekendPlanUpdatePayload = {
+  title?: string;
+  plan_date?: string;
+  updated_at?: string;
+  is_public?: boolean;
+  share_slug?: string | null;
+};
+
+type PlanItemUpdatePayload = {
+  sort_order: number;
+};
+
+type MutationBuilder = {
+  eq(column: string, value: string): Promise<{ error: SupabaseMutationError }>;
+};
+
+type WeekendPlansTable = {
+  update(payload: WeekendPlanUpdatePayload): MutationBuilder;
+  delete(): MutationBuilder;
+};
+
+type PlanItemsTable = {
+  update(payload: PlanItemUpdatePayload): MutationBuilder;
+  delete(): MutationBuilder;
+};
+
 function randomSlug() {
   return `wg-${Math.random().toString(36).slice(2, 10)}`;
 }
@@ -42,6 +70,9 @@ export function PlanEditor({ plan, locale }: Props) {
   const [error, setError] = useState("");
   const [ok, setOk] = useState("");
 
+  const weekendPlansTable = useMemo(() => supabase.from("weekend_plans") as unknown as WeekendPlansTable, [supabase]);
+  const planItemsTable = useMemo(() => supabase.from("plan_items") as unknown as PlanItemsTable, [supabase]);
+
   useEffect(() => {
     setOrigin(window.location.origin);
   }, []);
@@ -52,8 +83,7 @@ export function PlanEditor({ plan, locale }: Props) {
     setError("");
     setOk("");
 
-    const { error: updateError } = await supabase
-      .from("weekend_plans")
+    const { error: updateError } = await weekendPlansTable
       .update({ title: title.trim(), plan_date: planDate, updated_at: new Date().toISOString() })
       .eq("id", plan.id);
 
@@ -71,7 +101,7 @@ export function PlanEditor({ plan, locale }: Props) {
     setError("");
     setOk("");
 
-    const { error: removeError } = await supabase.from("plan_items").delete().eq("id", itemId);
+    const { error: removeError } = await planItemsTable.delete().eq("id", itemId);
     setBusyItemId(null);
     if (removeError) {
       setError(text.removeFailed);
@@ -93,19 +123,19 @@ export function PlanEditor({ plan, locale }: Props) {
     const currentOrder = current.sortOrder;
     const targetOrder = target.sortOrder;
 
-    const { error: err1 } = await supabase.from("plan_items").update({ sort_order: -999999 }).eq("id", current.id);
+    const { error: err1 } = await planItemsTable.update({ sort_order: -999999 }).eq("id", current.id);
     if (err1) {
       setBusyItemId(null);
       setError(text.reorderFailed);
       return;
     }
-    const { error: err2 } = await supabase.from("plan_items").update({ sort_order: currentOrder }).eq("id", target.id);
+    const { error: err2 } = await planItemsTable.update({ sort_order: currentOrder }).eq("id", target.id);
     if (err2) {
       setBusyItemId(null);
       setError(text.reorderFailed);
       return;
     }
-    const { error: err3 } = await supabase.from("plan_items").update({ sort_order: targetOrder }).eq("id", current.id);
+    const { error: err3 } = await planItemsTable.update({ sort_order: targetOrder }).eq("id", current.id);
     setBusyItemId(null);
     if (err3) {
       setError(text.reorderFailed);
@@ -122,7 +152,7 @@ export function PlanEditor({ plan, locale }: Props) {
     setError("");
     setOk("");
 
-    const { error: deleteError } = await supabase.from("weekend_plans").delete().eq("id", plan.id);
+    const { error: deleteError } = await weekendPlansTable.delete().eq("id", plan.id);
     setDeletingPlan(false);
     if (deleteError) {
       setError(text.deleteFailed);
@@ -142,7 +172,7 @@ export function PlanEditor({ plan, locale }: Props) {
     const payload: { is_public: boolean; share_slug?: string | null } = { is_public: nextPublic };
     if (nextPublic && !plan.shareSlug) payload.share_slug = randomSlug();
 
-    const { error: updateError } = await supabase.from("weekend_plans").update(payload).eq("id", plan.id);
+    const { error: updateError } = await weekendPlansTable.update(payload).eq("id", plan.id);
     setSharing(false);
     if (updateError) {
       setError(text.shareUpdateFailed);
