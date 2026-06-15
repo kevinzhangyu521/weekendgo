@@ -9,11 +9,6 @@ type Props = {
   loginError?: string;
 };
 
-type DebugCurrentUser = {
-  hasUser: boolean;
-  hasSupabaseAuthCookie: boolean;
-};
-
 export function PasswordLoginForm({ next, loginError }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -39,18 +34,7 @@ export function PasswordLoginForm({ next, loginError }: Props) {
       return;
     }
 
-    const debugResponse = await fetch("/api/debug-current-user", {
-      cache: "no-store",
-      credentials: "include"
-    });
-    const debug = (await debugResponse.json().catch(() => null)) as DebugCurrentUser | null;
-
-    if (!debug?.hasUser || !debug.hasSupabaseAuthCookie) {
-      setStatus("\u767b\u5f55\u5931\u8d25\uff1a\u6ca1\u6709\u6536\u5230\u6d4f\u89c8\u5668\u4f1a\u8bdd\uff0c\u8bf7\u91cd\u65b0\u767b\u5f55\u3002");
-      setIsSubmitting(false);
-      return;
-    }
-
+    setStatus("\u767b\u5f55\u6210\u529f\uff0c\u6b63\u5728\u8fdb\u5165\u7f51\u7ad9...");
     window.location.assign(next || "/");
   }
 

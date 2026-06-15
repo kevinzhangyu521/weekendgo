@@ -7,13 +7,13 @@ export async function GET() {
   return NextResponse.json(
     {
       ok: true,
-      localExpectedCommit: "pending-login-browser-cookie",
+      localExpectedCommit: "pending-browser-session-login-unblock",
       vercelCommit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 8) ?? null,
       vercelBranch: process.env.VERCEL_GIT_COMMIT_REF ?? null,
       nextPublicSiteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? null,
       hasSiteUrl: Boolean(process.env.SITE_URL),
       passwordLoginMarker: "supabase-ssr-cookie-bridge",
-      loginPageMarker: "login-browser-cookie-2026-06-12-v1"
+      loginPageMarker: "login-browser-session-2026-06-15-v2"
     },
     {
       headers: {

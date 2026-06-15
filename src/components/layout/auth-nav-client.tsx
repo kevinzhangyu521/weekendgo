@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import type { Locale } from "@/lib/i18n/config";
+import { createClient } from "@/lib/supabase/client";
 
 type Props = {
   locale: Locale;
@@ -68,6 +69,15 @@ export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
           isAdmin: boolean;
         };
         if (!data.user?.email) {
+          const supabase = createClient();
+          const {
+            data: { session }
+          } = await supabase.auth.getSession();
+          if (session?.user?.email) {
+            setEmail(session.user.email);
+            setIsAdmin(false);
+            return;
+          }
           setEmail(null);
           setIsAdmin(false);
           window.localStorage.removeItem("qimeide_auth_email");
