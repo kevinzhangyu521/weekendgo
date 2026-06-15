@@ -82,7 +82,7 @@ export function FavoriteButton({ destinationId, size = "md", className = "", ini
 
       setIsFavorite(Boolean(result.isFavorite));
       setFeedbackType("success");
-      setFeedbackText(result.message ?? (result.isFavorite ? "\u5df2\u52a0\u5165\u6536\u85cf\u3002" : "\u5df2\u53d6\u6d88\u6536\u85cf\u3002"));
+      setFeedbackText(result.message ?? (result.isFavorite ? "\u5df2\u52a0\u5165\u6536\u85cf\uff0c\u53ef\u5728\u201c\u6211\u7684\u6536\u85cf\u201d\u67e5\u770b\u3002" : "\u5df2\u53d6\u6d88\u6536\u85cf\u3002"));
     } catch (error) {
       const message = error instanceof Error && error.message !== "Save favorite failed" ? error.message : "\u4fdd\u5b58\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002";
       setFeedbackType("error");

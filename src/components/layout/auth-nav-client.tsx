@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import type { Locale } from "@/lib/i18n/config";
@@ -52,9 +52,47 @@ export function AuthNavClient({ locale, initialIsAdmin }: Props) {
   const pathname = usePathname();
   const currentUser = useCurrentUser();
   const email = currentUser.isAuthenticated ? currentUser.email : null;
-  const isAdmin = Boolean(email) && initialIsAdmin;
+  const [clientIsAdmin, setClientIsAdmin] = useState(initialIsAdmin);
+  const isAdmin = Boolean(email) && clientIsAdmin;
   const [loading, setLoading] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadAdminStatus() {
+      if (currentUser.isLoading) return;
+      if (!currentUser.isAuthenticated) {
+        setClientIsAdmin(false);
+        return;
+      }
+
+      const supabase = createClient();
+      const {
+        data: { session }
+      } = await supabase.auth.getSession();
+      const headers: Record<string, string> = {};
+      if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
+
+      try {
+        const response = await fetch("/api/admin/me", {
+          headers,
+          credentials: "include",
+          cache: "no-store"
+        });
+        const result = (await response.json()) as { isAdmin?: boolean };
+        if (mounted) setClientIsAdmin(Boolean(result.isAdmin));
+      } catch {
+        if (mounted) setClientIsAdmin(false);
+      }
+    }
+
+    void loadAdminStatus();
+
+    return () => {
+      mounted = false;
+    };
+  }, [currentUser.isAuthenticated, currentUser.isLoading]);
 
   async function handleSignOut() {
     setLoading(true);
