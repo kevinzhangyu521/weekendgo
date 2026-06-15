@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import type { Locale } from "@/lib/i18n/config";
 import { getAddToPlanMessages } from "@/lib/i18n/messages";
 import { createClient } from "@/lib/supabase/client";
+import { useCurrentUser } from "@/lib/auth/use-current-user";
 
 type Props = {
   destinationId: string;
@@ -22,6 +23,7 @@ type AddToPlanResponse = {
 export function AddToPlanButton({ destinationId, locale }: Props) {
   const text = getAddToPlanMessages(locale);
   const pathname = usePathname();
+  const currentUser = useCurrentUser();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -55,13 +57,24 @@ export function AddToPlanButton({ destinationId, locale }: Props) {
     setMessage("");
     setNeedsLogin(false);
 
+    if (!currentUser.isAuthenticated) {
+      setNeedsLogin(true);
+      setError("\u767b\u5f55\u72b6\u6001\u5df2\u5931\u6548\uff0c\u8bf7\u91cd\u65b0\u767b\u5f55");
+      setLoading(false);
+      return;
+    }
+
     try {
       setMessage("\u6b63\u5728\u52a0\u5165\u8ba1\u5212...");
       const { response, result } = await requestAddToPlan();
 
       if (response.status === 401) {
         setNeedsLogin(true);
-        setError(result.message ?? text.needSignIn);
+        setError(
+          process.env.NODE_ENV !== "production" && result.message
+            ? result.message
+            : "\u767b\u5f55\u72b6\u6001\u5df2\u5931\u6548\uff0c\u8bf7\u91cd\u65b0\u767b\u5f55"
+        );
         return;
       }
 
@@ -83,21 +96,24 @@ export function AddToPlanButton({ destinationId, locale }: Props) {
   }
 
   return (
-    <div>
+    <div className="min-w-[160px]">
       <button
         type="button"
         onClick={handleAdd}
         disabled={loading}
-        className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
       >
         <CalendarPlus className="h-4 w-4" />
-        {loading ? text.adding : text.addToPlan}
+        {loading ? text.adding : currentUser.isAuthenticated ? text.addToPlan : "\u767b\u5f55\u540e\u52a0\u5165\u8ba1\u5212"}
       </button>
       {message ? <p className="mt-1 text-xs text-emerald-700">{message}</p> : null}
-      {error ? <p className="mt-1 text-xs text-rose-600">{error}</p> : null}
+      {error ? <p className="mt-2 max-w-[240px] rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800">{error}</p> : null}
       {needsLogin ? (
-        <Link href={`/login?next=${encodeURIComponent(pathname || "/")}`} className="mt-1 inline-flex text-xs text-emerald-700 hover:underline">
-          {text.signInFirst}
+        <Link
+          href={`/login?next=${encodeURIComponent(pathname || "/")}`}
+          className="mt-2 inline-flex h-11 items-center rounded-xl bg-emerald-600 px-5 text-sm font-medium text-white hover:bg-emerald-700"
+        >
+          {"\u91cd\u65b0\u767b\u5f55"}
         </Link>
       ) : null}
     </div>

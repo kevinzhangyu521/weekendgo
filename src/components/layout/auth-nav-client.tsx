@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import type { Locale } from "@/lib/i18n/config";
-import { createClient } from "@/lib/supabase/client";
+import { useCurrentUser } from "@/lib/auth/use-current-user";
 
 type Props = {
   locale: Locale;
@@ -47,71 +47,17 @@ const navItems: Record<Locale, NavItem[]> = {
   ]
 };
 
-export function AuthNavClient({ locale, initialEmail, initialIsAdmin }: Props) {
+export function AuthNavClient({ locale, initialIsAdmin }: Props) {
   const pathname = usePathname();
-  const [email, setEmail] = useState<string | null>(initialEmail);
-  const [isAdmin, setIsAdmin] = useState(initialIsAdmin);
+  const currentUser = useCurrentUser();
+  const email = currentUser.isAuthenticated ? currentUser.email : null;
+  const isAdmin = Boolean(email) && initialIsAdmin;
   const [loading, setLoading] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-
-  useEffect(() => {
-    let mounted = true;
-
-    async function updateFromServer() {
-      try {
-        const response = await fetch("/auth/me", {
-          cache: "no-store",
-          credentials: "include"
-        });
-        if (!response.ok || !mounted) return;
-        const data = (await response.json()) as {
-          user: { email: string | null } | null;
-          isAdmin: boolean;
-        };
-        if (!data.user?.email) {
-          const supabase = createClient();
-          const {
-            data: { session }
-          } = await supabase.auth.getSession();
-          if (session?.user?.email) {
-            setEmail(session.user.email);
-            setIsAdmin(false);
-            return;
-          }
-          setEmail(null);
-          setIsAdmin(false);
-          window.localStorage.removeItem("qimeide_auth_email");
-          window.localStorage.removeItem("qimeide_is_admin");
-          return;
-        }
-        setEmail(data.user?.email ?? null);
-        setIsAdmin(Boolean(data.isAdmin));
-        window.localStorage.removeItem("qimeide_is_admin");
-      } catch {
-        if (!initialEmail) {
-          setEmail(null);
-          setIsAdmin(false);
-          window.localStorage.removeItem("qimeide_auth_email");
-          window.localStorage.removeItem("qimeide_is_admin");
-        }
-      }
-    }
-
-    void updateFromServer();
-
-    return () => {
-      mounted = false;
-    };
-  }, [initialEmail]);
 
   function prepareSignOut() {
     setLoading(true);
     setMenuOpen(false);
-    setEmail(null);
-    setIsAdmin(false);
-    window.localStorage.removeItem("qimeide_auth_email");
-    window.localStorage.removeItem("qimeide_is_admin");
-    document.cookie = "qimeide_auth_email=; Path=/; Max-Age=0; SameSite=Lax";
   }
 
   const visibleItems = navItems[locale].filter((item) => {
