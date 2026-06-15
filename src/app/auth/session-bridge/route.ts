@@ -1,7 +1,7 @@
 import type { Session } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { createPublicClient } from "@/lib/supabase/public";
-import { setQimeideSessionCookies } from "@/lib/auth/server-session-cookies";
+import { setQimeideDebugCookie, setQimeideSessionCookies } from "@/lib/auth/server-session-cookies";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   }
 
   const session = payload.session;
-  if (!session?.access_token || !session.refresh_token) {
+  if (!session?.access_token) {
     return NextResponse.json({ ok: false, error: "missing_session" }, { status: 400 });
   }
 
@@ -46,6 +46,7 @@ export async function POST(request: Request) {
     }
   );
   setQimeideSessionCookies(response, session.access_token, session.refresh_token);
+  setQimeideDebugCookie(response, `bridge-ok:${user.email ?? "unknown"}`);
   response.headers.set("x-debug-session-bridge-mode", "site-session-cookie-only");
   return response;
 }

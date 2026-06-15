@@ -31,9 +31,9 @@ export function clearQimeideSessionCookies(response: NextResponse) {
   response.cookies.set(QIMEIDE_LOGIN_DEBUG_COOKIE, "", { path: "/", maxAge: 0 });
 }
 
-export function setQimeideSessionCookies(response: NextResponse, accessToken: string, refreshToken: string) {
+export function setQimeideSessionCookies(response: NextResponse, accessToken: string, refreshToken?: string | null) {
   response.cookies.set(QIMEIDE_ACCESS_TOKEN_COOKIE, accessToken, sessionCookieOptions);
-  response.cookies.set(QIMEIDE_REFRESH_TOKEN_COOKIE, refreshToken, sessionCookieOptions);
+  if (refreshToken) response.cookies.set(QIMEIDE_REFRESH_TOKEN_COOKIE, refreshToken, sessionCookieOptions);
 }
 
 export function setQimeideDebugCookie(response: NextResponse, value: string) {
