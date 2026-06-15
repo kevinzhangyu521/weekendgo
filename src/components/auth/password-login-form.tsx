@@ -23,7 +23,7 @@ export function PasswordLoginForm({ next, loginError }: Props) {
     setStatus("\u6b63\u5728\u767b\u5f55\uff0c\u8bf7\u7a0d\u5019...");
 
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email: email.trim(),
       password
     });
@@ -35,7 +35,7 @@ export function PasswordLoginForm({ next, loginError }: Props) {
     }
 
     setStatus("\u767b\u5f55\u6210\u529f\uff0c\u6b63\u5728\u540c\u6b65\u7ad9\u5185\u72b6\u6001...");
-    await fetch("/auth/password-login", {
+    const bridgeResponse = await fetch("/auth/session-bridge", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -43,11 +43,27 @@ export function PasswordLoginForm({ next, loginError }: Props) {
       credentials: "include",
       cache: "no-store",
       body: JSON.stringify({
-        email: email.trim(),
-        password,
-        next
+        session: data.session
       })
     }).catch(() => null);
+
+    if (!bridgeResponse?.ok) {
+      setStatus("\u767b\u5f55\u6210\u529f\uff0c\u4f46\u7ad9\u5185\u72b6\u6001\u540c\u6b65\u5931\u8d25\uff0c\u8bf7\u5237\u65b0\u540e\u518d\u8bd5\u3002");
+      setIsSubmitting(false);
+      return;
+    }
+
+    const debugResponse = await fetch("/api/debug-current-user", {
+      cache: "no-store",
+      credentials: "include"
+    }).catch(() => null);
+    const debug = (await debugResponse?.json().catch(() => null)) as { hasUser?: boolean; hasSupabaseAuthCookie?: boolean } | null;
+
+    if (!debug?.hasUser || !debug.hasSupabaseAuthCookie) {
+      setStatus("\u767b\u5f55\u6210\u529f\uff0c\u4f46\u7ad9\u5185\u72b6\u6001\u8fd8\u672a\u751f\u6548\uff0c\u8bf7\u5237\u65b0\u540e\u518d\u8bd5\u3002");
+      setIsSubmitting(false);
+      return;
+    }
 
     setStatus("\u767b\u5f55\u6210\u529f\uff0c\u6b63\u5728\u8fdb\u5165\u7f51\u7ad9...");
     window.location.assign(next || "/");
