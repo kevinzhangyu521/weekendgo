@@ -2,7 +2,6 @@ import type { Session } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { createPublicClient } from "@/lib/supabase/public";
 import { setQimeideSessionCookies } from "@/lib/auth/server-session-cookies";
-import { setSupabaseAuthCookie } from "@/lib/supabase/session-cookie";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -46,9 +45,7 @@ export async function POST(request: Request) {
       }
     }
   );
-  const cookieNames = setSupabaseAuthCookie(response, session);
   setQimeideSessionCookies(response, session.access_token, session.refresh_token);
-  response.headers.set("x-debug-session-bridge-cookie-names", cookieNames.join(","));
-  response.headers.set("x-debug-session-bridge-has-cookie", cookieNames.length > 0 ? "true" : "false");
+  response.headers.set("x-debug-session-bridge-mode", "site-session-cookie-only");
   return response;
 }

@@ -57,9 +57,9 @@ export function PasswordLoginForm({ next, loginError }: Props) {
       cache: "no-store",
       credentials: "include"
     }).catch(() => null);
-    const debug = (await debugResponse?.json().catch(() => null)) as { hasUser?: boolean; hasSupabaseAuthCookie?: boolean } | null;
+    const debug = (await debugResponse?.json().catch(() => null)) as { hasUser?: boolean; hasSupabaseAuthCookie?: boolean; hasSiteSessionCookie?: boolean } | null;
 
-    if (!debug?.hasUser || !debug.hasSupabaseAuthCookie) {
+    if (!debug?.hasUser || (!debug.hasSupabaseAuthCookie && !debug.hasSiteSessionCookie)) {
       setStatus("\u767b\u5f55\u6210\u529f\uff0c\u4f46\u7ad9\u5185\u72b6\u6001\u8fd8\u672a\u751f\u6548\uff0c\u8bf7\u5237\u65b0\u540e\u518d\u8bd5\u3002");
       setIsSubmitting(false);
       return;
