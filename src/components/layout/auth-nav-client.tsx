@@ -6,6 +6,7 @@ import { Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import type { Locale } from "@/lib/i18n/config";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
+import { createClient } from "@/lib/supabase/client";
 
 type Props = {
   locale: Locale;
@@ -55,9 +56,12 @@ export function AuthNavClient({ locale, initialIsAdmin }: Props) {
   const [loading, setLoading] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  function prepareSignOut() {
+  async function handleSignOut() {
     setLoading(true);
     setMenuOpen(false);
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    window.location.assign("/");
   }
 
   const visibleItems = navItems[locale].filter((item) => {
@@ -99,15 +103,15 @@ export function AuthNavClient({ locale, initialIsAdmin }: Props) {
       {email ? (
         <div className="flex items-center gap-2">
           <span className="hidden max-w-[180px] truncate text-slate-600 md:inline">{email}</span>
-          <Link
-            href="/auth/sign-out"
-            onClick={prepareSignOut}
+          <button
+            type="button"
+            onClick={handleSignOut}
             className={`rounded-full border border-slate-200 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-50 ${
               loading ? "pointer-events-none opacity-60" : ""
             }`}
           >
             {loading ? (locale === "zh" ? "\u9000\u51fa\u4e2d..." : "Signing out...") : locale === "zh" ? "\u9000\u51fa" : "Sign out"}
-          </Link>
+          </button>
         </div>
       ) : (
         <Link href={loginHref} className="rounded-full bg-emerald-600 px-3 py-1.5 font-medium text-white hover:bg-emerald-700">
