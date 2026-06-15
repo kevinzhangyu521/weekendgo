@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import type { Difficulty, Safety, Scenario } from "@/features/destinations/types";
 
 const scenarios = [
   { value: "creek", label: "\u6eaf\u6eaa" },
@@ -17,6 +18,33 @@ const sectionTitleClass = "text-base font-bold text-slate-900";
 const sectionHintClass = "mt-1 text-xs text-slate-500";
 const labelClass = "block text-sm font-bold text-slate-900";
 const inputClass = "mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm";
+
+type SpotSubmissionPayload = {
+  user_id: string;
+  name: string;
+  name_zh: string;
+  province: string;
+  province_zh: string;
+  city: string;
+  city_zh: string;
+  address: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  scenario: Scenario;
+  difficulty: Difficulty;
+  safety: Safety;
+  distance_km: number;
+  min_kid_age: number;
+  has_parking: boolean;
+  has_toilet: boolean;
+  image_url: string | null;
+  description: string;
+  description_zh: string;
+};
+
+type InsertableSpotSubmissionsTable = {
+  insert(payload: SpotSubmissionPayload): Promise<{ error: { message: string } | null }>;
+};
 
 function safeFileName(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9.]+/g, "-").replace(/^-+|-+$/g, "");
@@ -97,7 +125,7 @@ export default function SubmitSpotPage() {
     try {
       const imageUrl = await uploadImage(user.id, imageFile);
 
-      const payload = {
+      const payload: SpotSubmissionPayload = {
         user_id: user.id,
         name,
         name_zh: name,
@@ -108,9 +136,9 @@ export default function SubmitSpotPage() {
         address: address.trim() || null,
         latitude: Number(form.get("latitude") || "0") || null,
         longitude: Number(form.get("longitude") || "0") || null,
-        scenario: String(form.get("scenario") ?? "creek"),
-        difficulty: String(form.get("difficulty") ?? "easy"),
-        safety: String(form.get("safety") ?? "low_risk"),
+        scenario: String(form.get("scenario") ?? "creek") as Scenario,
+        difficulty: String(form.get("difficulty") ?? "easy") as Difficulty,
+        safety: String(form.get("safety") ?? "low_risk") as Safety,
         distance_km: 0,
         min_kid_age: Number(form.get("min_kid_age") || "0"),
         has_parking: form.get("has_parking") === "on",
@@ -120,7 +148,8 @@ export default function SubmitSpotPage() {
         description_zh: descriptionZh || description
       };
 
-      const { error: insertError } = await supabase.from("spot_submissions").insert(payload);
+      const submissionsTable = supabase.from("spot_submissions") as unknown as InsertableSpotSubmissionsTable;
+      const { error: insertError } = await submissionsTable.insert(payload);
       if (insertError) throw new Error("\u63d0\u4ea4\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002");
 
       formElement.reset();
