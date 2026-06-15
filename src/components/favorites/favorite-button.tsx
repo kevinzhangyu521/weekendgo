@@ -1,9 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { Heart } from "lucide-react";
-import { usePathname } from "next/navigation";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
 import { createClient } from "@/lib/supabase/client";
 
@@ -22,7 +20,6 @@ type ToggleFavoriteResponse = {
 };
 
 export function FavoriteButton({ destinationId, size = "md", className = "", initialIsFavorite, initialIsLoggedIn }: Props) {
-  const pathname = usePathname();
   const currentUser = useCurrentUser();
   const hasInitialState = typeof initialIsFavorite === "boolean" || typeof initialIsLoggedIn === "boolean";
   const [loading, setLoading] = useState(!hasInitialState);
@@ -95,7 +92,7 @@ export function FavoriteButton({ destinationId, size = "md", className = "", ini
     }
   }
 
-  const buttonPadding = size === "sm" ? "px-3" : "px-4";
+  const buttonPadding = size === "sm" ? "px-3" : "px-3.5";
   const iconSize = size === "sm" ? "h-4 w-4" : "h-4.5 w-4.5";
 
   return (
@@ -106,7 +103,7 @@ export function FavoriteButton({ destinationId, size = "md", className = "", ini
         disabled={loading || saving || currentUser.isLoading}
         aria-label={isFavorite ? "\u53d6\u6d88\u6536\u85cf" : "\u52a0\u5165\u6536\u85cf"}
         title={isFavorite ? "\u53d6\u6d88\u6536\u85cf" : "\u52a0\u5165\u6536\u85cf"}
-        className={`${buttonPadding} inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:opacity-50 ${
+        className={`${buttonPadding} inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:opacity-50 ${
           isFavorite ? "text-rose-600" : ""
         }`}
       >
@@ -118,11 +115,6 @@ export function FavoriteButton({ destinationId, size = "md", className = "", ini
         <p className={`mt-2 max-w-[240px] rounded-xl px-3 py-2 text-xs ${feedbackType === "success" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-800"}`}>
           {feedbackText}
         </p>
-      ) : null}
-      {!currentUser.isAuthenticated && !loading ? (
-        <Link href={`/login?next=${encodeURIComponent(pathname || "/")}`} className="mt-2 inline-flex h-11 items-center rounded-xl bg-emerald-600 px-5 text-sm font-medium text-white hover:bg-emerald-700">
-          {"\u91cd\u65b0\u767b\u5f55"}
-        </Link>
       ) : null}
     </div>
   );

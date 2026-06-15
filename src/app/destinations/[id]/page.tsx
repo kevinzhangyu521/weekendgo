@@ -97,15 +97,15 @@ export default async function DestinationDetailPage({
 
             <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">{destinationName(destination, locale)}</h1>
             <p className="rounded-xl bg-emerald-50 px-4 py-3 text-base font-semibold text-emerald-800">{destinationFamilyHighlight(destination, locale)}</p>
-            <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4">
+            <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-3 lg:grid-cols-[auto_minmax(240px,1fr)_auto_auto] lg:items-center">
               <div className="flex flex-wrap items-center gap-3">
                 <FavoriteButton destinationId={destination.id} initialIsLoggedIn={Boolean(user)} />
                 <AddToPlanButton destinationId={destination.id} locale={locale} />
               </div>
               {!user ? (
-                <div className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                  <p>{pick(locale, "Sign in to save destinations and add them to your weekend plan.", "\u767b\u5f55\u540e\u53ef\u6536\u85cf\u5730\u70b9\u3001\u52a0\u5165\u5468\u672b\u8ba1\u5212")}</p>
-                  <Link href={loginHref} className="mt-2 inline-flex h-11 items-center rounded-xl bg-emerald-600 px-5 font-medium text-white hover:bg-emerald-700">
+                <div className="flex flex-wrap items-center gap-3 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                  <p className="min-w-[180px] flex-1">{pick(locale, "Sign in to save destinations and add them to your weekend plan.", "\u767b\u5f55\u540e\u53ef\u6536\u85cf\u5730\u70b9\u3001\u52a0\u5165\u5468\u672b\u8ba1\u5212")}</p>
+                  <Link href={loginHref} className="inline-flex h-10 items-center rounded-xl bg-emerald-600 px-4 font-medium text-white hover:bg-emerald-700">
                     {pick(locale, "Sign in now", "\u7acb\u5373\u767b\u5f55")}
                   </Link>
                 </div>
@@ -119,7 +119,7 @@ export default async function DestinationDetailPage({
                   signedOutLabel={pick(locale, "Sign in to navigate", "\u767b\u5f55\u540e\u5bfc\u822a")}
                 />
               </div>
-              <span className="text-sm text-slate-600">{pick(locale, "Save or add to plan", "\u6536\u85cf\u6216\u52a0\u5165\u8ba1\u5212")}</span>
+              <span className="text-sm text-slate-600 lg:text-right">{pick(locale, "Save or add to plan", "\u6536\u85cf\u6216\u52a0\u5165\u8ba1\u5212")}</span>
             </div>
             <p className="text-slate-600">{destinationDescription(destination, locale)}</p>
             <div className="flex flex-wrap gap-2">

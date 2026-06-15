@@ -34,6 +34,21 @@ export function PasswordLoginForm({ next, loginError }: Props) {
       return;
     }
 
+    setStatus("\u767b\u5f55\u6210\u529f\uff0c\u6b63\u5728\u540c\u6b65\u7ad9\u5185\u72b6\u6001...");
+    await fetch("/auth/password-login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      credentials: "include",
+      cache: "no-store",
+      body: JSON.stringify({
+        email: email.trim(),
+        password,
+        next
+      })
+    }).catch(() => null);
+
     setStatus("\u767b\u5f55\u6210\u529f\uff0c\u6b63\u5728\u8fdb\u5165\u7f51\u7ad9...");
     window.location.assign(next || "/");
   }

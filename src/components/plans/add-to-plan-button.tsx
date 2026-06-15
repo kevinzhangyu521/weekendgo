@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { CalendarPlus } from "lucide-react";
-import { usePathname } from "next/navigation";
 import type { Locale } from "@/lib/i18n/config";
 import { getAddToPlanMessages } from "@/lib/i18n/messages";
 import { createClient } from "@/lib/supabase/client";
@@ -22,7 +20,6 @@ type AddToPlanResponse = {
 
 export function AddToPlanButton({ destinationId, locale }: Props) {
   const text = getAddToPlanMessages(locale);
-  const pathname = usePathname();
   const currentUser = useCurrentUser();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -96,26 +93,18 @@ export function AddToPlanButton({ destinationId, locale }: Props) {
   }
 
   return (
-    <div className="min-w-[160px]">
+    <div>
       <button
         type="button"
         onClick={handleAdd}
         disabled={loading}
-        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+        className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
       >
         <CalendarPlus className="h-4 w-4" />
         {loading ? text.adding : currentUser.isAuthenticated ? text.addToPlan : "\u767b\u5f55\u540e\u52a0\u5165\u8ba1\u5212"}
       </button>
       {message ? <p className="mt-1 text-xs text-emerald-700">{message}</p> : null}
       {error ? <p className="mt-2 max-w-[240px] rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800">{error}</p> : null}
-      {needsLogin ? (
-        <Link
-          href={`/login?next=${encodeURIComponent(pathname || "/")}`}
-          className="mt-2 inline-flex h-11 items-center rounded-xl bg-emerald-600 px-5 text-sm font-medium text-white hover:bg-emerald-700"
-        >
-          {"\u91cd\u65b0\u767b\u5f55"}
-        </Link>
-      ) : null}
     </div>
   );
 }

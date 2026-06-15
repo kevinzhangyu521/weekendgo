@@ -7,13 +7,13 @@ export async function GET() {
   return NextResponse.json(
     {
       ok: true,
-      localExpectedCommit: "pending-unified-auth-ui",
+      localExpectedCommit: "pending-login-sync-compact-actions",
       vercelCommit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 8) ?? null,
       vercelBranch: process.env.VERCEL_GIT_COMMIT_REF ?? null,
       nextPublicSiteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? null,
       hasSiteUrl: Boolean(process.env.SITE_URL),
       passwordLoginMarker: "supabase-ssr-cookie-bridge",
-      loginPageMarker: "unified-auth-ui-2026-06-15-v1"
+      loginPageMarker: "login-sync-compact-actions-2026-06-15-v2"
     },
     {
       headers: {
