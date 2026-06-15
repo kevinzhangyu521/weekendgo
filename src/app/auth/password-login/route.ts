@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { setQimeideDebugCookie, setQimeideSessionCookies } from "@/lib/auth/server-session-cookies";
 import { setSupabaseAuthCookie } from "@/lib/supabase/session-cookie";
 
 type CookieToSet = {
@@ -141,6 +142,8 @@ export async function POST(request: NextRequest) {
   }
 
   const manualCookieNames = setSupabaseAuthCookie(response, data.session);
+  setQimeideSessionCookies(response, data.session.access_token, data.session.refresh_token);
+  setQimeideDebugCookie(response, `password-login-ok:${data.user.email ?? "unknown"}`);
 
   response.headers.set("x-debug-user-email", data.user.email ?? "");
   response.headers.set("x-debug-has-session", "true");

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 
 type Props = {
   next: string;
@@ -22,20 +21,7 @@ export function PasswordLoginForm({ next, loginError }: Props) {
     setIsSubmitting(true);
     setStatus("\u6b63\u5728\u767b\u5f55\uff0c\u8bf7\u7a0d\u5019...");
 
-    const supabase = createClient();
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password
-    });
-
-    if (error) {
-      setStatus("\u767b\u5f55\u5931\u8d25\uff1a\u90ae\u7bb1\u6216\u5bc6\u7801\u4e0d\u6b63\u786e\uff0c\u8bf7\u68c0\u67e5\u540e\u518d\u8bd5\u3002");
-      setIsSubmitting(false);
-      return;
-    }
-
-    setStatus("\u767b\u5f55\u6210\u529f\uff0c\u6b63\u5728\u540c\u6b65\u7ad9\u5185\u72b6\u6001...");
-    const bridgeResponse = await fetch("/auth/session-bridge", {
+    const loginResponse = await fetch("/auth/password-login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -43,12 +29,14 @@ export function PasswordLoginForm({ next, loginError }: Props) {
       credentials: "include",
       cache: "no-store",
       body: JSON.stringify({
-        session: data.session
+        email: email.trim(),
+        password,
+        next
       })
     }).catch(() => null);
 
-    if (!bridgeResponse?.ok) {
-      setStatus("\u767b\u5f55\u6210\u529f\uff0c\u4f46\u7ad9\u5185\u72b6\u6001\u540c\u6b65\u5931\u8d25\uff0c\u8bf7\u5237\u65b0\u540e\u518d\u8bd5\u3002");
+    if (!loginResponse?.ok) {
+      setStatus("\u767b\u5f55\u5931\u8d25\uff1a\u90ae\u7bb1\u6216\u5bc6\u7801\u4e0d\u6b63\u786e\uff0c\u8bf7\u68c0\u67e5\u540e\u518d\u8bd5\u3002");
       setIsSubmitting(false);
       return;
     }
