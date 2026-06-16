@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AlertTriangle, Bath, Car, MapPin, SlidersHorizontal, Star } from "lucide-react";
 import { FavoriteButton } from "@/components/favorites/favorite-button";
+import { AmapNavigationButton } from "@/components/plans/amap-navigation-button";
 import { filterDestinations, parseFilters } from "@/features/destinations/filter";
 import { getDestinationImage } from "@/features/destinations/images";
 import {
@@ -208,16 +209,26 @@ export default async function DestinationsPage({
                   <span className="ml-1">{destinationSafetyTip(item, locale)}</span>
                 </div>
 
-                <div className="mt-auto flex items-center gap-4 border-t border-slate-100 pt-3 text-xs text-slate-600">
-                  <span className="inline-flex items-center gap-1">
-                    <Car className="h-3.5 w-3.5" />
-                    {item.hasParking ? "\u53ef\u505c\u8f66" : "\u505c\u8f66\u4e00\u822c"}
-                  </span>
-                  <span className="inline-flex items-center gap-1">
-                    <Bath className="h-3.5 w-3.5" />
-                    {item.hasToilet ? "\u6709\u5395\u6240" : "\u5395\u6240\u8f83\u5c11"}
-                  </span>
-                  <span>{destinationAgeLabel(item, locale)}</span>
+                <div className="mt-auto space-y-3 border-t border-slate-100 pt-3">
+                  <div className="flex items-center gap-4 text-xs text-slate-600">
+                    <span className="inline-flex items-center gap-1">
+                      <Car className="h-3.5 w-3.5" />
+                      {item.hasParking ? "\u53ef\u505c\u8f66" : "\u505c\u8f66\u4e00\u822c"}
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <Bath className="h-3.5 w-3.5" />
+                      {item.hasToilet ? "\u6709\u5395\u6240" : "\u5395\u6240\u8f83\u5c11"}
+                    </span>
+                    <span>{destinationAgeLabel(item, locale)}</span>
+                  </div>
+                  <AmapNavigationButton
+                    destination={item}
+                    label={pick(locale, "Navigate", "\u5bfc\u822a")}
+                    className="h-11 w-full md:w-auto"
+                    isSignedIn={Boolean(profile)}
+                    loginHref={`/login?next=${encodeURIComponent("/destinations")}`}
+                    signedOutLabel={pick(locale, "Sign in to navigate", "\u767b\u5f55\u540e\u5bfc\u822a")}
+                  />
                 </div>
               </div>
               </article>

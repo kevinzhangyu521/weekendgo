@@ -35,12 +35,13 @@ export function MobileTabBar({ locale, isSignedIn }: Props) {
   const text = labels[locale];
 
   const mineHref = signedIn ? "/profile" : `/login?next=${encodeURIComponent(pathname || "/")}`;
+  const plansHref = signedIn ? "/plans" : "/login?next=%2Fplans";
 
   const items = [
     { href: "/", label: text.home, icon: Home },
     { href: "/destinations", label: text.destinations, icon: Heart },
     { href: "/map", label: text.map, icon: MapPinned },
-    { href: "/plans", label: text.plans, icon: Route },
+    { href: plansHref, label: text.plans, icon: Route },
     { href: mineHref, label: text.mine, icon: User }
   ];
 

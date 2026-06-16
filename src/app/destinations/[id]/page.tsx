@@ -310,7 +310,7 @@ export default async function DestinationDetailPage({
           <AmapNavigationButton
             destination={destination}
             label={pick(locale, "Navigate", "\u7acb\u5373\u5bfc\u822a")}
-            className="shrink-0"
+            className="h-11 shrink-0"
             isSignedIn={Boolean(user)}
             loginHref={loginHref}
             signedOutLabel={pick(locale, "Sign in to navigate", "\u767b\u5f55\u540e\u5bfc\u822a")}
