@@ -129,7 +129,7 @@ export default async function SharedPlanPage({
                             <a
                               href={getAmapNavigationUrl(item.destination)}
                               target="_blank"
-                              rel="noreferrer"
+                              rel="noopener noreferrer"
                               className="inline-flex rounded-full bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white"
                             >
                               {pick(locale, "Navigate", "\u7acb\u5373\u5bfc\u822a")}
