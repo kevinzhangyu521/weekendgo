@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useState } from "react";
-import { useFormStatus } from "react-dom";
+import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AdminDestination } from "@/features/admin/destinations";
 import { toChineseRegionName } from "@/lib/geo/region-names";
-import { saveDestination, type UpdateDestinationState } from "./actions";
+import { createClient } from "@/lib/supabase/client";
 
 const scenarios = [
   { value: "creek", label: "\u6eaf\u6eaa" },
@@ -18,40 +17,26 @@ const scenarios = [
 const labelClass = "block text-sm font-bold text-slate-900";
 const inputClass = "mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm";
 
-function SaveButton() {
-  const { pending } = useFormStatus();
-
-  return (
-    <button
-      disabled={pending}
-      className="rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
-    >
-      {pending ? "\u4fdd\u5b58\u4e2d..." : "\u4fdd\u5b58\u4fee\u6539"}
-    </button>
-  );
+async function authHeaders() {
+  const supabase = createClient();
+  const {
+    data: { session }
+  } = await supabase.auth.getSession();
+  const headers: Record<string, string> = {};
+  if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
+  return headers;
 }
 
 export function EditDestinationForm({ item }: { item: AdminDestination }) {
   const router = useRouter();
-  const initialState: UpdateDestinationState = { ok: false, message: "" };
-  const [state, formAction] = useActionState(saveDestination, initialState);
   const [locationText, setLocationText] = useState(`${item.provinceZh || toChineseRegionName(item.province)} ${item.cityZh || toChineseRegionName(item.city)} ${item.nameZh || item.name}`.trim());
   const [latitude, setLatitude] = useState(String(item.latitude || ""));
   const [longitude, setLongitude] = useState(String(item.longitude || ""));
   const [locating, setLocating] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [locationMessage, setLocationMessage] = useState("");
   const [locationError, setLocationError] = useState("");
-
-  useEffect(() => {
-    if (!state.ok) return;
-
-    const timer = window.setTimeout(() => {
-      router.push("/admin/destinations");
-      router.refresh();
-    }, 1200);
-
-    return () => window.clearTimeout(timer);
-  }, [router, state.ok]);
+  const [state, setState] = useState({ ok: false, message: "" });
 
   async function locateByAddress() {
     const query = locationText.trim();
@@ -92,8 +77,35 @@ export function EditDestinationForm({ item }: { item: AdminDestination }) {
     }
   }
 
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSaving(true);
+    setState({ ok: false, message: "" });
+
+    try {
+      const response = await fetch(`/api/admin/destinations/${item.id}`, {
+        method: "PUT",
+        headers: await authHeaders(),
+        credentials: "include",
+        cache: "no-store",
+        body: new FormData(event.currentTarget)
+      });
+      const result = (await response.json()) as { ok?: boolean; message?: string };
+      if (!response.ok || !result.ok) throw new Error(result.message ?? "\u4fdd\u5b58\u5931\u8d25\u3002");
+      setState({ ok: true, message: result.message ?? "\u4fdd\u5b58\u6210\u529f\u3002" });
+      window.setTimeout(() => {
+        router.push("/admin/destinations");
+        router.refresh();
+      }, 1200);
+    } catch (err) {
+      setState({ ok: false, message: err instanceof Error ? err.message : "\u4fdd\u5b58\u5931\u8d25\u3002" });
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
-    <form action={formAction} encType="multipart/form-data" className="mt-5 space-y-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <form onSubmit={handleSubmit} encType="multipart/form-data" className="mt-5 space-y-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <input type="hidden" name="id" value={item.id} />
 
       {state.message ? (
@@ -232,7 +244,12 @@ export function EditDestinationForm({ item }: { item: AdminDestination }) {
       </section>
 
       <div className="flex flex-wrap items-center gap-3 border-t border-slate-100 pt-5">
-        <SaveButton />
+        <button
+          disabled={saving}
+          className="rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {saving ? "\u4fdd\u5b58\u4e2d..." : "\u4fdd\u5b58\u4fee\u6539"}
+        </button>
         <Link href="/admin/destinations" className="text-sm text-slate-600 hover:underline">
           {"\u53d6\u6d88"}
         </Link>
