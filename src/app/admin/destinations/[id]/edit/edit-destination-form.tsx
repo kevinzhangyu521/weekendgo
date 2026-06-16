@@ -79,6 +79,7 @@ export function EditDestinationForm({ item }: { item: AdminDestination }) {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const formData = new FormData(event.currentTarget);
     setSaving(true);
     setState({ ok: false, message: "" });
 
@@ -88,7 +89,7 @@ export function EditDestinationForm({ item }: { item: AdminDestination }) {
         headers: await authHeaders(),
         credentials: "include",
         cache: "no-store",
-        body: new FormData(event.currentTarget)
+        body: formData
       });
       const result = (await response.json()) as { ok?: boolean; message?: string };
       if (!response.ok || !result.ok) throw new Error(result.message ?? "\u4fdd\u5b58\u5931\u8d25\u3002");
