@@ -84,7 +84,7 @@ const weatherByCity: Record<string, WeekendProfile> = {
     textEn: "Sunny to cloudy",
     temp: 27,
     wind: 2,
-    advice: "适合徒步和溯溪周边游",
+    advice: "适合徒步和溪流周边游",
     adviceEn: "Good for hiking and creek trips",
     scenario: "creek"
   }
@@ -95,22 +95,23 @@ function displayCity(city: string, locale: Locale) {
 }
 
 function getWeekendWeather(city: string, preferredScenarios: Scenario[], locale: Locale) {
-  const profile = weatherByCity[city] ?? weatherByCity[DEFAULT_HOME_CITY];
+  const profile = weatherByCity[city] ?? weatherByCity[DEFAULT_HOME_CITY] ?? weatherByCity.武汉;
   const scenario = preferredScenarios[0] ?? profile.scenario;
 
   return {
     scenario,
     weather: pick(locale, `${profile.textEn} ${profile.temp}C`, `${profile.text} ${profile.temp}°C`),
     wind: pick(locale, `Wind level ${profile.wind}`, `风力 ${profile.wind}级`),
-    advice: preferredScenarios.length > 0
-      ? pick(locale, "Matched with your saved preferences", "已根据你的偏好场景匹配")
-      : pick(locale, profile.adviceEn, profile.advice)
+    advice:
+      preferredScenarios.length > 0
+        ? pick(locale, "Matched with your saved preferences", "已根据你的偏好场景匹配")
+        : pick(locale, profile.adviceEn, profile.advice)
   };
 }
 
 function formatDistance(distanceKm: number, locale: Locale) {
   if (!distanceKm || distanceKm <= 0) return pick(locale, "Distance pending", "距离待计算");
-  return pick(locale, `${distanceKm}km`, `${distanceKm}km`);
+  return `${distanceKm}km`;
 }
 
 function isNearHomeCity(item: DestinationItem, homeCity: string) {
@@ -262,13 +263,13 @@ export default async function HomePage() {
 
           <div className="mt-3 grid grid-cols-3 gap-2">
             <Link href="#top10" className="rounded-2xl bg-rose-50 px-3 py-2 text-center text-xs font-black text-rose-700">
-              🔥 {pick(locale, "Top 10", "本周TOP10")}
+              {pick(locale, "Top 10", "本周TOP10")}
             </Link>
             <Link href="#nearby" className="rounded-2xl bg-emerald-50 px-3 py-2 text-center text-xs font-black text-emerald-700">
-              📍 {pick(locale, "Nearest", "离我最近")}
+              {pick(locale, "Nearest", "离我最近")}
             </Link>
             <Link href={destinationListHref({ city: homeCity, scenario: "all", difficulty: "easy", maxDistance: 80, needParking: true, needToilet: true })} className="rounded-2xl bg-sky-50 px-3 py-2 text-center text-xs font-black text-sky-700">
-              👶 {pick(locale, "Young kids", "低龄宝宝")}
+              {pick(locale, "Young kids", "低龄宝宝")}
             </Link>
           </div>
         </div>

@@ -71,9 +71,7 @@ function Top10Card({ item, locale, rank }: { item: DestinationItem; locale: Loca
       </div>
       <div className="space-y-2 p-3">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="line-clamp-1 text-sm font-bold text-slate-950">
-            {destinationName(item, locale)}
-          </h3>
+          <h3 className="line-clamp-1 text-sm font-bold text-slate-950">{destinationName(item, locale)}</h3>
           <span className="inline-flex shrink-0 items-center gap-0.5 text-xs font-semibold text-amber-600">
             <Star className="h-3.5 w-3.5 fill-current" />
             {item.rating.toFixed(1)}

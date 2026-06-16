@@ -39,10 +39,6 @@ async function getAuthDiagnostic(authSource: string) {
   };
 }
 
-function authDiagnosticMessage(diagnostic: Awaited<ReturnType<typeof getAuthDiagnostic>>) {
-  return `${text.signInRequired}\u8bca\u65ad\uff1aSupabase Auth Cookie=${diagnostic.hasSupabaseAuthCookie ? "\u5df2\u6536\u5230" : "\u672a\u6536\u5230"}\uff0cAuthSource=${diagnostic.authSource}`;
-}
-
 export async function POST(request: Request) {
   let payload: AddToPlanPayload = {};
 
@@ -60,7 +56,7 @@ export async function POST(request: Request) {
 
   if (!user) {
     const diagnostic = await getAuthDiagnostic(authSource);
-    return NextResponse.json({ ok: false, message: authDiagnosticMessage(diagnostic), diagnostic }, { status: 401 });
+    return NextResponse.json({ ok: false, message: text.signInRequired, diagnostic }, { status: 401 });
   }
 
   const today = new Date().toISOString().slice(0, 10);
