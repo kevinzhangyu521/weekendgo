@@ -88,11 +88,12 @@ export function CollectionWorkbenchClient() {
 
   async function handleCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const formElement = event.currentTarget;
     setSaving(true);
     setMessage("");
     setError("");
 
-    const form = new FormData(event.currentTarget);
+    const form = new FormData(formElement);
     const payload = {
       sourceUrl: String(form.get("source_url") ?? ""),
       videoUrl: String(form.get("video_url") ?? ""),
@@ -125,7 +126,7 @@ export function CollectionWorkbenchClient() {
       const result = (await response.json()) as CollectionsResponse;
       if (!response.ok || !result.ok) throw new Error(result.message ?? "保存失败。");
       setMessage(result.message ?? "已保存。");
-      event.currentTarget.reset();
+      formElement.reset();
       await loadItems();
     } catch (err) {
       setError(err instanceof Error ? err.message : "保存失败。");
