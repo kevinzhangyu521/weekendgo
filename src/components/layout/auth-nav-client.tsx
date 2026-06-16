@@ -30,6 +30,7 @@ const navItems: Record<Locale, NavItem[]> = {
     { href: "/submit-spot", label: "\u6dfb\u52a0\u5730\u70b9", authOnly: true },
     { href: "/my-submissions", label: "\u6211\u7684\u6295\u7a3f", authOnly: true },
     { href: "/profile", label: "\u6211\u7684\u8d44\u6599", authOnly: true },
+    { href: "/admin/collections", label: "\u91c7\u96c6", adminOnly: true },
     { href: "/admin/submissions", label: "\u5ba1\u6838", adminOnly: true },
     { href: "/admin/destinations", label: "\u5730\u70b9\u7ba1\u7406", adminOnly: true },
     { href: "/admin/settings", label: "\u7ba1\u7406\u8bbe\u7f6e", adminOnly: true }
@@ -42,6 +43,7 @@ const navItems: Record<Locale, NavItem[]> = {
     { href: "/submit-spot", label: "Add", authOnly: true },
     { href: "/my-submissions", label: "My Submissions", authOnly: true },
     { href: "/profile", label: "Profile", authOnly: true },
+    { href: "/admin/collections", label: "Collect", adminOnly: true },
     { href: "/admin/submissions", label: "Review", adminOnly: true },
     { href: "/admin/destinations", label: "Manage", adminOnly: true },
     { href: "/admin/settings", label: "Settings", adminOnly: true }
