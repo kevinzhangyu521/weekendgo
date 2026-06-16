@@ -18,6 +18,7 @@ import {
 } from "@/features/destinations/presenter";
 import { getAllDestinations, getMyFavoriteDestinationIds } from "@/features/destinations/repository";
 import { getMyProfile } from "@/features/profiles/repository";
+import { getReviewCountsForDestinations } from "@/features/reviews/repository";
 import { DEFAULT_HOME_CITY, withDistanceFromCity } from "@/lib/geo/distance";
 import { getLocale, pick } from "@/lib/i18n/server";
 
@@ -58,6 +59,7 @@ export default async function DestinationsPage({
   const itemsWithDistance = withDistanceFromCity(rawDestinations, homeCity);
   const list = filterDestinations(itemsWithDistance, filters);
   const favoriteIdSet = new Set(favoriteIds);
+  const reviewCounts = await getReviewCountsForDestinations(list.map((item) => item.id));
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -168,6 +170,9 @@ export default async function DestinationsPage({
                     <span className="inline-flex items-center gap-1 text-xs text-slate-600">
                       <Star className="h-3.5 w-3.5 fill-current text-amber-500" />
                       {item.rating.toFixed(1)}
+                    </span>
+                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                      {pick(locale, `${reviewCounts.get(item.id) ?? 0} reviews`, `${reviewCounts.get(item.id) ?? 0}条真实体验`)}
                     </span>
                     <FavoriteButton
                       destinationId={item.id}

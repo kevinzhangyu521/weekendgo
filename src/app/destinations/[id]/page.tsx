@@ -34,6 +34,37 @@ function formatDistance(distanceKm: number, locale: "en" | "zh") {
   return pick(locale, `About ${distanceKm}km away`, `\u7ea6 ${distanceKm}km`);
 }
 
+function reviewAgeLabel(value: string | null, locale: "en" | "zh") {
+  if (!value) return null;
+  const labels: Record<string, { en: string; zh: string }> = {
+    "0-3": { en: "Age 0-3", zh: "适合0-3岁" },
+    "3-6": { en: "Age 3-6", zh: "适合3-6岁" },
+    "6-12": { en: "Age 6-12", zh: "适合6-12岁" },
+    "12+": { en: "Age 12+", zh: "适合12岁+" }
+  };
+  return pick(locale, labels[value]?.en ?? value, labels[value]?.zh ?? value);
+}
+
+function reviewParkingLabel(value: string | null, locale: "en" | "zh") {
+  if (!value) return null;
+  const labels: Record<string, { en: string; zh: string }> = {
+    easy: { en: "Easy parking", zh: "停车方便" },
+    normal: { en: "Parking is okay", zh: "停车一般" },
+    hard: { en: "Hard to park", zh: "停车较难" }
+  };
+  return pick(locale, labels[value]?.en ?? value, labels[value]?.zh ?? value);
+}
+
+function reviewToiletLabel(value: string | null, locale: "en" | "zh") {
+  if (!value) return null;
+  const labels: Record<string, { en: string; zh: string }> = {
+    good: { en: "Toilet convenient", zh: "厕所方便" },
+    normal: { en: "Toilet is okay", zh: "厕所一般" },
+    poor: { en: "Few toilets", zh: "厕所较少" }
+  };
+  return pick(locale, labels[value]?.en ?? value, labels[value]?.zh ?? value);
+}
+
 export default async function DestinationDetailPage({
   params
 }: {
@@ -243,22 +274,46 @@ export default async function DestinationDetailPage({
                 {pick(locale, "No real experiences yet. Be the first family to share.", "\u6682\u65e0\u771f\u5b9e\u4f53\u9a8c\uff0c\u4f60\u53ef\u4ee5\u6210\u4e3a\u7b2c\u4e00\u4e2a\u5206\u4eab\u7684\u5bb6\u5ead\u3002")}
               </div>
             ) : (
-              reviews.map((review) => (
-                <article key={review.id} className="rounded-xl bg-slate-50 p-4 text-sm text-slate-700">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="inline-flex items-center gap-1 text-amber-500">
-                      {Array.from({ length: 5 }).map((_, index) => (
-                        <Star key={index} className={`h-4 w-4 ${index < review.rating ? "fill-current" : "text-slate-300"}`} />
-                      ))}
+              reviews.map((review) => {
+                const tags = [
+                  reviewAgeLabel(review.suitableAge, locale),
+                  reviewParkingLabel(review.parkingRating, locale),
+                  reviewToiletLabel(review.toiletRating, locale),
+                  review.recommend === true ? pick(locale, "Would go again", "推荐再去") : review.recommend === false ? pick(locale, "Would not rush back", "不太推荐") : null
+                ].filter(Boolean);
+
+                return (
+                  <article key={review.id} className="rounded-xl bg-slate-50 p-4 text-sm text-slate-700">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="inline-flex items-center gap-1 text-amber-500">
+                        {Array.from({ length: 5 }).map((_, index) => (
+                          <Star key={index} className={`h-4 w-4 ${index < review.rating ? "fill-current" : "text-slate-300"}`} />
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-slate-500">
+                        {review.isMine ? <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-emerald-700">{"我的体验"}</span> : null}
+                        {review.visitDate ? <span>{review.visitDate}</span> : null}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-slate-500">
-                      {review.isMine ? <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-emerald-700">{"\u6211\u7684\u4f53\u9a8c"}</span> : null}
-                      {review.visitDate ? <span>{review.visitDate}</span> : null}
-                    </div>
-                  </div>
-                  <p className="mt-2 leading-6">{review.content}</p>
-                </article>
-              ))
+                    {tags.length > 0 ? (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {tags.map((tag) => (
+                          <span key={tag} className="rounded-full bg-white px-2.5 py-1 text-xs font-medium text-slate-600 ring-1 ring-slate-200">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
+                    {review.safetyNote ? (
+                      <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800">
+                        <span className="font-semibold">{pick(locale, "Safety note: ", "安全提醒：")}</span>
+                        {review.safetyNote}
+                      </p>
+                    ) : null}
+                    <p className="mt-3 leading-6">{review.content}</p>
+                  </article>
+                );
+              })
             )}
           </div>
         </section>
