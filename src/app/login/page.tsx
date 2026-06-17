@@ -27,7 +27,7 @@ export default async function LoginPage({ searchParams }: { searchParams?: Promi
       <section className="mx-auto flex max-w-md flex-col px-4 py-10 md:px-0">
         <p className="text-sm text-slate-500">栖美地账号</p>
         <h1 className="text-2xl font-bold text-slate-900">邮箱密码登录</h1>
-        <p className="mt-2 text-sm text-slate-600">使用邮箱和密码登录栖美地。</p>
+        <p className="mt-2 text-sm text-slate-600">使用邮箱和密码登录栖美地，登录后可以收藏地点、加入计划和分享真实体验。</p>
 
         {user ? (
           <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
@@ -54,7 +54,6 @@ export default async function LoginPage({ searchParams }: { searchParams?: Promi
             首页
           </Link>
         </div>
-        <p className="mt-3 text-center text-[11px] text-slate-400">login-browser-cookie-2026-06-12-v1</p>
       </section>
     </main>
   );
