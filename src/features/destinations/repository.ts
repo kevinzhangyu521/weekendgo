@@ -26,6 +26,7 @@ type DestinationRow = {
   image: string | null;
   description: string | null;
   description_zh: string | null;
+  is_active: boolean | null;
 };
 
 function hasSupabaseEnv() {
@@ -55,12 +56,13 @@ function normalizeRow(row: DestinationRow): DestinationItem | null {
     minKidAge: row.min_kid_age ?? 0,
     image: row.image ?? "",
     description: row.description ?? "",
-    descriptionZh: row.description_zh
+    descriptionZh: row.description_zh,
+    isActive: row.is_active ?? true
   };
 }
 
 const destinationSelectFields =
-  "id,name,name_zh,province,province_zh,city,city_zh,latitude,longitude,scenario,distance_km,difficulty,safety,rating,has_parking,has_toilet,min_kid_age,image,description,description_zh";
+  "id,name,name_zh,province,province_zh,city,city_zh,latitude,longitude,scenario,distance_km,difficulty,safety,rating,has_parking,has_toilet,min_kid_age,image,description,description_zh,is_active";
 
 async function fetchPublicSupabaseDestinations(): Promise<DestinationItem[] | null> {
   if (!hasSupabaseEnv()) return null;
@@ -70,6 +72,7 @@ async function fetchPublicSupabaseDestinations(): Promise<DestinationItem[] | nu
     const { data, error } = await supabase
       .from("destinations")
       .select(destinationSelectFields)
+      .eq("is_active", true)
       .order("rating", { ascending: false })
       .limit(120);
 
@@ -135,6 +138,7 @@ export async function getMyFavoriteDestinations(): Promise<DestinationItem[]> {
     const { data: destinationRows, error: destinationError } = await supabase
       .from("destinations")
       .select(destinationSelectFields)
+      .eq("is_active", true)
       .in("id", ids);
 
     if (destinationError || !destinationRows) return [];

@@ -23,6 +23,7 @@ type DestinationRow = {
   image: string | null;
   description: string | null;
   description_zh: string | null;
+  is_active: boolean | null;
   updated_at: string | null;
 };
 
@@ -30,10 +31,11 @@ export type AdminDestination = DestinationItem & {
   externalId: string | null;
   updatedAt: string | null;
   source: string;
+  isActive: boolean;
 };
 
 const selectFields =
-  "id,external_id,name,name_zh,province,province_zh,city,city_zh,latitude,longitude,scenario,distance_km,difficulty,safety,rating,has_parking,has_toilet,min_kid_age,image,description,description_zh,updated_at";
+  "id,external_id,name,name_zh,province,province_zh,city,city_zh,latitude,longitude,scenario,distance_km,difficulty,safety,rating,has_parking,has_toilet,min_kid_age,image,description,description_zh,is_active,updated_at";
 
 function normalize(row: DestinationRow): AdminDestination | null {
   if (!row.id || !row.name || !row.scenario || !row.difficulty || !row.safety) return null;
@@ -61,6 +63,7 @@ function normalize(row: DestinationRow): AdminDestination | null {
     image: row.image ?? "",
     description: row.description ?? "",
     descriptionZh: row.description_zh,
+    isActive: row.is_active ?? true,
     updatedAt: row.updated_at
   };
 }

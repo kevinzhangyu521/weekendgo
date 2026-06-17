@@ -26,11 +26,12 @@ type DestinationRow = {
   image: string | null;
   description: string | null;
   description_zh: string | null;
+  is_active: boolean | null;
   updated_at: string | null;
 };
 
 const selectFields =
-  "id,external_id,name,name_zh,province,province_zh,city,city_zh,latitude,longitude,scenario,distance_km,difficulty,safety,rating,has_parking,has_toilet,min_kid_age,image,description,description_zh,updated_at";
+  "id,external_id,name,name_zh,province,province_zh,city,city_zh,latitude,longitude,scenario,distance_km,difficulty,safety,rating,has_parking,has_toilet,min_kid_age,image,description,description_zh,is_active,updated_at";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -64,6 +65,7 @@ function normalize(row: DestinationRow): AdminDestination | null {
     image: row.image ?? "",
     description: row.description ?? "",
     descriptionZh: row.description_zh,
+    isActive: row.is_active ?? true,
     updatedAt: row.updated_at
   };
 }
@@ -152,4 +154,34 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   revalidatePath("/plans");
 
   return NextResponse.json({ ok: true, message: "\u4fdd\u5b58\u6210\u529f\uff0c\u6b63\u5728\u8fd4\u56de\u76ee\u7684\u5730\u7ba1\u7406\u9875..." });
+}
+
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const { supabase, user, isAdmin } = await requireBrowserAdmin(request);
+  if (!user) return NextResponse.json({ ok: false, message: "\u8bf7\u5148\u767b\u5f55\u3002" }, { status: 401 });
+  if (!isAdmin) return NextResponse.json({ ok: false, message: "\u4f60\u6ca1\u6709\u7ba1\u7406\u5458\u6743\u9650\u3002" }, { status: 403 });
+
+  const body = (await request.json().catch(() => null)) as { isActive?: unknown } | null;
+  if (typeof body?.isActive !== "boolean") {
+    return NextResponse.json({ ok: false, message: "\u8bf7\u63d0\u4f9b\u6b63\u786e\u7684\u4e0a\u4e0b\u67b6\u72b6\u6001\u3002" }, { status: 400 });
+  }
+
+  const { error } = await supabase
+    .from("destinations")
+    .update({ is_active: body.isActive, updated_at: new Date().toISOString() })
+    .eq("id", id);
+
+  if (error) return NextResponse.json({ ok: false, message: `\u64cd\u4f5c\u5931\u8d25\uff1a${error.message}` }, { status: 500 });
+
+  revalidateTag("destinations");
+  revalidatePath("/admin/destinations");
+  revalidatePath(`/admin/destinations/${id}/edit`);
+  revalidatePath("/destinations");
+  revalidatePath(`/destinations/${id}`);
+  revalidatePath("/map");
+  revalidatePath("/favorites");
+  revalidatePath("/plans");
+
+  return NextResponse.json({ ok: true, message: body.isActive ? "\u5df2\u6062\u590d\u5c55\u793a\u3002" : "\u5df2\u4e0b\u67b6\uff0c\u524d\u53f0\u4e0d\u518d\u5c55\u793a\u3002" });
 }

@@ -23,6 +23,7 @@ export type DestinationItem = {
   image: string;
   description: string;
   descriptionZh?: string | null;
+  isActive?: boolean;
 };
 
 export type DestinationFilters = {

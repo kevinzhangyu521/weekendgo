@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
-import { Pencil } from "lucide-react";
+import { Eye, EyeOff, Pencil } from "lucide-react";
 import type { AdminDestination } from "@/features/admin/destinations";
 import { getDestinationImage } from "@/features/destinations/images";
 import { destinationScenario } from "@/features/destinations/presenter";
@@ -14,6 +14,11 @@ type AdminDestinationsResponse = {
   ok?: boolean;
   isAdmin?: boolean;
   destinations?: AdminDestination[];
+  message?: string;
+};
+
+type AdminDestinationStatusResponse = {
+  ok?: boolean;
   message?: string;
 };
 
@@ -46,6 +51,8 @@ export function AdminDestinationsClient() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [statusMessage, setStatusMessage] = useState("");
+  const [updatingId, setUpdatingId] = useState("");
 
   async function loadDestinations(nextQ = q) {
     if (currentUser.isLoading) return;
@@ -84,6 +91,40 @@ export function AdminDestinationsClient() {
     void loadDestinations(q);
   }
 
+  async function toggleDestinationStatus(item: AdminDestination) {
+    const nextIsActive = !item.isActive;
+    const confirmMessage = nextIsActive
+      ? `确认恢复「${item.nameZh || item.name}」吗？恢复后会重新出现在前台。`
+      : `确认下架「${item.nameZh || item.name}」吗？下架后前台列表、首页和 TOP10 都不再展示。`;
+
+    if (!window.confirm(confirmMessage)) return;
+
+    setUpdatingId(item.id);
+    setStatusMessage("");
+    setError("");
+    try {
+      const response = await fetch(`/api/admin/destinations/${item.id}`, {
+        method: "PATCH",
+        headers: {
+          ...(await authHeaders()),
+          "Content-Type": "application/json"
+        },
+        credentials: "include",
+        cache: "no-store",
+        body: JSON.stringify({ isActive: nextIsActive })
+      });
+      const result = (await response.json()) as AdminDestinationStatusResponse;
+      if (!response.ok || !result.ok) throw new Error(result.message ?? "\u64cd\u4f5c\u5931\u8d25\u3002");
+
+      setDestinations((items) => items.map((value) => (value.id === item.id ? { ...value, isActive: nextIsActive } : value)));
+      setStatusMessage(result.message ?? (nextIsActive ? "\u5df2\u6062\u590d\u5c55\u793a\u3002" : "\u5df2\u4e0b\u67b6\u3002"));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "\u64cd\u4f5c\u5931\u8d25\u3002");
+    } finally {
+      setUpdatingId("");
+    }
+  }
+
   return (
     <main className="min-h-screen bg-slate-50">
       <section className="mx-auto max-w-6xl px-4 py-6 md:px-6">
@@ -107,6 +148,8 @@ export function AdminDestinationsClient() {
               <button className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">{"\u641c\u7d22"}</button>
               <button type="button" onClick={() => { setQ(""); void loadDestinations(""); }} className="rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-700">{"\u91cd\u7f6e"}</button>
             </form>
+            {statusMessage ? <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{statusMessage}</div> : null}
+            {error ? <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">{error}</div> : null}
             <div className="mt-5 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
               <div className="border-b border-slate-100 px-4 py-3 text-sm text-slate-600">{"\u5171"} {destinations.length} {"\u4e2a\u76ee\u7684\u5730"}</div>
               <div className="divide-y divide-slate-100">
@@ -121,13 +164,27 @@ export function AdminDestinationsClient() {
                         <div className="flex flex-wrap items-center gap-2">
                           <h2 className="font-semibold text-slate-900">{item.nameZh || item.name}</h2>
                           <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">{item.source}</span>
+                          {!item.isActive ? <span className="rounded-full bg-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700">{"\u5df2\u4e0b\u67b6"}</span> : null}
                         </div>
                         <p className="mt-1 text-sm text-slate-600">{formatRegion(item)} - {destinationScenario(item, "zh")} - {formatDistance(item.distanceKm)}</p>
                         <p className="mt-1 line-clamp-1 text-sm text-slate-500">{item.descriptionZh || item.description}</p>
                       </div>
-                      <Link href={`/admin/destinations/${item.id}/edit`} className="inline-flex items-center justify-center gap-1 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-emerald-700">
-                        <Pencil className="h-4 w-4" />{"\u7f16\u8f91"}
-                      </Link>
+                      <div className="flex flex-wrap gap-2 md:justify-end">
+                        <Link href={`/admin/destinations/${item.id}/edit`} className="inline-flex h-10 items-center justify-center gap-1 rounded-lg border border-emerald-200 bg-white px-3 text-sm font-medium text-emerald-700">
+                          <Pencil className="h-4 w-4" />{"\u7f16\u8f91"}
+                        </Link>
+                        <button
+                          type="button"
+                          disabled={updatingId === item.id}
+                          onClick={() => void toggleDestinationStatus(item)}
+                          className={`inline-flex h-10 items-center justify-center gap-1 rounded-lg border px-3 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60 ${
+                            item.isActive ? "border-rose-200 bg-white text-rose-700" : "border-slate-200 bg-slate-900 text-white"
+                          }`}
+                        >
+                          {item.isActive ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          {updatingId === item.id ? "\u5904\u7406\u4e2d" : item.isActive ? "\u4e0b\u67b6" : "\u6062\u590d"}
+                        </button>
+                      </div>
                     </article>
                   );
                 })}

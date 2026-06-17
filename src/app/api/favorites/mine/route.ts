@@ -23,6 +23,7 @@ type DestinationRow = {
   image: string | null;
   description: string | null;
   description_zh: string | null;
+  is_active: boolean | null;
 };
 
 type FavoriteRow = {
@@ -30,7 +31,7 @@ type FavoriteRow = {
 };
 
 const destinationSelectFields =
-  "id,name,name_zh,province,province_zh,city,city_zh,latitude,longitude,scenario,distance_km,difficulty,safety,rating,has_parking,has_toilet,min_kid_age,image,description,description_zh";
+  "id,name,name_zh,province,province_zh,city,city_zh,latitude,longitude,scenario,distance_km,difficulty,safety,rating,has_parking,has_toilet,min_kid_age,image,description,description_zh,is_active";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -57,7 +58,8 @@ function normalizeRow(row: DestinationRow): DestinationItem | null {
     minKidAge: row.min_kid_age ?? 0,
     image: row.image ?? "",
     description: row.description ?? "",
-    descriptionZh: row.description_zh
+    descriptionZh: row.description_zh,
+    isActive: row.is_active ?? true
   };
 }
 
@@ -73,7 +75,7 @@ export async function GET(request: Request) {
   }
 
   const ids = (favoriteRows as FavoriteRow[]).map((row) => row.destination_id).filter(Boolean);
-  const { data: destinationRows, error: destinationError } = await supabase.from("destinations").select(destinationSelectFields).in("id", ids);
+  const { data: destinationRows, error: destinationError } = await supabase.from("destinations").select(destinationSelectFields).eq("is_active", true).in("id", ids);
   if (destinationError || !destinationRows) {
     return NextResponse.json({ ok: false, destinations: [], message: "\u8bfb\u53d6\u6536\u85cf\u5931\u8d25\u3002" }, { status: 500 });
   }

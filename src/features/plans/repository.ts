@@ -46,10 +46,11 @@ type PlanItemDestinationRow = {
     image: string | null;
     description: string | null;
     description_zh: string | null;
+    is_active: boolean | null;
 };
 
 function normalizeDestination(row: PlanItemRow["destination"]): DestinationItem | null {
-  if (!row || !row.id || !row.name || !row.scenario || !row.difficulty || !row.safety) return null;
+  if (!row || row.is_active === false || !row.id || !row.name || !row.scenario || !row.difficulty || !row.safety) return null;
   return {
     id: row.id,
     name: row.name,
@@ -70,7 +71,8 @@ function normalizeDestination(row: PlanItemRow["destination"]): DestinationItem 
     minKidAge: row.min_kid_age ?? 0,
     image: row.image ?? "",
     description: row.description ?? "",
-    descriptionZh: row.description_zh
+    descriptionZh: row.description_zh,
+    isActive: row.is_active ?? true
   };
 }
 
@@ -134,7 +136,7 @@ export async function getMyPlanById(planId: string): Promise<PlanDetail | null> 
   const { data: items } = await supabase
     .from("plan_items")
     .select(
-      "id,sort_order,destination:destinations(id,name,name_zh,province,province_zh,city,city_zh,latitude,longitude,scenario,distance_km,difficulty,safety,rating,has_parking,has_toilet,min_kid_age,image,description,description_zh)"
+      "id,sort_order,destination:destinations(id,name,name_zh,province,province_zh,city,city_zh,latitude,longitude,scenario,distance_km,difficulty,safety,rating,has_parking,has_toilet,min_kid_age,image,description,description_zh,is_active)"
     )
     .eq("plan_id", planId)
     .order("sort_order", { ascending: true });
@@ -165,7 +167,7 @@ export async function getPublicPlanBySlug(shareSlug: string): Promise<PlanDetail
   const { data: items } = await supabase
     .from("plan_items")
     .select(
-      "id,sort_order,destination:destinations(id,name,name_zh,province,province_zh,city,city_zh,latitude,longitude,scenario,distance_km,difficulty,safety,rating,has_parking,has_toilet,min_kid_age,image,description,description_zh)"
+      "id,sort_order,destination:destinations(id,name,name_zh,province,province_zh,city,city_zh,latitude,longitude,scenario,distance_km,difficulty,safety,rating,has_parking,has_toilet,min_kid_age,image,description,description_zh,is_active)"
     )
     .eq("plan_id", (plan as PlanRow).id)
     .order("sort_order", { ascending: true });
