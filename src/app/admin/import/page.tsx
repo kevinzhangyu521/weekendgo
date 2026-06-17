@@ -2,6 +2,7 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import type { ImportExecuteResult, ImportValidateResult } from "@/features/importer/types";
+import { createClient } from "@/lib/supabase/client";
 
 export default function AdminImportPage() {
   const [spots, setSpots] = useState<File | null>(null);
@@ -22,6 +23,16 @@ export default function AdminImportPage() {
     return formData;
   }
 
+  async function authHeaders() {
+    const supabase = createClient();
+    const {
+      data: { session }
+    } = await supabase.auth.getSession();
+    const headers: Record<string, string> = {};
+    if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
+    return headers;
+  }
+
   async function handleValidate(event: FormEvent) {
     event.preventDefault();
     if (!canSubmit) return;
@@ -31,6 +42,8 @@ export default function AdminImportPage() {
     try {
       const response = await fetch("/api/admin/import/validate", {
         method: "POST",
+        headers: await authHeaders(),
+        credentials: "include",
         body: makeFormData()
       });
       const data = await response.json();
@@ -53,6 +66,8 @@ export default function AdminImportPage() {
     try {
       const response = await fetch("/api/admin/import/execute", {
         method: "POST",
+        headers: await authHeaders(),
+        credentials: "include",
         body: makeFormData()
       });
       const data = await response.json();

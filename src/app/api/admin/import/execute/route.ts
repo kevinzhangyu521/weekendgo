@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
 import { executeImport, parseAndValidateCsv } from "@/features/importer/service";
+import { getRequestAuth } from "@/lib/auth/request-auth";
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "\u8bf7\u5148\u767b\u5f55\u7ba1\u7406\u5458\u8d26\u53f7\u3002" }, { status: 401 });
+  const { supabase, user } = await getRequestAuth(request);
+  if (!user) return NextResponse.json({ error: "请先登录管理员账号。" }, { status: 401 });
+
+  const { data: adminUser, error: adminError } = await supabase.from("admin_users").select("user_id").eq("user_id", user.id).maybeSingle();
+  if (adminError || !adminUser) return NextResponse.json({ error: "当前账号没有管理员权限。" }, { status: 403 });
 
   const formData = await request.formData();
   const spotsFile = formData.get("spots");
