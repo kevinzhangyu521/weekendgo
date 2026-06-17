@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Menu, X } from "lucide-react";
+import { ChevronDown, Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import type { Locale } from "@/lib/i18n/config";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
@@ -111,34 +111,24 @@ export function AuthNavClient({ locale, initialIsAdmin }: Props) {
   });
 
   const loginHref = `/login?next=${encodeURIComponent(pathname || "/")}`;
-  const desktopItems = visibleItems.filter((item) => item.authOnly || item.adminOnly);
+  const accountItems = visibleItems.filter((item) => item.authOnly && !item.adminOnly);
+  const adminItems = visibleItems.filter((item) => item.adminOnly);
+  const menuItems = visibleItems.filter((item) => item.authOnly || item.adminOnly);
 
   return (
     <div className="flex items-center gap-2 text-sm">
-      {desktopItems.length > 0 ? (
-        <nav className="scrollbar-none hidden max-w-[480px] items-center gap-3 overflow-x-auto whitespace-nowrap md:flex">
-          {desktopItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`shrink-0 ${
-                item.adminOnly ? "font-medium text-emerald-700 hover:text-emerald-800" : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+      {menuItems.length > 0 ? (
+        <button
+          type="button"
+          onClick={() => setMenuOpen((value) => !value)}
+          className="inline-flex items-center justify-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-50"
+          aria-label={menuOpen ? "\u5173\u95ed\u83dc\u5355" : "\u6253\u5f00\u83dc\u5355"}
+        >
+          <span className="hidden md:inline">{locale === "zh" ? "菜单" : "Menu"}</span>
+          <span className="md:hidden">{menuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}</span>
+          <ChevronDown className={`hidden h-4 w-4 transition md:block ${menuOpen ? "rotate-180" : ""}`} />
+        </button>
       ) : null}
-
-      <button
-        type="button"
-        onClick={() => setMenuOpen((value) => !value)}
-        className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white p-2 text-slate-700 md:hidden"
-        aria-label={menuOpen ? "\u5173\u95ed\u83dc\u5355" : "\u6253\u5f00\u83dc\u5355"}
-      >
-        {menuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-      </button>
 
       {email ? (
         <div className="flex items-center gap-2">
@@ -160,8 +150,8 @@ export function AuthNavClient({ locale, initialIsAdmin }: Props) {
       )}
 
       {menuOpen ? (
-        <div className="fixed inset-x-4 top-16 z-50 rounded-xl border border-slate-200 bg-white p-3 shadow-xl md:hidden">
-          <div className="grid gap-1">
+        <div className="fixed inset-x-4 top-16 z-50 rounded-xl border border-slate-200 bg-white p-3 shadow-xl md:inset-x-auto md:right-6 md:w-72">
+          <div className="grid gap-1 md:hidden">
             {visibleItems.map((item) => (
               <Link
                 key={item.href}
@@ -174,6 +164,46 @@ export function AuthNavClient({ locale, initialIsAdmin }: Props) {
                 {item.label}
               </Link>
             ))}
+          </div>
+          <div className="hidden gap-3 md:grid">
+            {accountItems.length > 0 ? (
+              <div>
+                <p className="px-3 pb-1 text-xs font-semibold text-slate-400">{locale === "zh" ? "我的功能" : "My tools"}</p>
+                <div className="grid gap-1">
+                  {accountItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setMenuOpen(false)}
+                      className={`rounded-lg px-3 py-2 text-sm ${
+                        pathname === item.href ? "bg-emerald-50 font-semibold text-emerald-700" : "text-slate-700 hover:bg-slate-50"
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+            {adminItems.length > 0 ? (
+              <div className={accountItems.length > 0 ? "border-t border-slate-100 pt-3" : ""}>
+                <p className="px-3 pb-1 text-xs font-semibold text-emerald-700">{locale === "zh" ? "管理员" : "Admin"}</p>
+                <div className="grid gap-1">
+                  {adminItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setMenuOpen(false)}
+                      className={`rounded-lg px-3 py-2 text-sm ${
+                        pathname === item.href ? "bg-emerald-50 font-semibold text-emerald-700" : "font-medium text-emerald-700 hover:bg-emerald-50"
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </div>
           {email ? (
             <div className="mt-3 border-t border-slate-100 pt-3">

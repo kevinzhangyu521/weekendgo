@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import type { DestinationReview } from "@/features/reviews/types";
+import { useCurrentUser } from "@/lib/auth/use-current-user";
 import { createClient } from "@/lib/supabase/client";
 
 type Props = {
@@ -21,6 +22,8 @@ const fieldClass = "mt-1 w-full rounded-xl border border-emerald-100 bg-white px
 
 export function ReviewForm({ destinationId, initialReview, isSignedIn }: Props) {
   const router = useRouter();
+  const currentUser = useCurrentUser();
+  const signedIn = isSignedIn || currentUser.isAuthenticated;
   const [rating, setRating] = useState(initialReview?.rating ?? 5);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -38,15 +41,20 @@ export function ReviewForm({ destinationId, initialReview, isSignedIn }: Props) 
       data: { session }
     } = await supabase.auth.getSession();
 
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json"
-    };
-    if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
+    if (!session?.access_token) {
+      setSaving(false);
+      setOk(false);
+      setMessage("登录状态已失效，请重新登录后再提交体验。");
+      return;
+    }
 
     try {
       const response = await fetch("/api/reviews/save", {
         method: "POST",
-        headers,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`
+        },
         credentials: "include",
         cache: "no-store",
         body: JSON.stringify({
@@ -74,7 +82,15 @@ export function ReviewForm({ destinationId, initialReview, isSignedIn }: Props) 
     }
   }
 
-  if (!isSignedIn) {
+  if (currentUser.isLoading && !isSignedIn) {
+    return (
+      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+        {"正在读取登录状态..."}
+      </div>
+    );
+  }
+
+  if (!signedIn) {
     return (
       <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
         {"登录后可以留下真实体验，帮助其他亲子家庭判断是否适合前往。"}
