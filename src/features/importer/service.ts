@@ -9,6 +9,8 @@ import type {
 } from "./types";
 import { validateRows } from "./validate";
 
+type SupabaseWriter = Awaited<ReturnType<typeof createClient>>;
+
 function toBool(v?: string) {
   return String(v ?? "").toLowerCase() === "true" || v === "1";
 }
@@ -83,7 +85,8 @@ export function parseAndValidateCsv(
 export async function executeImport(
   spots: SpotCsvRow[],
   facilities: FacilityCsvRow[],
-  photos: PhotoCsvRow[]
+  photos: PhotoCsvRow[],
+  writer?: SupabaseWriter
 ): Promise<ImportExecuteResult> {
   const validation = validateRows(spots, facilities, photos);
   if (!validation.ok) {
@@ -93,7 +96,7 @@ export async function executeImport(
     };
   }
 
-  const supabase = await createClient();
+  const supabase = writer ?? (await createClient());
 
   const spotPayload = spots.map((row) => ({
     external_id: row.external_id,
@@ -118,7 +121,7 @@ export async function executeImport(
   if (spotsError) {
     return {
       ok: false,
-      errors: [{ file: "spots", row: 0, message: "spots \u5199\u5165\u5931\u8d25\uff0c\u8bf7\u68c0\u67e5\u8868\u6743\u9650\u548c CSV \u5185\u5bb9\u3002" }],
+      errors: [{ file: "spots", row: 0, message: `spots 写入失败：${spotsError.message}` }],
       counts: validation.counts,
       inserted: { spots: 0, facilities: 0, spotFacilities: 0, photos: 0 }
     };
@@ -131,7 +134,7 @@ export async function executeImport(
   if (destinationsError) {
     return {
       ok: false,
-      errors: [{ file: "spots", row: 0, message: "\u76ee\u7684\u5730\u540c\u6b65\u5931\u8d25\uff0c\u8bf7\u68c0\u67e5 CSV \u5185\u5bb9\u548c\u6570\u636e\u5e93\u6743\u9650\u3002" }],
+      errors: [{ file: "spots", row: 0, message: `目的地同步失败：${destinationsError.message}` }],
       counts: validation.counts,
       inserted: { spots: spotPayload.length, facilities: 0, spotFacilities: 0, photos: 0 }
     };

@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   const parsed = parseAndValidateCsv(spotsRaw, facilitiesRaw, photosRaw);
   if (!parsed.result.ok) return NextResponse.json(parsed.result, { status: 400 });
 
-  const result = await executeImport(parsed.rows.spots, parsed.rows.facilities, parsed.rows.photos);
+  const result = await executeImport(parsed.rows.spots, parsed.rows.facilities, parsed.rows.photos, supabase);
   if (!result.ok) return NextResponse.json(result, { status: 400 });
   revalidateTag("destinations");
   return NextResponse.json(result);
