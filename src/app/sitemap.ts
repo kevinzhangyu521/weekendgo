@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { hasUsableDestinationImage } from "@/features/destinations/images";
 import { getAllDestinations } from "@/features/destinations/repository";
 
 function siteUrl() {
@@ -8,7 +9,7 @@ function siteUrl() {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = siteUrl();
   const now = new Date();
-  const destinations = await getAllDestinations();
+  const destinations = (await getAllDestinations()).filter(hasUsableDestinationImage);
 
   const staticRoutes: MetadataRoute.Sitemap = [
     "",

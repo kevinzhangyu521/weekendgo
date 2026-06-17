@@ -63,11 +63,6 @@ function Top10Card({ item, locale, rank }: { item: DestinationItem; locale: Loca
             {pick(locale, "Top 1 pick", "TOP1推荐")}
           </span>
         ) : null}
-        {image.pending ? (
-          <span className="absolute right-2 top-2 rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-800">
-            {pick(locale, "Pending", "待补充")}
-          </span>
-        ) : null}
       </div>
       <div className="space-y-2 p-3">
         <div className="flex items-start justify-between gap-2">

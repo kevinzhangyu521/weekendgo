@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Bath, Car, Heart, Star } from "lucide-react";
-import { getDestinationImage } from "@/features/destinations/images";
+import { getDestinationImage, hasUsableDestinationImage } from "@/features/destinations/images";
 import { destinationName, destinationRegion, destinationScenario } from "@/features/destinations/presenter";
 import type { DestinationItem } from "@/features/destinations/types";
 import { DEFAULT_HOME_CITY, withDistanceFromCity } from "@/lib/geo/distance";
@@ -70,7 +70,7 @@ export function FavoritesClient({ locale }: { locale: Locale }) {
     };
   }, [currentUser.isAuthenticated, currentUser.isLoading]);
 
-  const list = withDistanceFromCity(destinations, DEFAULT_HOME_CITY);
+  const list = withDistanceFromCity(destinations, DEFAULT_HOME_CITY).filter(hasUsableDestinationImage);
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -108,7 +108,6 @@ export function FavoritesClient({ locale }: { locale: Locale }) {
                 <Link key={item.id} href={`/destinations/${item.id}`} className="flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
                   <div className="relative h-44 overflow-hidden bg-slate-100">
                     <img src={image.src} alt={destinationName(item, locale)} loading="lazy" decoding="async" className="h-full w-full object-cover transition duration-300 hover:scale-105" />
-                    {image.pending ? <span className="absolute left-3 top-3 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800 shadow-sm">{pick(locale, "Image pending", "\u56fe\u7247\u5f85\u8865\u5145")}</span> : null}
                   </div>
                   <div className="flex flex-1 flex-col space-y-3 p-4">
                     <div className="flex items-center justify-between">

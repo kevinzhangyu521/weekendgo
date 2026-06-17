@@ -14,7 +14,7 @@ import {
   Waves
 } from "lucide-react";
 import { Top10Carousel } from "@/components/home/top10-carousel";
-import { getDestinationImage } from "@/features/destinations/images";
+import { getDestinationImage, hasUsableDestinationImage } from "@/features/destinations/images";
 import {
   destinationDescription,
   destinationDifficultyShort,
@@ -127,10 +127,14 @@ function worthScore(item: DestinationItem) {
   return item.rating + easyBonus + safetyBonus + facilityBonus + ageBonus;
 }
 
+function sortByWorth(items: DestinationItem[]) {
+  return [...items].sort((a, b) => worthScore(b) - worthScore(a));
+}
+
 function getTopDestinations(items: DestinationItem[], homeCity: string) {
-  const nearby = items.filter((item) => isNearHomeCity(item, homeCity));
-  const source = nearby.length > 0 ? nearby : items;
-  return [...source].sort((a, b) => worthScore(b) - worthScore(a)).slice(0, 10);
+  const nearby = sortByWorth(items.filter((item) => isNearHomeCity(item, homeCity)));
+  const rest = sortByWorth(items.filter((item) => !nearby.some((nearbyItem) => nearbyItem.id === item.id)));
+  return [...nearby, ...rest].slice(0, 10);
 }
 
 function getScenarioTopDestinations(items: DestinationItem[], homeCity: string, scenario: Scenario) {
@@ -180,7 +184,6 @@ function CompactDestinationCard({ item, locale, reason }: { item: DestinationIte
     <Link href={`/destinations/${item.id}`} className="grid grid-cols-[96px_1fr] gap-3 rounded-2xl bg-white p-2 shadow-sm ring-1 ring-slate-100 transition hover:shadow-md">
       <div className="relative h-24 overflow-hidden rounded-xl bg-slate-100">
         <img src={image.src} alt={destinationName(item, locale)} loading="lazy" decoding="async" className="h-full w-full object-cover" />
-        {image.pending ? <span className="absolute left-1.5 top-1.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">待补充</span> : null}
       </div>
       <div className="min-w-0 py-1">
         <p className="text-[11px] font-semibold text-emerald-700">{reason}</p>
@@ -203,7 +206,7 @@ export default async function HomePage() {
   const preferredScenarios = profile?.preferredScenarios ?? [];
   const city = displayCity(homeCity, locale);
   const weekendWeather = getWeekendWeather(homeCity, preferredScenarios, locale);
-  const allDestinations = withDistanceFromCity(rawDestinations, homeCity);
+  const allDestinations = withDistanceFromCity(rawDestinations, homeCity).filter(hasUsableDestinationImage);
   const topDestinations = getTopDestinations(allDestinations, homeCity);
   const topRankings = {
     overall: topDestinations,

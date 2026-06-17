@@ -40,3 +40,7 @@ export function getDestinationImage(item: DestinationItem) {
 
   return { src: DEFAULT_DESTINATION_IMAGE, pending: true };
 }
+
+export function hasUsableDestinationImage(item: DestinationItem) {
+  return !getDestinationImage(item).pending;
+}

@@ -3,7 +3,7 @@ import { AlertTriangle, Bath, Car, MapPin, SlidersHorizontal, Star } from "lucid
 import { FavoriteButton } from "@/components/favorites/favorite-button";
 import { AmapNavigationButton } from "@/components/plans/amap-navigation-button";
 import { filterDestinations, parseFilters } from "@/features/destinations/filter";
-import { getDestinationImage } from "@/features/destinations/images";
+import { getDestinationImage, hasUsableDestinationImage } from "@/features/destinations/images";
 import {
   destinationDescription,
   destinationDecisionTags,
@@ -56,7 +56,7 @@ export default async function DestinationsPage({
   ]);
   const filters = parseFilters(params);
   const homeCity = profile?.homeCity?.trim() || DEFAULT_HOME_CITY;
-  const itemsWithDistance = withDistanceFromCity(rawDestinations, homeCity);
+  const itemsWithDistance = withDistanceFromCity(rawDestinations, homeCity).filter(hasUsableDestinationImage);
   const list = filterDestinations(itemsWithDistance, filters);
   const favoriteIdSet = new Set(favoriteIds);
   const reviewCounts = await getReviewCountsForDestinations(list.map((item) => item.id));
@@ -154,11 +154,6 @@ export default async function DestinationsPage({
                       decoding="async"
                       className="h-full w-full object-cover transition duration-300 hover:scale-105"
                     />
-                    {image.pending ? (
-                      <span className="absolute left-3 top-3 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800 shadow-sm">
-                        {pick(locale, "Image pending", "\u56fe\u7247\u5f85\u8865\u5145")}
-                      </span>
-                    ) : null}
                   </div>
                 </Link>
               <div className="flex flex-1 flex-col space-y-3 p-4">

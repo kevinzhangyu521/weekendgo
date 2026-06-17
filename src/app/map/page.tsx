@@ -2,6 +2,7 @@ import Link from "next/link";
 import { MapPinned } from "lucide-react";
 import { MapExplorerLoader } from "@/components/map/map-explorer-loader";
 import { filterDestinations, parseFilters } from "@/features/destinations/filter";
+import { hasUsableDestinationImage } from "@/features/destinations/images";
 import { getAllDestinations } from "@/features/destinations/repository";
 import { getMyProfile } from "@/features/profiles/repository";
 import { DEFAULT_HOME_CITY, withDistanceFromCity } from "@/lib/geo/distance";
@@ -20,7 +21,7 @@ export default async function MapPage({
   ]);
   const filters = parseFilters(params);
   const homeCity = profile?.homeCity?.trim() || DEFAULT_HOME_CITY;
-  const items = filterDestinations(withDistanceFromCity(destinations, homeCity), filters);
+  const items = filterDestinations(withDistanceFromCity(destinations, homeCity).filter(hasUsableDestinationImage), filters);
 
   return (
     <main className="min-h-screen bg-slate-50">

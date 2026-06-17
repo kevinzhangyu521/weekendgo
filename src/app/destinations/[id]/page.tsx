@@ -6,7 +6,7 @@ import { AuthActionHint } from "@/components/auth/auth-action-hint";
 import { AddToPlanButton } from "@/components/plans/add-to-plan-button";
 import { AmapNavigationButton } from "@/components/plans/amap-navigation-button";
 import { ReviewForm } from "@/components/reviews/review-form";
-import { getDestinationImage } from "@/features/destinations/images";
+import { getDestinationImage, hasUsableDestinationImage } from "@/features/destinations/images";
 import {
   destinationDescription,
   destinationAgeRange,
@@ -76,7 +76,7 @@ export default async function DestinationDetailPage({
   const homeCity = profile?.homeCity?.trim() || DEFAULT_HOME_CITY;
   const destinationRaw = allDestinationsRaw.find((item) => item.id === id) ?? null;
 
-  if (!destinationRaw) notFound();
+  if (!destinationRaw || !hasUsableDestinationImage(destinationRaw)) notFound();
 
   const [destination] = withDistanceFromCity([destinationRaw], homeCity);
   const related = withDistanceFromCity(
@@ -108,11 +108,6 @@ export default async function DestinationDetailPage({
               decoding="async"
               className="h-full w-full object-cover"
             />
-            {heroImage.pending ? (
-              <span className="absolute left-4 top-4 rounded-full bg-amber-100 px-3 py-1.5 text-sm font-semibold text-amber-800 shadow-sm">
-                {pick(locale, "Image pending", "\u56fe\u7247\u5f85\u8865\u5145")}
-              </span>
-            ) : null}
           </div>
           <div className="space-y-4 p-5 md:p-6">
             <div className="flex flex-wrap items-center gap-2">
@@ -337,11 +332,6 @@ export default async function DestinationDetailPage({
                       decoding="async"
                       className="h-full w-full object-cover transition duration-300 hover:scale-105"
                     />
-                    {image.pending ? (
-                      <span className="absolute left-2 top-2 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800 shadow-sm">
-                        {pick(locale, "Pending", "\u5f85\u8865\u5145")}
-                      </span>
-                    ) : null}
                   </div>
                 <div className="p-3">
                   <p className="text-sm font-medium text-slate-900">{destinationName(item, locale)}</p>
