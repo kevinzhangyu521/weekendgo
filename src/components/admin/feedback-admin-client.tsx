@@ -34,6 +34,16 @@ async function authHeaders(contentType = "application/json") {
   return headers;
 }
 
+async function readJsonResponse<T extends { message?: string }>(response: Response): Promise<T> {
+  const text = await response.text();
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    const fallback = response.status === 404 ? "保存接口不存在，请确认新版代码已部署。" : "接口返回异常，请稍后再试。";
+    return { message: fallback } as T;
+  }
+}
+
 function formatDate(value: string | null) {
   if (!value) return "暂无记录";
   return new Intl.DateTimeFormat("zh-CN", {
@@ -157,8 +167,8 @@ export function FeedbackAdminClient() {
         })
       ]);
 
-      const filteredResult = (await filteredResponse.json()) as FeedbackResponse;
-      const summaryResult = (await summaryResponse.json()) as FeedbackResponse;
+      const filteredResult = await readJsonResponse<FeedbackResponse>(filteredResponse);
+      const summaryResult = await readJsonResponse<FeedbackResponse>(summaryResponse);
       if (!filteredResponse.ok || !filteredResult.ok) throw new Error(filteredResult.message ?? "读取反馈失败。");
       if (!summaryResponse.ok || !summaryResult.ok) throw new Error(summaryResult.message ?? "读取反馈统计失败。");
 
@@ -206,7 +216,7 @@ export function FeedbackAdminClient() {
           adminReply: replyDrafts[item.id] ?? ""
         })
       });
-      const result = (await response.json()) as FeedbackResponse;
+      const result = await readJsonResponse<FeedbackResponse>(response);
       if (!response.ok || !result.ok) throw new Error(result.message ?? "更新失败。");
       if (!result.item) throw new Error("保存失败：接口没有返回数据库记录。");
       const savedItem = result.item;
