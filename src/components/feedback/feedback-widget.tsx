@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { AlertCircle, Lightbulb, Loader2, MessageSquare, X } from "lucide-react";
 import type { FeedbackType } from "@/features/feedback/types";
 import { feedbackTypeLabels } from "@/features/feedback/types";
+import { createClient } from "@/lib/supabase/client";
 
 type FeedbackRequest = {
   type?: FeedbackType;
@@ -17,6 +18,16 @@ type FeedbackResponse = {
 };
 
 const typeOptions: FeedbackType[] = ["bug", "place_error", "feature", "experience", "other"];
+
+async function authHeaders() {
+  const supabase = createClient();
+  const {
+    data: { session }
+  } = await supabase.auth.getSession();
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
+  return headers;
+}
 
 function detectDeviceType() {
   if (typeof navigator === "undefined") return "unknown";
@@ -58,7 +69,7 @@ export function FeedbackWidget() {
     try {
       const response = await fetch("/api/feedback", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: await authHeaders(),
         credentials: "include",
         cache: "no-store",
         body: JSON.stringify({

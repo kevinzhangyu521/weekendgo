@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Star } from "lucide-react";
-import { getDestinationImage } from "@/features/destinations/images";
+import { DEFAULT_DESTINATION_IMAGE, getDestinationImage } from "@/features/destinations/images";
 import {
   destinationAgeRange,
   destinationName,
@@ -50,9 +50,17 @@ function Top10Card({ item, locale, rank }: { item: DestinationItem; locale: Loca
         <img
           src={image.src}
           alt={destinationName(item, locale)}
-          loading="lazy"
+          loading={rank <= 3 ? "eager" : "lazy"}
+          fetchPriority={rank <= 3 ? "high" : "auto"}
           decoding="async"
           draggable={false}
+          referrerPolicy="no-referrer"
+          onError={(event) => {
+            const img = event.currentTarget;
+            if (img.dataset.fallbackApplied === "true") return;
+            img.dataset.fallbackApplied = "true";
+            img.src = DEFAULT_DESTINATION_IMAGE;
+          }}
           className="interactive-image h-full w-full object-cover"
         />
         <span className={`absolute left-2 top-2 rounded-full px-2.5 py-1 text-xs font-black text-white ${topOne ? "bg-rose-500" : "bg-slate-950/85"}`}>
