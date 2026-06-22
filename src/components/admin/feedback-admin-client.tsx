@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { ExternalLink, Search } from "lucide-react";
+import { AlertTriangle, ExternalLink, Search, TrendingUp } from "lucide-react";
 import type { FeedbackItem, FeedbackStatus, FeedbackType } from "@/features/feedback/types";
 import { feedbackStatusLabels, feedbackTypeLabels } from "@/features/feedback/types";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
@@ -43,9 +43,43 @@ function statusClass(status: FeedbackStatus) {
   return "bg-amber-50 text-amber-700 ring-amber-100";
 }
 
+function isSameLocalDay(date: Date, now: Date) {
+  return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth() && date.getDate() === now.getDate();
+}
+
+function isWithinLastDays(date: Date, now: Date, days: number) {
+  const start = new Date(now);
+  start.setDate(start.getDate() - days + 1);
+  start.setHours(0, 0, 0, 0);
+  return date >= start;
+}
+
+function sortTypeCounts(items: FeedbackItem[]) {
+  const counts = new Map<FeedbackType, number>();
+  items.forEach((item) => counts.set(item.type, (counts.get(item.type) ?? 0) + 1));
+  return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
+}
+
+function priorityQueue(items: FeedbackItem[]) {
+  return items
+    .filter((item) => item.status !== "resolved" && (item.type === "bug" || item.type === "place_error"))
+    .slice(0, 5);
+}
+
+function MetricCard({ label, value, hint }: { label: string; value: number; hint: string }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <p className="text-sm text-slate-500">{label}</p>
+      <p className="mt-2 text-3xl font-bold text-slate-950">{value}</p>
+      <p className="mt-1 text-xs text-slate-500">{hint}</p>
+    </div>
+  );
+}
+
 export function FeedbackAdminClient() {
   const currentUser = useCurrentUser();
   const [items, setItems] = useState<FeedbackItem[]>([]);
+  const [summaryItems, setSummaryItems] = useState<FeedbackItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState("");
   const [q, setQ] = useState("");
@@ -62,6 +96,28 @@ export function FeedbackAdminClient() {
     return params.toString();
   }, [q, status, type]);
 
+  const summary = useMemo(() => {
+    const now = new Date();
+    const todayCount = summaryItems.filter((item) => isSameLocalDay(new Date(item.createdAt), now)).length;
+    const last7DaysCount = summaryItems.filter((item) => isWithinLastDays(new Date(item.createdAt), now, 7)).length;
+    const pendingCount = summaryItems.filter((item) => item.status === "pending").length;
+    const inProgressCount = summaryItems.filter((item) => item.status === "in_progress").length;
+    const resolvedCount = summaryItems.filter((item) => item.status === "resolved").length;
+    const typeCounts = sortTypeCounts(summaryItems);
+    const priorityItems = priorityQueue(summaryItems);
+
+    return {
+      todayCount,
+      last7DaysCount,
+      pendingCount,
+      inProgressCount,
+      resolvedCount,
+      typeCounts,
+      priorityItems,
+      recentItems: summaryItems.slice(0, 5)
+    };
+  }, [summaryItems]);
+
   async function loadFeedback() {
     if (currentUser.isLoading) return;
     if (!currentUser.isAuthenticated) {
@@ -72,16 +128,29 @@ export function FeedbackAdminClient() {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch(`/api/admin/feedback?${queryString}`, {
-        headers: await authHeaders(""),
-        credentials: "include",
-        cache: "no-store"
-      });
-      const result = (await response.json()) as FeedbackResponse;
-      if (!response.ok || !result.ok) throw new Error(result.message ?? "读取反馈失败。");
-      setItems(result.items ?? []);
+      const [filteredResponse, summaryResponse] = await Promise.all([
+        fetch(`/api/admin/feedback?${queryString}`, {
+          headers: await authHeaders(""),
+          credentials: "include",
+          cache: "no-store"
+        }),
+        fetch("/api/admin/feedback", {
+          headers: await authHeaders(""),
+          credentials: "include",
+          cache: "no-store"
+        })
+      ]);
+
+      const filteredResult = (await filteredResponse.json()) as FeedbackResponse;
+      const summaryResult = (await summaryResponse.json()) as FeedbackResponse;
+      if (!filteredResponse.ok || !filteredResult.ok) throw new Error(filteredResult.message ?? "读取反馈失败。");
+      if (!summaryResponse.ok || !summaryResult.ok) throw new Error(summaryResult.message ?? "读取反馈统计失败。");
+
+      setItems(filteredResult.items ?? []);
+      setSummaryItems(summaryResult.items ?? []);
     } catch (err) {
       setItems([]);
+      setSummaryItems([]);
       setError(err instanceof Error ? err.message : "读取反馈失败。");
     } finally {
       setLoading(false);
@@ -112,8 +181,10 @@ export function FeedbackAdminClient() {
       });
       const result = (await response.json()) as FeedbackResponse;
       if (!response.ok || !result.ok) throw new Error(result.message ?? "更新失败。");
+
       setMessage(result.message ?? "反馈状态已更新。");
       setItems((values) => values.map((value) => (value.id === item.id ? { ...value, status: nextStatus } : value)));
+      setSummaryItems((values) => values.map((value) => (value.id === item.id ? { ...value, status: nextStatus } : value)));
     } catch (err) {
       setError(err instanceof Error ? err.message : "更新失败。");
     } finally {
@@ -124,41 +195,105 @@ export function FeedbackAdminClient() {
   return (
     <main className="min-h-screen bg-slate-50">
       <section className="mx-auto max-w-6xl px-4 py-6 md:px-6">
-        <h1 className="text-2xl font-bold text-slate-900">反馈管理</h1>
-        <p className="mt-2 text-sm text-slate-600">查看用户提交的程序问题、地点错误、功能建议和体验问题。</p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">反馈管理</h1>
+            <p className="mt-2 text-sm text-slate-600">查看用户提交的程序问题、地点错误、功能建议和体验问题。</p>
+          </div>
+          <button onClick={() => void loadFeedback()} className="h-10 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700">
+            刷新数据
+          </button>
+        </div>
 
         {!currentUser.isLoading && !currentUser.isAuthenticated ? (
           <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-700">请先登录管理员账号。</div>
         ) : null}
 
-        <form onSubmit={handleSearch} className="mt-5 grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-[1fr_160px_180px_auto]">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
-            <input value={q} onChange={(event) => setQ(event.target.value)} placeholder="搜索内容、联系方式、页面 URL" className={`${inputClass} w-full pl-9`} />
-          </div>
-          <select value={status} onChange={(event) => setStatus(event.target.value as FeedbackStatus | "")} className={inputClass}>
-            {statusOptions.map((option) => (
-              <option key={option || "all"} value={option}>
-                {option ? feedbackStatusLabels[option] : "全部状态"}
-              </option>
-            ))}
-          </select>
-          <select value={type} onChange={(event) => setType(event.target.value as FeedbackType | "")} className={inputClass}>
-            {typeOptions.map((option) => (
-              <option key={option || "all"} value={option}>
-                {option ? feedbackTypeLabels[option] : "全部类型"}
-              </option>
-            ))}
-          </select>
-          <button className="h-11 rounded-xl bg-emerald-600 px-5 text-sm font-semibold text-white">筛选</button>
-        </form>
+        {currentUser.isAuthenticated ? (
+          <>
+            <section className="mt-5">
+              <div className="mb-3 flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-emerald-600" />
+                <h2 className="text-lg font-bold text-slate-900">种子测试执行面板</h2>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                <MetricCard label="今日反馈" value={summary.todayCount} hint="当天新增反馈" />
+                <MetricCard label="待处理" value={summary.pendingCount} hint="需要尽快查看" />
+                <MetricCard label="处理中" value={summary.inProgressCount} hint="已经进入修复" />
+                <MetricCard label="近 7 天" value={summary.last7DaysCount} hint="种子测试热度" />
+                <MetricCard label="已解决" value={summary.resolvedCount} hint="累计关闭问题" />
+              </div>
+
+              <div className="mt-3 grid gap-3 lg:grid-cols-2">
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-amber-500" />
+                    <h3 className="font-bold text-slate-900">优先处理队列</h3>
+                  </div>
+                  <p className="mt-1 text-xs text-slate-500">未解决的程序问题和地点信息错误会优先显示在这里。</p>
+                  <div className="mt-3 space-y-2">
+                    {summary.priorityItems.length === 0 ? (
+                      <p className="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-700">目前没有高优先级反馈。</p>
+                    ) : (
+                      summary.priorityItems.map((item) => (
+                        <div key={item.id} className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                          <p className="font-semibold">{feedbackTypeLabels[item.type]} · {feedbackStatusLabels[item.status]}</p>
+                          <p className="mt-1 line-clamp-2">{item.content}</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <h3 className="font-bold text-slate-900">问题类型分布</h3>
+                  <p className="mt-1 text-xs text-slate-500">用来判断用户主要卡在内容、功能还是体验上。</p>
+                  <div className="mt-3 space-y-2">
+                    {summary.typeCounts.length === 0 ? (
+                      <p className="rounded-xl bg-slate-50 px-3 py-2 text-sm text-slate-500">暂无反馈数据。</p>
+                    ) : (
+                      summary.typeCounts.map(([feedbackType, count]) => (
+                        <div key={feedbackType} className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-sm">
+                          <span className="font-medium text-slate-700">{feedbackTypeLabels[feedbackType]}</span>
+                          <span className="font-bold text-slate-950">{count}</span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <form onSubmit={handleSearch} className="mt-5 grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-[1fr_160px_180px_auto]">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
+                <input value={q} onChange={(event) => setQ(event.target.value)} placeholder="搜索内容、联系方式、页面 URL" className={`${inputClass} w-full pl-9`} />
+              </div>
+              <select value={status} onChange={(event) => setStatus(event.target.value as FeedbackStatus | "")} className={inputClass}>
+                {statusOptions.map((option) => (
+                  <option key={option || "all"} value={option}>
+                    {option ? feedbackStatusLabels[option] : "全部状态"}
+                  </option>
+                ))}
+              </select>
+              <select value={type} onChange={(event) => setType(event.target.value as FeedbackType | "")} className={inputClass}>
+                {typeOptions.map((option) => (
+                  <option key={option || "all"} value={option}>
+                    {option ? feedbackTypeLabels[option] : "全部类型"}
+                  </option>
+                ))}
+              </select>
+              <button className="h-11 rounded-xl bg-emerald-600 px-5 text-sm font-semibold text-white">筛选</button>
+            </form>
+          </>
+        ) : null}
 
         {message ? <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{message}</div> : null}
         {error ? <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div> : null}
 
         <div className="mt-5 space-y-4">
           {loading ? <div className="rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-600">正在读取反馈...</div> : null}
-          {!loading && items.length === 0 ? <div className="rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-600">暂无符合条件的反馈。</div> : null}
+          {!loading && currentUser.isAuthenticated && items.length === 0 ? <div className="rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-600">暂无符合条件的反馈。</div> : null}
           {items.map((item) => (
             <article key={item.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-3">

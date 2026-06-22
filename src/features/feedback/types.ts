@@ -29,9 +29,3 @@ export const feedbackStatusLabels: Record<FeedbackStatus, string> = {
   in_progress: "处理中",
   resolved: "已解决"
 };
-
-export const feedbackStatusZhLabels: Record<FeedbackStatus, string> = {
-  pending: "待处理",
-  in_progress: "处理中",
-  resolved: "已解决"
-};
