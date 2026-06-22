@@ -2,6 +2,7 @@
 import { notFound } from "next/navigation";
 import { AlertTriangle, Backpack, Bath, Car, ChevronLeft, Clock, MapPinned, ShieldCheck, Star, TentTree, Users } from "lucide-react";
 import { FavoriteButton } from "@/components/favorites/favorite-button";
+import { DestinationFeedbackButton } from "@/components/feedback/destination-feedback-button";
 import { AuthActionHint } from "@/components/auth/auth-action-hint";
 import { AddToPlanButton } from "@/components/plans/add-to-plan-button";
 import { AmapNavigationButton } from "@/components/plans/amap-navigation-button";
@@ -122,7 +123,10 @@ export default async function DestinationDetailPage({
               </span>
             </div>
 
-            <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">{destinationName(destination, locale)}</h1>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">{destinationName(destination, locale)}</h1>
+              <DestinationFeedbackButton destinationName={destinationName(destination, locale)} />
+            </div>
             <p className="rounded-xl bg-emerald-50 px-4 py-3 text-base font-semibold text-emerald-800">{destinationFamilyHighlight(destination, locale)}</p>
             <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-3 lg:grid-cols-[auto_minmax(240px,1fr)_auto_auto] lg:items-center">
               <div className="flex flex-wrap items-center gap-3">
