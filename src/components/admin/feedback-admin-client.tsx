@@ -13,6 +13,11 @@ type FeedbackResponse = {
   message?: string;
 };
 
+type ItemMessage = {
+  type: "loading" | "success" | "error";
+  text: string;
+};
+
 const inputClass = "h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-emerald-500";
 const statusOptions: Array<FeedbackStatus | ""> = [...feedbackStatusOptions, ""];
 const typeOptions: Array<FeedbackType | ""> = ["bug", "place_error", "feature", "experience", "other", ""];
@@ -44,6 +49,12 @@ function statusClass(status: FeedbackStatus) {
   if (status === "rejected") return "bg-slate-100 text-slate-600 ring-slate-200";
   if (status === "in_progress") return "bg-sky-50 text-sky-700 ring-sky-100";
   return "bg-amber-50 text-amber-700 ring-amber-100";
+}
+
+function itemMessageClass(type: ItemMessage["type"]) {
+  if (type === "success") return "bg-emerald-50 text-emerald-700 ring-emerald-100";
+  if (type === "error") return "bg-rose-50 text-rose-700 ring-rose-100";
+  return "bg-slate-50 text-slate-600 ring-slate-200";
 }
 
 function isSameLocalDay(date: Date, now: Date) {
@@ -91,6 +102,7 @@ export function FeedbackAdminClient() {
   const [type, setType] = useState<FeedbackType | "">("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [itemMessages, setItemMessages] = useState<Record<string, ItemMessage>>({});
 
   const queryString = useMemo(() => {
     const params = new URLSearchParams();
@@ -177,6 +189,10 @@ export function FeedbackAdminClient() {
     setBusyId(item.id);
     setMessage("");
     setError("");
+    setItemMessages((values) => ({
+      ...values,
+      [item.id]: { type: "loading", text: "正在保存..." }
+    }));
     try {
       const response = await fetch("/api/admin/feedback", {
         method: "PATCH",
@@ -194,6 +210,10 @@ export function FeedbackAdminClient() {
       if (!response.ok || !result.ok) throw new Error(result.message ?? "更新失败。");
 
       setMessage(result.message ?? "反馈已更新。");
+      setItemMessages((values) => ({
+        ...values,
+        [item.id]: { type: "success", text: "已保存回复。" }
+      }));
       setItems((values) =>
         values.map((value) =>
           value.id === item.id
@@ -209,7 +229,12 @@ export function FeedbackAdminClient() {
         )
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "更新失败。");
+      const detail = err instanceof Error ? err.message : "更新失败。";
+      setError(detail);
+      setItemMessages((values) => ({
+        ...values,
+        [item.id]: { type: "error", text: detail }
+      }));
     } finally {
       setBusyId("");
     }
@@ -319,7 +344,10 @@ export function FeedbackAdminClient() {
         <div className="mt-5 space-y-4">
           {loading ? <div className="rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-600">正在读取反馈...</div> : null}
           {!loading && currentUser.isAuthenticated && items.length === 0 ? <div className="rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-600">暂无符合条件的反馈。</div> : null}
-          {items.map((item) => (
+          {items.map((item) => {
+            const itemMessage = itemMessages[item.id];
+
+            return (
             <article key={item.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
@@ -358,14 +386,21 @@ export function FeedbackAdminClient() {
                   rows={3}
                 />
               </label>
-              <button
-                type="button"
-                disabled={busyId === item.id}
-                onClick={() => void updateFeedback(item, item.status)}
-                className="interactive-button mt-3 h-10 rounded-xl border border-emerald-200 bg-emerald-50 px-4 text-sm font-semibold text-emerald-700 hover:bg-emerald-100 disabled:opacity-60"
-              >
-                保存回复
-              </button>
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  disabled={busyId === item.id}
+                  onClick={() => void updateFeedback(item, item.status)}
+                  className="interactive-button h-10 rounded-xl border border-emerald-200 bg-emerald-50 px-4 text-sm font-semibold text-emerald-700 hover:bg-emerald-100 disabled:opacity-60"
+                >
+                  {busyId === item.id ? "保存中..." : "保存回复"}
+                </button>
+                {itemMessage ? (
+                  <span className={`rounded-full px-3 py-1.5 text-xs font-medium ring-1 ${itemMessageClass(itemMessage.type)}`}>
+                    {itemMessage.text}
+                  </span>
+                ) : null}
+              </div>
 
               <div className="mt-4 grid gap-2 text-xs text-slate-500 md:grid-cols-2">
                 {item.contact ? <p>联系方式：{item.contact}</p> : <p>联系方式：未填写</p>}
@@ -379,7 +414,8 @@ export function FeedbackAdminClient() {
                 {item.userAgent ? <p className="truncate md:col-span-2">浏览器信息：{item.userAgent}</p> : null}
               </div>
             </article>
-          ))}
+            );
+          })}
         </div>
       </section>
     </main>
