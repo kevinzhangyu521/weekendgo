@@ -15,17 +15,27 @@ type FeedbackRow = {
   status: FeedbackStatus;
   admin_note: string | null;
   admin_reply: string | null;
+  replied_at: string | null;
   status_changed_at: string | null;
   wechat_notify_reserved: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
 };
 
+type FeedbackUpdatePayload = {
+  status: FeedbackStatus;
+  admin_note: string | null;
+  admin_reply: string | null;
+  updated_at: string;
+  replied_at?: string | null;
+  status_changed_at?: string;
+};
+
 const feedbackStatuses = new Set<FeedbackStatus>(["pending", "in_progress", "accepted", "completed", "rejected"]);
 const feedbackTypes = new Set<FeedbackType>(["bug", "place_error", "feature", "experience", "other"]);
 
 const selectFields =
-  "id,feedback_no,user_id,type,content,contact,page_url,device_type,user_agent,status,admin_note,admin_reply,status_changed_at,wechat_notify_reserved,created_at,updated_at";
+  "id,feedback_no,user_id,type,content,contact,page_url,device_type,user_agent,status,admin_note,admin_reply,replied_at,status_changed_at,wechat_notify_reserved,created_at,updated_at";
 
 function normalize(row: FeedbackRow): FeedbackItem {
   return {
@@ -41,6 +51,7 @@ function normalize(row: FeedbackRow): FeedbackItem {
     status: row.status,
     adminNote: row.admin_note,
     adminReply: row.admin_reply,
+    repliedAt: row.replied_at,
     statusChangedAt: row.status_changed_at,
     wechatNotifyReserved: row.wechat_notify_reserved,
     createdAt: row.created_at,
@@ -102,19 +113,34 @@ export async function PATCH(request: Request) {
   if (!id) return NextResponse.json({ ok: false, message: "缺少反馈 ID。" }, { status: 400 });
   if (!feedbackStatuses.has(status)) return NextResponse.json({ ok: false, message: "状态不正确。" }, { status: 400 });
 
-  const { data: existing } = await supabase.from("feedbacks").select("status").eq("id", id).maybeSingle();
+  const { data: existing, error: existingError } = await supabase
+    .from("feedbacks")
+    .select("status,admin_reply,replied_at")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (existingError) return NextResponse.json({ ok: false, message: `读取反馈失败：${existingError.message}` }, { status: 500 });
+  if (!existing) return NextResponse.json({ ok: false, message: "反馈不存在。" }, { status: 404 });
+
   const now = new Date().toISOString();
-  const statusChanged = existing?.status !== status;
-  const updatePayload = {
+  const statusChanged = existing.status !== status;
+  const replyChanged = (existing.admin_reply ?? "") !== adminReply;
+  const updatePayload: FeedbackUpdatePayload = {
     status,
     admin_note: adminNote || null,
     admin_reply: adminReply || null,
     updated_at: now,
+    ...(replyChanged ? { replied_at: adminReply ? now : null } : {}),
     ...(statusChanged ? { status_changed_at: now } : {})
   };
 
-  const { error } = await supabase.from("feedbacks").update(updatePayload).eq("id", id);
+  const { data, error } = await supabase.from("feedbacks").update(updatePayload).eq("id", id).select(selectFields).single();
 
-  if (error) return NextResponse.json({ ok: false, message: `更新失败：${error.message}` }, { status: 500 });
-  return NextResponse.json({ ok: true, message: "反馈已更新。" });
+  if (error || !data) return NextResponse.json({ ok: false, message: `更新失败：${error?.message ?? "未返回保存结果"}` }, { status: 500 });
+
+  return NextResponse.json({
+    ok: true,
+    item: normalize(data as FeedbackRow),
+    message: "反馈已更新。"
+  });
 }

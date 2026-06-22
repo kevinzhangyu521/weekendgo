@@ -14,6 +14,7 @@ export type FeedbackItem = {
   status: FeedbackStatus;
   adminNote: string | null;
   adminReply: string | null;
+  repliedAt: string | null;
   statusChangedAt: string | null;
   wechatNotifyReserved: Record<string, unknown> | null;
   createdAt: string;

@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 type FeedbackResponse = {
   ok?: boolean;
   items?: FeedbackItem[];
+  item?: FeedbackItem;
   message?: string;
 };
 
@@ -194,13 +195,12 @@ export function FeedbackAdminClient() {
       [item.id]: { type: "loading", text: "正在保存..." }
     }));
     try {
-      const response = await fetch("/api/admin/feedback", {
+      const response = await fetch(`/api/admin/feedback/${item.id}`, {
         method: "PATCH",
         headers: await authHeaders(),
         credentials: "include",
         cache: "no-store",
         body: JSON.stringify({
-          id: item.id,
           status: nextStatus,
           adminNote: item.adminNote ?? "",
           adminReply: replyDrafts[item.id] ?? ""
@@ -208,6 +208,8 @@ export function FeedbackAdminClient() {
       });
       const result = (await response.json()) as FeedbackResponse;
       if (!response.ok || !result.ok) throw new Error(result.message ?? "更新失败。");
+      if (!result.item) throw new Error("保存失败：接口没有返回数据库记录。");
+      const savedItem = result.item;
 
       setMessage(result.message ?? "反馈已更新。");
       setItemMessages((values) => ({
@@ -215,19 +217,12 @@ export function FeedbackAdminClient() {
         [item.id]: { type: "success", text: "已保存回复。" }
       }));
       setItems((values) =>
-        values.map((value) =>
-          value.id === item.id
-            ? { ...value, status: nextStatus, adminReply: replyDrafts[item.id] ?? "", statusChangedAt: new Date().toISOString() }
-            : value
-        )
+        values.map((value) => (value.id === savedItem.id ? savedItem : value))
       );
       setSummaryItems((values) =>
-        values.map((value) =>
-          value.id === item.id
-            ? { ...value, status: nextStatus, adminReply: replyDrafts[item.id] ?? "", statusChangedAt: new Date().toISOString() }
-            : value
-        )
+        values.map((value) => (value.id === savedItem.id ? savedItem : value))
       );
+      setReplyDrafts((values) => ({ ...values, [savedItem.id]: savedItem.adminReply ?? "" }));
     } catch (err) {
       const detail = err instanceof Error ? err.message : "更新失败。";
       setError(detail);

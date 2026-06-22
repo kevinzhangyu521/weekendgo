@@ -15,6 +15,7 @@ type FeedbackRow = {
   status: FeedbackStatus;
   admin_note: string | null;
   admin_reply: string | null;
+  replied_at: string | null;
   status_changed_at: string | null;
   wechat_notify_reserved: Record<string, unknown> | null;
   created_at: string;
@@ -22,7 +23,7 @@ type FeedbackRow = {
 };
 
 const selectFields =
-  "id,feedback_no,user_id,type,content,contact,page_url,device_type,user_agent,status,admin_note,admin_reply,status_changed_at,wechat_notify_reserved,created_at,updated_at";
+  "id,feedback_no,user_id,type,content,contact,page_url,device_type,user_agent,status,admin_note,admin_reply,replied_at,status_changed_at,wechat_notify_reserved,created_at,updated_at";
 
 function normalize(row: FeedbackRow): FeedbackItem {
   return {
@@ -38,6 +39,7 @@ function normalize(row: FeedbackRow): FeedbackItem {
     status: row.status,
     adminNote: row.admin_note,
     adminReply: row.admin_reply,
+    repliedAt: row.replied_at,
     statusChangedAt: row.status_changed_at,
     wechatNotifyReserved: row.wechat_notify_reserved,
     createdAt: row.created_at,
