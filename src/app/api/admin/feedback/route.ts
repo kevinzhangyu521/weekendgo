@@ -4,6 +4,7 @@ import { getRequestAuth } from "@/lib/auth/request-auth";
 
 type FeedbackRow = {
   id: string;
+  feedback_no: string | null;
   user_id: string | null;
   type: FeedbackType;
   content: string;
@@ -13,19 +14,23 @@ type FeedbackRow = {
   user_agent: string | null;
   status: FeedbackStatus;
   admin_note: string | null;
+  admin_reply: string | null;
+  status_changed_at: string | null;
+  wechat_notify_reserved: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
 };
 
-const feedbackStatuses = new Set<FeedbackStatus>(["pending", "in_progress", "resolved"]);
+const feedbackStatuses = new Set<FeedbackStatus>(["pending", "in_progress", "accepted", "completed", "rejected"]);
 const feedbackTypes = new Set<FeedbackType>(["bug", "place_error", "feature", "experience", "other"]);
 
 const selectFields =
-  "id,user_id,type,content,contact,page_url,device_type,user_agent,status,admin_note,created_at,updated_at";
+  "id,feedback_no,user_id,type,content,contact,page_url,device_type,user_agent,status,admin_note,admin_reply,status_changed_at,wechat_notify_reserved,created_at,updated_at";
 
 function normalize(row: FeedbackRow): FeedbackItem {
   return {
     id: row.id,
+    feedbackNo: row.feedback_no,
     userId: row.user_id,
     type: row.type,
     content: row.content,
@@ -35,6 +40,9 @@ function normalize(row: FeedbackRow): FeedbackItem {
     userAgent: row.user_agent,
     status: row.status,
     adminNote: row.admin_note,
+    adminReply: row.admin_reply,
+    statusChangedAt: row.status_changed_at,
+    wechatNotifyReserved: row.wechat_notify_reserved,
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };
@@ -68,7 +76,7 @@ export async function GET(request: Request) {
   let query = supabase.from("feedbacks").select(selectFields).order("created_at", { ascending: false }).limit(200);
   if (status && feedbackStatuses.has(status)) query = query.eq("status", status);
   if (type && feedbackTypes.has(type)) query = query.eq("type", type);
-  if (q) query = query.or(`content.ilike.%${q}%,contact.ilike.%${q}%,page_url.ilike.%${q}%`);
+  if (q) query = query.or(`feedback_no.ilike.%${q}%,content.ilike.%${q}%,contact.ilike.%${q}%,page_url.ilike.%${q}%`);
 
   const { data, error } = await query;
   if (error || !data) return NextResponse.json({ ok: false, items: [], message: "读取反馈失败。" }, { status: 500 });
@@ -89,19 +97,24 @@ export async function PATCH(request: Request) {
   const id = cleanText(body?.id, 80);
   const status = cleanText(body?.status, 50) as FeedbackStatus;
   const adminNote = cleanText(body?.adminNote, 1000);
+  const adminReply = cleanText(body?.adminReply, 1000);
 
   if (!id) return NextResponse.json({ ok: false, message: "缺少反馈 ID。" }, { status: 400 });
   if (!feedbackStatuses.has(status)) return NextResponse.json({ ok: false, message: "状态不正确。" }, { status: 400 });
 
-  const { error } = await supabase
-    .from("feedbacks")
-    .update({
-      status,
-      admin_note: adminNote || null,
-      updated_at: new Date().toISOString()
-    })
-    .eq("id", id);
+  const { data: existing } = await supabase.from("feedbacks").select("status").eq("id", id).maybeSingle();
+  const now = new Date().toISOString();
+  const statusChanged = existing?.status !== status;
+  const updatePayload = {
+    status,
+    admin_note: adminNote || null,
+    admin_reply: adminReply || null,
+    updated_at: now,
+    ...(statusChanged ? { status_changed_at: now } : {})
+  };
+
+  const { error } = await supabase.from("feedbacks").update(updatePayload).eq("id", id);
 
   if (error) return NextResponse.json({ ok: false, message: `更新失败：${error.message}` }, { status: 500 });
-  return NextResponse.json({ ok: true, message: "反馈状态已更新。" });
+  return NextResponse.json({ ok: true, message: "反馈已更新。" });
 }

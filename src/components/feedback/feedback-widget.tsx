@@ -13,6 +13,7 @@ type FeedbackRequest = {
 type FeedbackResponse = {
   ok?: boolean;
   message?: string;
+  feedbackNo?: string;
 };
 
 const typeOptions: FeedbackType[] = ["bug", "place_error", "feature", "experience", "other"];
@@ -72,7 +73,7 @@ export function FeedbackWidget() {
       const result = (await response.json()) as FeedbackResponse;
       if (!response.ok || !result.ok) throw new Error(result.message ?? "反馈提交失败，请稍后再试。");
 
-      setMessage(result.message ?? "反馈已提交，感谢你的帮助。");
+      setMessage(result.message ?? `反馈已提交，编号：${result.feedbackNo ?? "待生成"}`);
       setContent("");
       setContact("");
       setType("experience");

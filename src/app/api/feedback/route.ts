@@ -13,6 +13,15 @@ function getHeaderUserAgent(request: Request) {
   return request.headers.get("user-agent")?.slice(0, 500) ?? "";
 }
 
+function generateFeedbackNo() {
+  const date = new Date();
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  const suffix = Math.random().toString(16).slice(2, 6).toUpperCase();
+  return `QM-${yyyy}${mm}${dd}-${suffix}`;
+}
+
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -34,19 +43,25 @@ export async function POST(request: Request) {
   }
 
   const { supabase, user } = await getRequestAuth(request);
+  const feedbackNo = generateFeedbackNo();
+  const now = new Date().toISOString();
   const { error } = await supabase.from("feedbacks").insert({
+    feedback_no: feedbackNo,
     user_id: user?.id ?? null,
     type,
     content,
     contact: contact || null,
     page_url: pageUrl || null,
     device_type: deviceType || null,
-    user_agent: userAgent || null
+    user_agent: userAgent || null,
+    status: "pending",
+    status_changed_at: now,
+    wechat_notify_reserved: {}
   });
 
   if (error) {
     return NextResponse.json({ ok: false, message: "反馈提交失败，请稍后再试。" }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, message: "反馈已提交，感谢你的帮助。" });
+  return NextResponse.json({ ok: true, feedbackNo, message: `反馈已提交，编号：${feedbackNo}` });
 }

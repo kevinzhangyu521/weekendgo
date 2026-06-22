@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { AlertTriangle, ExternalLink, Search, TrendingUp } from "lucide-react";
 import type { FeedbackItem, FeedbackStatus, FeedbackType } from "@/features/feedback/types";
-import { feedbackStatusLabels, feedbackTypeLabels } from "@/features/feedback/types";
+import { feedbackStatusLabels, feedbackStatusOptions, feedbackTypeLabels } from "@/features/feedback/types";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
 import { createClient } from "@/lib/supabase/client";
 
@@ -14,7 +14,7 @@ type FeedbackResponse = {
 };
 
 const inputClass = "h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-emerald-500";
-const statusOptions: Array<FeedbackStatus | ""> = ["pending", "in_progress", "resolved", ""];
+const statusOptions: Array<FeedbackStatus | ""> = [...feedbackStatusOptions, ""];
 const typeOptions: Array<FeedbackType | ""> = ["bug", "place_error", "feature", "experience", "other", ""];
 
 async function authHeaders(contentType = "application/json") {
@@ -28,7 +28,8 @@ async function authHeaders(contentType = "application/json") {
   return headers;
 }
 
-function formatDate(value: string) {
+function formatDate(value: string | null) {
+  if (!value) return "暂无记录";
   return new Intl.DateTimeFormat("zh-CN", {
     month: "2-digit",
     day: "2-digit",
@@ -38,7 +39,9 @@ function formatDate(value: string) {
 }
 
 function statusClass(status: FeedbackStatus) {
-  if (status === "resolved") return "bg-emerald-50 text-emerald-700 ring-emerald-100";
+  if (status === "completed") return "bg-emerald-50 text-emerald-700 ring-emerald-100";
+  if (status === "accepted") return "bg-teal-50 text-teal-700 ring-teal-100";
+  if (status === "rejected") return "bg-slate-100 text-slate-600 ring-slate-200";
   if (status === "in_progress") return "bg-sky-50 text-sky-700 ring-sky-100";
   return "bg-amber-50 text-amber-700 ring-amber-100";
 }
@@ -62,7 +65,7 @@ function sortTypeCounts(items: FeedbackItem[]) {
 
 function priorityQueue(items: FeedbackItem[]) {
   return items
-    .filter((item) => item.status !== "resolved" && (item.type === "bug" || item.type === "place_error"))
+    .filter((item) => (item.status === "pending" || item.status === "in_progress") && (item.type === "bug" || item.type === "place_error"))
     .slice(0, 5);
 }
 
@@ -80,10 +83,11 @@ export function FeedbackAdminClient() {
   const currentUser = useCurrentUser();
   const [items, setItems] = useState<FeedbackItem[]>([]);
   const [summaryItems, setSummaryItems] = useState<FeedbackItem[]>([]);
+  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState("");
   const [q, setQ] = useState("");
-  const [status, setStatus] = useState<FeedbackStatus | "pending" | "in_progress" | "resolved" | "">("pending");
+  const [status, setStatus] = useState<FeedbackStatus | "">("pending");
   const [type, setType] = useState<FeedbackType | "">("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -102,7 +106,7 @@ export function FeedbackAdminClient() {
     const last7DaysCount = summaryItems.filter((item) => isWithinLastDays(new Date(item.createdAt), now, 7)).length;
     const pendingCount = summaryItems.filter((item) => item.status === "pending").length;
     const inProgressCount = summaryItems.filter((item) => item.status === "in_progress").length;
-    const resolvedCount = summaryItems.filter((item) => item.status === "resolved").length;
+    const completedCount = summaryItems.filter((item) => item.status === "completed").length;
     const typeCounts = sortTypeCounts(summaryItems);
     const priorityItems = priorityQueue(summaryItems);
 
@@ -111,10 +115,9 @@ export function FeedbackAdminClient() {
       last7DaysCount,
       pendingCount,
       inProgressCount,
-      resolvedCount,
+      completedCount,
       typeCounts,
-      priorityItems,
-      recentItems: summaryItems.slice(0, 5)
+      priorityItems
     };
   }, [summaryItems]);
 
@@ -146,11 +149,14 @@ export function FeedbackAdminClient() {
       if (!filteredResponse.ok || !filteredResult.ok) throw new Error(filteredResult.message ?? "读取反馈失败。");
       if (!summaryResponse.ok || !summaryResult.ok) throw new Error(summaryResult.message ?? "读取反馈统计失败。");
 
-      setItems(filteredResult.items ?? []);
+      const nextItems = filteredResult.items ?? [];
+      setItems(nextItems);
       setSummaryItems(summaryResult.items ?? []);
+      setReplyDrafts(Object.fromEntries(nextItems.map((item) => [item.id, item.adminReply ?? ""])));
     } catch (err) {
       setItems([]);
       setSummaryItems([]);
+      setReplyDrafts({});
       setError(err instanceof Error ? err.message : "读取反馈失败。");
     } finally {
       setLoading(false);
@@ -167,7 +173,7 @@ export function FeedbackAdminClient() {
     void loadFeedback();
   }
 
-  async function updateStatus(item: FeedbackItem, nextStatus: FeedbackStatus) {
+  async function updateFeedback(item: FeedbackItem, nextStatus: FeedbackStatus) {
     setBusyId(item.id);
     setMessage("");
     setError("");
@@ -177,14 +183,31 @@ export function FeedbackAdminClient() {
         headers: await authHeaders(),
         credentials: "include",
         cache: "no-store",
-        body: JSON.stringify({ id: item.id, status: nextStatus, adminNote: item.adminNote ?? "" })
+        body: JSON.stringify({
+          id: item.id,
+          status: nextStatus,
+          adminNote: item.adminNote ?? "",
+          adminReply: replyDrafts[item.id] ?? ""
+        })
       });
       const result = (await response.json()) as FeedbackResponse;
       if (!response.ok || !result.ok) throw new Error(result.message ?? "更新失败。");
 
-      setMessage(result.message ?? "反馈状态已更新。");
-      setItems((values) => values.map((value) => (value.id === item.id ? { ...value, status: nextStatus } : value)));
-      setSummaryItems((values) => values.map((value) => (value.id === item.id ? { ...value, status: nextStatus } : value)));
+      setMessage(result.message ?? "反馈已更新。");
+      setItems((values) =>
+        values.map((value) =>
+          value.id === item.id
+            ? { ...value, status: nextStatus, adminReply: replyDrafts[item.id] ?? "", statusChangedAt: new Date().toISOString() }
+            : value
+        )
+      );
+      setSummaryItems((values) =>
+        values.map((value) =>
+          value.id === item.id
+            ? { ...value, status: nextStatus, adminReply: replyDrafts[item.id] ?? "", statusChangedAt: new Date().toISOString() }
+            : value
+        )
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "更新失败。");
     } finally {
@@ -198,9 +221,9 @@ export function FeedbackAdminClient() {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">反馈管理</h1>
-            <p className="mt-2 text-sm text-slate-600">查看用户提交的程序问题、地点错误、功能建议和体验问题。</p>
+            <p className="mt-2 text-sm text-slate-600">查看用户提交的问题、建议，并回复处理进度。</p>
           </div>
-          <button onClick={() => void loadFeedback()} className="h-10 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700">
+          <button onClick={() => void loadFeedback()} className="interactive-button h-10 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50">
             刷新数据
           </button>
         </div>
@@ -214,14 +237,14 @@ export function FeedbackAdminClient() {
             <section className="mt-5">
               <div className="mb-3 flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-emerald-600" />
-                <h2 className="text-lg font-bold text-slate-900">种子测试执行面板</h2>
+                <h2 className="text-lg font-bold text-slate-900">反馈处理面板</h2>
               </div>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                 <MetricCard label="今日反馈" value={summary.todayCount} hint="当天新增反馈" />
                 <MetricCard label="待处理" value={summary.pendingCount} hint="需要尽快查看" />
-                <MetricCard label="处理中" value={summary.inProgressCount} hint="已经进入修复" />
+                <MetricCard label="处理中" value={summary.inProgressCount} hint="已经进入处理" />
                 <MetricCard label="近 7 天" value={summary.last7DaysCount} hint="种子测试热度" />
-                <MetricCard label="已解决" value={summary.resolvedCount} hint="累计关闭问题" />
+                <MetricCard label="已完成" value={summary.completedCount} hint="已经关闭的问题" />
               </div>
 
               <div className="mt-3 grid gap-3 lg:grid-cols-2">
@@ -230,14 +253,16 @@ export function FeedbackAdminClient() {
                     <AlertTriangle className="h-4 w-4 text-amber-500" />
                     <h3 className="font-bold text-slate-900">优先处理队列</h3>
                   </div>
-                  <p className="mt-1 text-xs text-slate-500">未解决的程序问题和地点信息错误会优先显示在这里。</p>
+                  <p className="mt-1 text-xs text-slate-500">程序问题和地点信息错误会优先显示在这里。</p>
                   <div className="mt-3 space-y-2">
                     {summary.priorityItems.length === 0 ? (
                       <p className="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-700">目前没有高优先级反馈。</p>
                     ) : (
                       summary.priorityItems.map((item) => (
                         <div key={item.id} className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900">
-                          <p className="font-semibold">{feedbackTypeLabels[item.type]} · {feedbackStatusLabels[item.status]}</p>
+                          <p className="font-semibold">
+                            {feedbackTypeLabels[item.type]} · {feedbackStatusLabels[item.status]}
+                          </p>
                           <p className="mt-1 line-clamp-2">{item.content}</p>
                         </div>
                       ))
@@ -247,7 +272,7 @@ export function FeedbackAdminClient() {
 
                 <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                   <h3 className="font-bold text-slate-900">问题类型分布</h3>
-                  <p className="mt-1 text-xs text-slate-500">用来判断用户主要卡在内容、功能还是体验上。</p>
+                  <p className="mt-1 text-xs text-slate-500">判断用户主要卡在内容、功能还是体验上。</p>
                   <div className="mt-3 space-y-2">
                     {summary.typeCounts.length === 0 ? (
                       <p className="rounded-xl bg-slate-50 px-3 py-2 text-sm text-slate-500">暂无反馈数据。</p>
@@ -267,7 +292,7 @@ export function FeedbackAdminClient() {
             <form onSubmit={handleSearch} className="mt-5 grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-[1fr_160px_180px_auto]">
               <div className="relative">
                 <Search className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
-                <input value={q} onChange={(event) => setQ(event.target.value)} placeholder="搜索内容、联系方式、页面 URL" className={`${inputClass} w-full pl-9`} />
+                <input value={q} onChange={(event) => setQ(event.target.value)} placeholder="搜索编号、内容、联系方式、页面 URL" className={`${inputClass} w-full pl-9`} />
               </div>
               <select value={status} onChange={(event) => setStatus(event.target.value as FeedbackStatus | "")} className={inputClass}>
                 {statusOptions.map((option) => (
@@ -283,7 +308,7 @@ export function FeedbackAdminClient() {
                   </option>
                 ))}
               </select>
-              <button className="h-11 rounded-xl bg-emerald-600 px-5 text-sm font-semibold text-white">筛选</button>
+              <button className="interactive-button h-11 rounded-xl bg-emerald-600 px-5 text-sm font-semibold text-white hover:bg-emerald-700">筛选</button>
             </form>
           </>
         ) : null}
@@ -297,33 +322,56 @@ export function FeedbackAdminClient() {
           {items.map((item) => (
             <article key={item.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
+                    {item.feedbackNo ? <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">{item.feedbackNo}</span> : null}
                     <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">{feedbackTypeLabels[item.type]}</span>
                     <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${statusClass(item.status)}`}>
                       {feedbackStatusLabels[item.status]}
                     </span>
-                    <span className="text-xs text-slate-400">{formatDate(item.createdAt)}</span>
+                    <span className="text-xs text-slate-400">提交：{formatDate(item.createdAt)}</span>
+                    <span className="text-xs text-slate-400">状态更新：{formatDate(item.statusChangedAt ?? item.updatedAt)}</span>
                   </div>
                   <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-800">{item.content}</p>
                 </div>
                 <select
                   value={item.status}
                   disabled={busyId === item.id}
-                  onChange={(event) => void updateStatus(item, event.target.value as FeedbackStatus)}
+                  onChange={(event) => void updateFeedback(item, event.target.value as FeedbackStatus)}
                   className="h-10 rounded-xl border border-slate-200 px-3 text-sm disabled:opacity-60"
                 >
-                  <option value="pending">待处理</option>
-                  <option value="in_progress">处理中</option>
-                  <option value="resolved">已解决</option>
+                  {feedbackStatusOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {feedbackStatusLabels[option]}
+                    </option>
+                  ))}
                 </select>
               </div>
+
+              <label className="mt-4 block text-sm font-semibold text-slate-900">
+                管理员回复（用户可见）
+                <textarea
+                  value={replyDrafts[item.id] ?? ""}
+                  onChange={(event) => setReplyDrafts((value) => ({ ...value, [item.id]: event.target.value }))}
+                  placeholder="给用户看的处理回复，例如：已核实，图片信息已更新。"
+                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm leading-6 outline-none focus:border-emerald-500"
+                  rows={3}
+                />
+              </label>
+              <button
+                type="button"
+                disabled={busyId === item.id}
+                onClick={() => void updateFeedback(item, item.status)}
+                className="interactive-button mt-3 h-10 rounded-xl border border-emerald-200 bg-emerald-50 px-4 text-sm font-semibold text-emerald-700 hover:bg-emerald-100 disabled:opacity-60"
+              >
+                保存回复
+              </button>
 
               <div className="mt-4 grid gap-2 text-xs text-slate-500 md:grid-cols-2">
                 {item.contact ? <p>联系方式：{item.contact}</p> : <p>联系方式：未填写</p>}
                 {item.deviceType ? <p>设备：{item.deviceType}</p> : <p>设备：未记录</p>}
                 {item.pageUrl ? (
-                  <a href={item.pageUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-w-0 items-center gap-1 text-emerald-700 hover:underline md:col-span-2">
+                  <a href={item.pageUrl} target="_blank" rel="noopener noreferrer" className="interactive-text-link inline-flex min-w-0 items-center gap-1 text-emerald-700 md:col-span-2">
                     <ExternalLink className="h-3.5 w-3.5 shrink-0" />
                     <span className="truncate">{item.pageUrl}</span>
                   </a>

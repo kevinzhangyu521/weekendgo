@@ -35,3 +35,38 @@ for all
 to authenticated
 using (public.is_admin(auth.uid()))
 with check (public.is_admin(auth.uid()));
+
+alter table public.feedbacks
+  add column if not exists feedback_no text,
+  add column if not exists admin_reply text,
+  add column if not exists status_changed_at timestamptz,
+  add column if not exists wechat_notify_reserved jsonb default '{}'::jsonb;
+
+update public.feedbacks
+set status = 'completed'
+where status = 'resolved';
+
+update public.feedbacks
+set status_changed_at = coalesce(status_changed_at, updated_at, created_at)
+where status_changed_at is null;
+
+alter table public.feedbacks
+  drop constraint if exists feedbacks_status_check;
+
+alter table public.feedbacks
+  add constraint feedbacks_status_check
+  check (status in ('pending', 'in_progress', 'accepted', 'completed', 'rejected'));
+
+create unique index if not exists idx_feedbacks_feedback_no
+  on public.feedbacks(feedback_no)
+  where feedback_no is not null;
+
+create index if not exists idx_feedbacks_user_created
+  on public.feedbacks(user_id, created_at desc);
+
+drop policy if exists "users can read own feedback" on public.feedbacks;
+create policy "users can read own feedback"
+on public.feedbacks
+for select
+to authenticated
+using (auth.uid() = user_id);

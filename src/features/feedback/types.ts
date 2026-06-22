@@ -1,8 +1,9 @@
 export type FeedbackType = "bug" | "place_error" | "feature" | "experience" | "other";
-export type FeedbackStatus = "pending" | "in_progress" | "resolved";
+export type FeedbackStatus = "pending" | "in_progress" | "accepted" | "completed" | "rejected";
 
 export type FeedbackItem = {
   id: string;
+  feedbackNo: string | null;
   userId: string | null;
   type: FeedbackType;
   content: string;
@@ -12,6 +13,9 @@ export type FeedbackItem = {
   userAgent: string | null;
   status: FeedbackStatus;
   adminNote: string | null;
+  adminReply: string | null;
+  statusChangedAt: string | null;
+  wechatNotifyReserved: Record<string, unknown> | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -27,5 +31,9 @@ export const feedbackTypeLabels: Record<FeedbackType, string> = {
 export const feedbackStatusLabels: Record<FeedbackStatus, string> = {
   pending: "待处理",
   in_progress: "处理中",
-  resolved: "已解决"
+  accepted: "已采纳",
+  completed: "已完成",
+  rejected: "不采纳"
 };
+
+export const feedbackStatusOptions: FeedbackStatus[] = ["pending", "in_progress", "accepted", "completed", "rejected"];
