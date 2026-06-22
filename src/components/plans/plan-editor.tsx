@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowDown, ArrowUp, CalendarDays, ImageDown, Link2, Pencil, QrCode, Save, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, CalendarDays, ExternalLink, ImageDown, Link2, Pencil, QrCode, Save, Trash2 } from "lucide-react";
 import { AmapNavigationButton } from "@/components/plans/amap-navigation-button";
 import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/lib/i18n/config";
@@ -52,6 +52,10 @@ function randomSlug() {
 function formatDistance(distanceKm: number) {
   if (!distanceKm || distanceKm <= 0) return "\u8ddd\u79bb\u5f85\u8ba1\u7b97";
   return `\u7ea6 ${distanceKm}km`;
+}
+
+function destinationHref(destinationId: string) {
+  return `/destinations/${destinationId}`;
 }
 
 export function PlanEditor({ plan, locale }: Props) {
@@ -345,16 +349,53 @@ export function PlanEditor({ plan, locale }: Props) {
           <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-600">{text.noStopsYet}</div>
         ) : (
           plan.items.map((item, index) => (
-            <div key={item.id} className="rounded-xl border border-slate-200 bg-white p-4">
+            <div
+              key={item.id}
+              role={item.destination ? "button" : undefined}
+              tabIndex={item.destination ? 0 : undefined}
+              onClick={() => {
+                if (item.destination) router.push(destinationHref(item.destination.id));
+              }}
+              onKeyDown={(event) => {
+                if (!item.destination) return;
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  router.push(destinationHref(item.destination.id));
+                }
+              }}
+              className={`rounded-xl border border-slate-200 bg-white p-4 ${item.destination ? "interactive-card group" : ""}`}
+            >
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div className="min-w-0">
                   <p className="text-xs text-slate-500">{`${text.stop} ${index + 1}`}</p>
-                  <p className="mt-1 text-base font-semibold text-slate-900">{item.destination ? destinationName(item.destination, locale) : text.unknownDestination}</p>
+                  {item.destination ? (
+                    <Link
+                      href={destinationHref(item.destination.id)}
+                      onClick={(event) => event.stopPropagation()}
+                      className="mt-1 inline-flex items-center text-base font-semibold text-slate-900 transition hover:text-emerald-700"
+                    >
+                      {destinationName(item.destination, locale)}
+                      <span className="ml-2 text-xs font-medium text-emerald-700 opacity-100 transition md:opacity-0 md:group-hover:opacity-100">
+                        {"\u2192 \u67e5\u770b\u8be6\u60c5"}
+                      </span>
+                    </Link>
+                  ) : (
+                    <p className="mt-1 text-base font-semibold text-slate-900">{text.unknownDestination}</p>
+                  )}
                   <p className="mt-1 text-sm text-slate-600">{item.destination ? `${destinationRegion(item.destination, locale)} - ${formatDistance(item.destination.distanceKm)}` : text.noDetails}</p>
                 </div>
-                <div className="flex flex-wrap items-center gap-2 md:justify-end">
+                <div onClick={(event) => event.stopPropagation()} className="flex flex-wrap items-center gap-2 md:justify-end">
                   {item.destination ? (
-                    <AmapNavigationButton destination={item.destination} label={text.navigate} />
+                    <>
+                      <AmapNavigationButton destination={item.destination} label={text.navigate} />
+                      <Link
+                        href={destinationHref(item.destination.id)}
+                        className="interactive-button inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 text-sm font-medium text-emerald-700 hover:bg-emerald-100"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        {"\u67e5\u770b\u8be6\u60c5"}
+                      </Link>
+                    </>
                   ) : null}
                   <button type="button" onClick={() => moveItem(index, "up")} disabled={index === 0 || busyItemId === item.id} className="interactive-button rounded-md border border-slate-200 p-2 text-slate-700 hover:bg-slate-50 disabled:opacity-40" title={text.moveUp}>
                     <ArrowUp className="h-4 w-4" />
