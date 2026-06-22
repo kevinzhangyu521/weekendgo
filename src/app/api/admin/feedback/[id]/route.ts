@@ -120,3 +120,23 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     message: "反馈已更新。"
   });
 }
+
+export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
+  const { id: rawId } = await context.params;
+  const id = cleanText(rawId, 80);
+  const { supabase, user, isAdmin } = await requireBrowserAdmin(request);
+
+  if (!user) return NextResponse.json({ ok: false, message: "请先登录。" }, { status: 401 });
+  if (!isAdmin) return NextResponse.json({ ok: false, message: "你没有管理员权限。" }, { status: 403 });
+  if (!id) return NextResponse.json({ ok: false, message: "缺少反馈 ID。" }, { status: 400 });
+
+  const { error } = await supabase.from("feedbacks").delete().eq("id", id);
+
+  if (error) return NextResponse.json({ ok: false, message: `删除失败：${error.message}` }, { status: 500 });
+
+  return NextResponse.json({
+    ok: true,
+    deletedId: id,
+    message: "反馈已删除。"
+  });
+}

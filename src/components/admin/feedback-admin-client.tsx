@@ -11,6 +11,7 @@ type FeedbackResponse = {
   ok?: boolean;
   items?: FeedbackItem[];
   item?: FeedbackItem;
+  deletedId?: string;
   message?: string;
 };
 
@@ -106,6 +107,7 @@ export function FeedbackAdminClient() {
   const [items, setItems] = useState<FeedbackItem[]>([]);
   const [summaryItems, setSummaryItems] = useState<FeedbackItem[]>([]);
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
+  const [statusDrafts, setStatusDrafts] = useState<Record<string, FeedbackStatus>>({});
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState("");
   const [q, setQ] = useState("");
@@ -176,10 +178,12 @@ export function FeedbackAdminClient() {
       setItems(nextItems);
       setSummaryItems(summaryResult.items ?? []);
       setReplyDrafts(Object.fromEntries(nextItems.map((item) => [item.id, item.adminReply ?? ""])));
+      setStatusDrafts(Object.fromEntries(nextItems.map((item) => [item.id, item.status])));
     } catch (err) {
       setItems([]);
       setSummaryItems([]);
       setReplyDrafts({});
+      setStatusDrafts({});
       setError(err instanceof Error ? err.message : "读取反馈失败。");
     } finally {
       setLoading(false);
@@ -233,8 +237,61 @@ export function FeedbackAdminClient() {
         values.map((value) => (value.id === savedItem.id ? savedItem : value))
       );
       setReplyDrafts((values) => ({ ...values, [savedItem.id]: savedItem.adminReply ?? "" }));
+      setStatusDrafts((values) => ({ ...values, [savedItem.id]: savedItem.status }));
     } catch (err) {
       const detail = err instanceof Error ? err.message : "更新失败。";
+      setError(detail);
+      setItemMessages((values) => ({
+        ...values,
+        [item.id]: { type: "error", text: detail }
+      }));
+    } finally {
+      setBusyId("");
+    }
+  }
+
+  async function deleteFeedback(item: FeedbackItem) {
+    const ok = window.confirm("确定删除这条反馈吗？删除后不可恢复。");
+    if (!ok) return;
+
+    setBusyId(item.id);
+    setMessage("");
+    setError("");
+    setItemMessages((values) => ({
+      ...values,
+      [item.id]: { type: "loading", text: "正在删除..." }
+    }));
+
+    try {
+      const response = await fetch(`/api/admin/feedback/${item.id}`, {
+        method: "DELETE",
+        headers: await authHeaders(),
+        credentials: "include",
+        cache: "no-store"
+      });
+      const result = await readJsonResponse<FeedbackResponse>(response);
+      if (!response.ok || !result.ok) throw new Error(result.message ?? "删除失败。");
+
+      setMessage(result.message ?? "反馈已删除。");
+      setItems((values) => values.filter((value) => value.id !== item.id));
+      setSummaryItems((values) => values.filter((value) => value.id !== item.id));
+      setReplyDrafts((values) => {
+        const next = { ...values };
+        delete next[item.id];
+        return next;
+      });
+      setStatusDrafts((values) => {
+        const next = { ...values };
+        delete next[item.id];
+        return next;
+      });
+      setItemMessages((values) => {
+        const next = { ...values };
+        delete next[item.id];
+        return next;
+      });
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : "删除失败。";
       setError(detail);
       setItemMessages((values) => ({
         ...values,
@@ -351,6 +408,8 @@ export function FeedbackAdminClient() {
           {!loading && currentUser.isAuthenticated && items.length === 0 ? <div className="rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-600">暂无符合条件的反馈。</div> : null}
           {items.map((item) => {
             const itemMessage = itemMessages[item.id];
+            const statusDraft = statusDrafts[item.id] ?? item.status;
+            const statusChanged = statusDraft !== item.status;
 
             return (
             <article key={item.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -367,18 +426,36 @@ export function FeedbackAdminClient() {
                   </div>
                   <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-800">{item.content}</p>
                 </div>
-                <select
-                  value={item.status}
-                  disabled={busyId === item.id}
-                  onChange={(event) => void updateFeedback(item, event.target.value as FeedbackStatus)}
-                  className="h-10 rounded-xl border border-slate-200 px-3 text-sm disabled:opacity-60"
-                >
-                  {feedbackStatusOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {feedbackStatusLabels[option]}
-                    </option>
-                  ))}
-                </select>
+                <div className="flex flex-wrap items-center gap-2">
+                  <select
+                    value={statusDraft}
+                    disabled={busyId === item.id}
+                    onChange={(event) => setStatusDrafts((values) => ({ ...values, [item.id]: event.target.value as FeedbackStatus }))}
+                    className="h-10 rounded-xl border border-slate-200 px-3 text-sm disabled:opacity-60"
+                  >
+                    {feedbackStatusOptions.map((option) => (
+                      <option key={option} value={option}>
+                        {feedbackStatusLabels[option]}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    disabled={busyId === item.id || !statusChanged}
+                    onClick={() => void updateFeedback(item, statusDraft)}
+                    className="interactive-button h-10 rounded-xl border border-sky-200 bg-sky-50 px-3 text-sm font-semibold text-sky-700 hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    保存状态
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busyId === item.id}
+                    onClick={() => void deleteFeedback(item)}
+                    className="interactive-button h-10 rounded-xl border border-rose-200 bg-rose-50 px-3 text-sm font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-60"
+                  >
+                    删除反馈
+                  </button>
+                </div>
               </div>
 
               <label className="mt-4 block text-sm font-semibold text-slate-900">
@@ -395,7 +472,7 @@ export function FeedbackAdminClient() {
                 <button
                   type="button"
                   disabled={busyId === item.id}
-                  onClick={() => void updateFeedback(item, item.status)}
+                  onClick={() => void updateFeedback(item, statusDraft)}
                   className="interactive-button h-10 rounded-xl border border-emerald-200 bg-emerald-50 px-4 text-sm font-semibold text-emerald-700 hover:bg-emerald-100 disabled:opacity-60"
                 >
                   {busyId === item.id ? "保存中..." : "保存回复"}
