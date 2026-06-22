@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Heart } from "lucide-react";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
 import { createClient } from "@/lib/supabase/client";
 
@@ -26,7 +25,6 @@ export function FavoriteButton({ destinationId, size = "md", className = "", ini
   const [saving, setSaving] = useState(false);
   const [isFavorite, setIsFavorite] = useState(Boolean(initialIsFavorite));
   const [feedbackText, setFeedbackText] = useState("");
-  const [feedbackType, setFeedbackType] = useState<"success" | "error">("success");
 
   async function requestToggleFavorite() {
     const supabase = createClient();
@@ -59,7 +57,6 @@ export function FavoriteButton({ destinationId, size = "md", className = "", ini
     setFeedbackText("");
 
     if (!currentUser.isAuthenticated) {
-      setFeedbackType("error");
       setFeedbackText("\u767b\u5f55\u72b6\u6001\u5df2\u5931\u6548\uff0c\u8bf7\u91cd\u65b0\u767b\u5f55");
       return;
     }
@@ -69,7 +66,6 @@ export function FavoriteButton({ destinationId, size = "md", className = "", ini
       const { response, result } = await requestToggleFavorite();
 
       if (response.status === 401) {
-        setFeedbackType("error");
         setFeedbackText(
           process.env.NODE_ENV !== "production" && result.message
             ? result.message
@@ -81,11 +77,9 @@ export function FavoriteButton({ destinationId, size = "md", className = "", ini
       if (!response.ok || !result.ok) throw new Error(result.message ?? "Save favorite failed");
 
       setIsFavorite(Boolean(result.isFavorite));
-      setFeedbackType("success");
-      setFeedbackText(result.message ?? (result.isFavorite ? "\u5df2\u52a0\u5165\u6536\u85cf\uff0c\u53ef\u5728\u201c\u6211\u7684\u6536\u85cf\u201d\u67e5\u770b\u3002" : "\u5df2\u53d6\u6d88\u6536\u85cf\u3002"));
+      setFeedbackText("");
     } catch (error) {
       const message = error instanceof Error && error.message !== "Save favorite failed" ? error.message : "\u4fdd\u5b58\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002";
-      setFeedbackType("error");
       setFeedbackText(message);
     } finally {
       setSaving(false);
@@ -93,7 +87,8 @@ export function FavoriteButton({ destinationId, size = "md", className = "", ini
   }
 
   const buttonPadding = size === "sm" ? "px-3" : "px-3.5";
-  const iconSize = size === "sm" ? "h-4 w-4" : "h-4.5 w-4.5";
+  const buttonTone = isFavorite ? "border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50";
+  const label = saving ? "\u4fdd\u5b58\u4e2d..." : currentUser.isAuthenticated ? (isFavorite ? "\u2764\ufe0f \u5df2\u6536\u85cf" : "\u2661 \u6536\u85cf") : "\u767b\u5f55\u540e\u6536\u85cf";
 
   return (
     <div className={className}>
@@ -103,16 +98,12 @@ export function FavoriteButton({ destinationId, size = "md", className = "", ini
         disabled={loading || saving || currentUser.isLoading}
         aria-label={isFavorite ? "\u53d6\u6d88\u6536\u85cf" : "\u52a0\u5165\u6536\u85cf"}
         title={isFavorite ? "\u53d6\u6d88\u6536\u85cf" : "\u52a0\u5165\u6536\u85cf"}
-        className={`${buttonPadding} inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:opacity-50 ${
-          isFavorite ? "text-rose-600" : ""
-        }`}
+        className={`interactive-button ${buttonPadding} inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border text-sm font-medium disabled:opacity-50 ${buttonTone}`}
       >
-        <Heart className={`${iconSize} ${isFavorite ? "fill-current" : ""}`} />
-        <span>{currentUser.isAuthenticated ? (isFavorite ? "\u5df2\u6536\u85cf" : "\u6536\u85cf") : "\u767b\u5f55\u540e\u6536\u85cf"}</span>
+        <span>{label}</span>
       </button>
-      {saving ? <p className="mt-1 text-xs text-slate-500">{"\u6b63\u5728\u4fdd\u5b58..."}</p> : null}
       {feedbackText ? (
-        <p className={`mt-2 max-w-[240px] rounded-xl px-3 py-2 text-xs ${feedbackType === "success" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-800"}`}>
+        <p className="mt-2 max-w-[240px] rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800">
           {feedbackText}
         </p>
       ) : null}

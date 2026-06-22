@@ -181,9 +181,9 @@ function CompactDestinationCard({ item, locale, reason }: { item: DestinationIte
   const image = getDestinationImage(item);
 
   return (
-    <Link href={`/destinations/${item.id}`} className="grid grid-cols-[96px_1fr] gap-3 rounded-2xl bg-white p-2 shadow-sm ring-1 ring-slate-100 transition hover:shadow-md">
+    <Link href={`/destinations/${item.id}`} className="interactive-card group grid grid-cols-[96px_1fr] gap-3 rounded-2xl bg-white p-2 shadow-sm ring-1 ring-slate-100">
       <div className="relative h-24 overflow-hidden rounded-xl bg-slate-100">
-        <img src={image.src} alt={destinationName(item, locale)} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+        <img src={image.src} alt={destinationName(item, locale)} loading="lazy" decoding="async" className="interactive-image h-full w-full object-cover" />
       </div>
       <div className="min-w-0 py-1">
         <p className="text-[11px] font-semibold text-emerald-700">{reason}</p>
@@ -229,7 +229,7 @@ export default async function HomePage() {
             <h1 className="mt-0.5 text-2xl font-black leading-tight text-slate-950 md:text-3xl">
               {pick(locale, `Where to take kids near ${city}`, `${homeCity}本周去哪遛娃`)}
             </h1>
-            <Link href={`/weather?city=${encodeURIComponent(homeCity)}`} className="mt-1 inline-flex text-sm font-medium text-slate-600 hover:text-emerald-700">
+            <Link href={`/weather?city=${encodeURIComponent(homeCity)}`} className="interactive-text-link mt-1 inline-flex text-sm font-medium text-slate-600">
               {pick(locale, `Live weather: ${weekendWeather.weather} · Play: ${weekendWeather.advice}`, `实时天气：${weekendWeather.weather} · 推荐玩法：${weekendWeather.advice}`)}
             </Link>
           </div>
@@ -246,7 +246,7 @@ export default async function HomePage() {
                 </option>
               ))}
             </select>
-            <button type="submit" className="rounded-full bg-slate-950 px-5 py-2.5 text-sm font-bold text-white">
+            <button type="submit" className="interactive-button rounded-full bg-slate-950 px-5 py-2.5 text-sm font-bold text-white hover:bg-slate-800">
               {pick(locale, "Search", "搜索")}
             </button>
           </form>
@@ -256,7 +256,7 @@ export default async function HomePage() {
               <Link
                 key={item.key}
                 href={destinationListHref({ scenario: item.key, difficulty: "all", maxDistance: 120, needParking: false, needToilet: false })}
-                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition hover:shadow-sm ${item.color}`}
+                className={`interactive-button inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold hover:shadow-sm ${item.color}`}
               >
                 <item.icon className="h-3.5 w-3.5" />
                 {zh ? item.labelZh : item.label}
@@ -265,13 +265,13 @@ export default async function HomePage() {
           </div>
 
           <div className="mt-3 grid grid-cols-3 gap-2">
-            <Link href="#top10" className="rounded-2xl bg-rose-50 px-3 py-2 text-center text-xs font-black text-rose-700">
+            <Link href="#top10" className="interactive-button rounded-2xl bg-rose-50 px-3 py-2 text-center text-xs font-black text-rose-700">
               {pick(locale, "Top 10", "本周TOP10")}
             </Link>
-            <Link href="#nearby" className="rounded-2xl bg-emerald-50 px-3 py-2 text-center text-xs font-black text-emerald-700">
+            <Link href="#nearby" className="interactive-button rounded-2xl bg-emerald-50 px-3 py-2 text-center text-xs font-black text-emerald-700">
               {pick(locale, "Nearest", "离我最近")}
             </Link>
-            <Link href={destinationListHref({ city: homeCity, scenario: "all", difficulty: "easy", maxDistance: 80, needParking: true, needToilet: true })} className="rounded-2xl bg-sky-50 px-3 py-2 text-center text-xs font-black text-sky-700">
+            <Link href={destinationListHref({ city: homeCity, scenario: "all", difficulty: "easy", maxDistance: 80, needParking: true, needToilet: true })} className="interactive-button rounded-2xl bg-sky-50 px-3 py-2 text-center text-xs font-black text-sky-700">
               {pick(locale, "Young kids", "低龄宝宝")}
             </Link>
           </div>
@@ -291,13 +291,13 @@ export default async function HomePage() {
               <h2 className="mt-1 text-lg font-black">{weekendWeather.weather} · {weekendWeather.advice}</h2>
               <p className="mt-1 text-xs text-emerald-50">{weekendWeather.wind} · {pick(locale, "Tap to view weather details", "可点击查看天气详情")}</p>
             </div>
-            <Link href={`/weather?city=${encodeURIComponent(homeCity)}`} className="shrink-0 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-emerald-700">
+            <Link href={`/weather?city=${encodeURIComponent(homeCity)}`} className="interactive-button shrink-0 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-emerald-700">
               {pick(locale, "Details", "详情")}
             </Link>
           </div>
           <div className="mt-4 grid gap-2 md:grid-cols-2">
             {weatherDestinations.slice(0, 2).map((item) => (
-              <Link key={item.id} href={`/destinations/${item.id}`} className="rounded-2xl bg-white/95 p-3 text-slate-900">
+              <Link key={item.id} href={`/destinations/${item.id}`} className="interactive-card rounded-2xl bg-white/95 p-3 text-slate-900">
                 <p className="text-xs font-semibold text-emerald-700">{destinationScenario(item, locale)}</p>
                 <h3 className="mt-1 line-clamp-1 font-bold">{destinationName(item, locale)}</h3>
                 <p className="mt-1 line-clamp-1 text-xs text-slate-500">{destinationFamilyHighlight(item, locale)}</p>
@@ -330,7 +330,7 @@ export default async function HomePage() {
         />
         <div className="grid gap-3 md:grid-cols-2">
           {latestShares.slice(0, 4).map((item) => (
-            <Link key={item.id} href={`/destinations/${item.id}`} className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100 transition hover:shadow-md">
+            <Link key={item.id} href={`/destinations/${item.id}`} className="interactive-card rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-xs font-semibold text-emerald-700">

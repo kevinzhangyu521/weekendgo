@@ -94,7 +94,7 @@ export function MyPlansClient({ locale }: Props) {
         ) : !currentUser.isAuthenticated ? (
           <div className="rounded-xl border border-slate-200 bg-white p-6 text-slate-700">
             <p className="font-medium">{pick(locale, "Please sign in to view your plans.", "\u8bf7\u5148\u767b\u5f55\uff0c\u7136\u540e\u67e5\u770b\u4f60\u7684\u8ba1\u5212\u3002")}</p>
-            <Link href="/login?next=%2Fplans" className="mt-4 inline-flex rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white">
+            <Link href="/login?next=%2Fplans" className="interactive-button mt-4 inline-flex rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
               {pick(locale, "Sign in", "\u53bb\u767b\u5f55")}
             </Link>
           </div>
@@ -104,14 +104,14 @@ export function MyPlansClient({ locale }: Props) {
           <div className="rounded-xl border border-slate-200 bg-white p-6 text-slate-700">
             <p className="font-medium">{pick(locale, "No plans yet.", "\u8fd8\u6ca1\u6709\u8ba1\u5212\u3002")}</p>
             <p className="mt-1 text-sm text-slate-600">{pick(locale, "Add destinations from detail pages to build your first weekend route.", "\u4ece\u76ee\u7684\u5730\u8be6\u60c5\u9875\u6dfb\u52a0\u7ad9\u70b9\uff0c\u751f\u6210\u4f60\u7684\u7b2c\u4e00\u4e2a\u5468\u672b\u8def\u7ebf\u3002")}</p>
-            <Link href="/destinations" className="mt-4 inline-flex rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white">
+            <Link href="/destinations" className="interactive-button mt-4 inline-flex rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
               {pick(locale, "Explore destinations", "\u53bb\u770b\u76ee\u7684\u5730")}
             </Link>
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {plans.map((plan) => (
-              <Link key={plan.id} href={`/plans/${plan.id}`} className="block rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md">
+              <Link key={plan.id} href={`/plans/${plan.id}`} className="interactive-card block rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                 <p className="text-base font-semibold text-slate-900">{displayPlanTitle(plan.title)}</p>
                 <p className="mt-1 text-sm text-slate-600">{plan.planDate}</p>
                 <div className="mt-3 flex items-center justify-between text-xs text-slate-600">

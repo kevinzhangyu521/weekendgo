@@ -54,7 +54,7 @@ export function MobileTabBar({ locale, isSignedIn }: Props) {
             <Link
               key={item.label}
               href={item.href}
-              className={`flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] ${
+              className={`interactive-button flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] ${
                 active ? "font-semibold text-emerald-700" : "text-slate-500"
               }`}
             >

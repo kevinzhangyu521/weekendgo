@@ -92,7 +92,7 @@ export function MapExplorer({ items, locale }: Props) {
         {items.map((item) => (
           <div
             key={item.id}
-            className={`rounded-lg border p-3 transition ${
+            className={`interactive-card rounded-lg border p-3 ${
               activeId === item.id ? "border-emerald-500 bg-emerald-50" : "border-slate-200 hover:bg-slate-50"
             }`}
           >
@@ -108,7 +108,7 @@ export function MapExplorer({ items, locale }: Props) {
                 {displayCity(item)} - {formatDistance(item.distanceKm)}
               </p>
             </button>
-            <Link href={`/destinations/${item.id}`} className="mt-2 inline-flex text-xs font-medium text-emerald-700">
+            <Link href={`/destinations/${item.id}`} className="interactive-text-link mt-2 inline-flex text-xs font-medium text-emerald-700">
               {"\u67e5\u770b\u8be6\u60c5"}
             </Link>
           </div>

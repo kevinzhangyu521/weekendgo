@@ -88,7 +88,7 @@ export function FeedbackWidget() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed bottom-24 right-4 z-50 inline-flex h-12 items-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white shadow-xl shadow-slate-900/20 transition hover:-translate-y-0.5 hover:bg-slate-800 md:bottom-6"
+        className="interactive-button fixed bottom-24 right-4 z-50 inline-flex h-12 items-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white shadow-xl shadow-slate-900/20 hover:bg-slate-800 md:bottom-6"
         aria-label="提交反馈"
       >
         <Lightbulb className="h-4 w-4 text-amber-300" />
@@ -106,7 +106,7 @@ export function FeedbackWidget() {
                 </p>
                 <p className="mt-1 text-sm text-slate-500">告诉我们哪里不好用，或者地点信息哪里需要修正。</p>
               </div>
-              <button type="button" onClick={() => setOpen(false)} className="rounded-full p-2 text-slate-500 hover:bg-slate-100" aria-label="关闭反馈表单">
+              <button type="button" onClick={() => setOpen(false)} className="interactive-button rounded-full p-2 text-slate-500 hover:bg-slate-100" aria-label="关闭反馈表单">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -158,10 +158,10 @@ export function FeedbackWidget() {
             {message ? <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{message}</div> : null}
 
             <div className="mt-4 flex gap-3">
-              <button type="button" onClick={() => setOpen(false)} className="h-11 flex-1 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700">
+              <button type="button" onClick={() => setOpen(false)} className="interactive-button h-11 flex-1 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50">
                 取消
               </button>
-              <button disabled={submitting} className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 text-sm font-semibold text-white disabled:opacity-60">
+              <button disabled={submitting} className="interactive-button inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60">
                 {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 {submitting ? "提交中..." : "提交反馈"}
               </button>

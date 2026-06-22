@@ -123,7 +123,7 @@ export function AuthNavClient({ locale, initialIsAdmin }: Props) {
         <button
           type="button"
           onClick={() => setMenuOpen((value) => !value)}
-          className="inline-flex items-center justify-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-50"
+          className="interactive-button inline-flex items-center justify-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-50"
           aria-label={menuOpen ? "\u5173\u95ed\u83dc\u5355" : "\u6253\u5f00\u83dc\u5355"}
         >
           <span className="hidden md:inline">{locale === "zh" ? "菜单" : "Menu"}</span>
@@ -138,7 +138,7 @@ export function AuthNavClient({ locale, initialIsAdmin }: Props) {
           <button
             type="button"
             onClick={handleSignOut}
-            className={`rounded-full border border-slate-200 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-50 ${
+            className={`interactive-button rounded-full border border-slate-200 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-50 ${
               loading ? "pointer-events-none opacity-60" : ""
             }`}
           >
@@ -146,7 +146,7 @@ export function AuthNavClient({ locale, initialIsAdmin }: Props) {
           </button>
         </div>
       ) : (
-        <Link href={loginHref} className="rounded-full bg-emerald-600 px-3 py-1.5 font-medium text-white hover:bg-emerald-700">
+        <Link href={loginHref} className="interactive-button rounded-full bg-emerald-600 px-3 py-1.5 font-medium text-white hover:bg-emerald-700">
           {locale === "zh" ? "\u767b\u5f55" : "Sign in"}
         </Link>
       )}
@@ -159,7 +159,7 @@ export function AuthNavClient({ locale, initialIsAdmin }: Props) {
                 key={item.href}
                 href={item.href}
                 onClick={() => setMenuOpen(false)}
-                className={`rounded-lg px-3 py-2 text-sm ${
+                className={`interactive-button rounded-lg px-3 py-2 text-sm ${
                   pathname === item.href ? "bg-emerald-50 font-semibold text-emerald-700" : "text-slate-700 hover:bg-slate-50"
                 }`}
               >
@@ -177,7 +177,7 @@ export function AuthNavClient({ locale, initialIsAdmin }: Props) {
                       key={item.href}
                       href={item.href}
                       onClick={() => setMenuOpen(false)}
-                      className={`rounded-lg px-3 py-2 text-sm ${
+                      className={`interactive-button rounded-lg px-3 py-2 text-sm ${
                         pathname === item.href ? "bg-emerald-50 font-semibold text-emerald-700" : "text-slate-700 hover:bg-slate-50"
                       }`}
                     >
@@ -196,7 +196,7 @@ export function AuthNavClient({ locale, initialIsAdmin }: Props) {
                       key={item.href}
                       href={item.href}
                       onClick={() => setMenuOpen(false)}
-                      className={`rounded-lg px-3 py-2 text-sm ${
+                      className={`interactive-button rounded-lg px-3 py-2 text-sm ${
                         pathname === item.href ? "bg-emerald-50 font-semibold text-emerald-700" : "font-medium text-emerald-700 hover:bg-emerald-50"
                       }`}
                     >

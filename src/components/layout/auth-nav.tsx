@@ -18,10 +18,10 @@ export function AuthNav({ locale, email, isAdmin }: Props) {
         <div className="flex min-w-0 flex-1 items-center gap-4 text-sm">
           <BrandLogo />
           <nav className="scrollbar-none hidden min-w-0 flex-1 items-center gap-3 overflow-x-auto whitespace-nowrap text-slate-600 md:flex">
-            <Link href="/destinations" className="shrink-0 hover:text-slate-900">
+            <Link href="/destinations" className="interactive-nav-link shrink-0">
               {pick(locale, "Destinations", "\u76ee\u7684\u5730")}
             </Link>
-            <Link href="/map" className="shrink-0 hover:text-slate-900">
+            <Link href="/map" className="interactive-nav-link shrink-0">
               {pick(locale, "Map", "\u5730\u56fe")}
             </Link>
           </nav>

@@ -3,6 +3,9 @@
 :root {
   --bg: #f8faf9;
   --text: #1f2937;
+  --interactive-ease: ease;
+  --interactive-fast: 0.2s;
+  --interactive-medium: 0.3s;
 }
 
 html,
@@ -35,6 +38,143 @@ video {
   max-width: 100%;
 }
 
+:where(a[href], button:not(:disabled), [role="button"], summary) {
+  cursor: pointer;
+}
+
+:where(select, input[type="checkbox"], input[type="radio"]) {
+  cursor: pointer;
+}
+
+:where(button:disabled, [aria-disabled="true"]) {
+  cursor: not-allowed;
+}
+
+:where(button:not(:disabled), a[href][class*="rounded"], [role="button"]) {
+  transition:
+    transform var(--interactive-fast) var(--interactive-ease),
+    box-shadow var(--interactive-fast) var(--interactive-ease),
+    background-color var(--interactive-fast) var(--interactive-ease),
+    border-color var(--interactive-fast) var(--interactive-ease),
+    color var(--interactive-fast) var(--interactive-ease),
+    opacity var(--interactive-fast) var(--interactive-ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  :where(button:not(:disabled), a[href][class*="rounded"], [role="button"]):hover {
+    transform: translateY(-2px);
+  }
+}
+
+:where(button:not(:disabled), a[href][class*="rounded"], [role="button"]):active {
+  transform: scale(0.98);
+}
+
+.interactive-button {
+  transition:
+    transform var(--interactive-fast) var(--interactive-ease),
+    box-shadow var(--interactive-fast) var(--interactive-ease),
+    background-color var(--interactive-fast) var(--interactive-ease),
+    border-color var(--interactive-fast) var(--interactive-ease),
+    color var(--interactive-fast) var(--interactive-ease),
+    opacity var(--interactive-fast) var(--interactive-ease);
+  will-change: transform;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .interactive-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+  }
+}
+
+.interactive-button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.interactive-card {
+  cursor: pointer;
+  transition:
+    transform var(--interactive-fast) var(--interactive-ease),
+    box-shadow var(--interactive-fast) var(--interactive-ease),
+    border-color var(--interactive-fast) var(--interactive-ease),
+    background-color var(--interactive-fast) var(--interactive-ease);
+  will-change: transform;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .interactive-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 38px rgba(15, 23, 42, 0.14);
+  }
+}
+
+.interactive-card:active {
+  transform: scale(0.99);
+}
+
+.interactive-image {
+  transition: transform var(--interactive-medium) var(--interactive-ease);
+  will-change: transform;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .group:hover .interactive-image,
+  .interactive-card:hover .interactive-image {
+    transform: scale(1.03);
+  }
+}
+
+.interactive-nav-link {
+  position: relative;
+  transition: color var(--interactive-fast) var(--interactive-ease);
+}
+
+.interactive-nav-link::after {
+  position: absolute;
+  right: 0;
+  bottom: -6px;
+  left: 0;
+  height: 2px;
+  content: "";
+  background: #059669;
+  border-radius: 999px;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform var(--interactive-fast) var(--interactive-ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .interactive-nav-link:hover {
+    color: #059669;
+  }
+
+  .interactive-nav-link:hover::after {
+    transform: scaleX(1);
+  }
+}
+
+.interactive-text-link {
+  text-underline-offset: 3px;
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  transition:
+    color var(--interactive-fast) var(--interactive-ease),
+    text-decoration-color var(--interactive-fast) var(--interactive-ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .interactive-text-link:hover {
+    color: #047857;
+    text-decoration-color: currentColor;
+  }
+
+  main a[href]:not([class*="rounded"]):not(.interactive-card):not(.interactive-button):hover {
+    color: #047857;
+    text-decoration-line: underline;
+    text-underline-offset: 3px;
+  }
+}
+
 .scrollbar-none {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -65,5 +205,26 @@ video {
     box-shadow: none !important;
     break-inside: avoid;
     page-break-inside: avoid;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  .interactive-button:hover,
+  .interactive-button:active,
+  .interactive-card:hover,
+  .interactive-card:active,
+  .interactive-image,
+  :where(button:not(:disabled), a[href][class*="rounded"], [role="button"]):hover,
+  :where(button:not(:disabled), a[href][class*="rounded"], [role="button"]):active {
+    transform: none !important;
   }
 }

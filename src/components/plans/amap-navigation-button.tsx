@@ -42,7 +42,7 @@ export function AmapNavigationButton({
     return (
       <Link
         href={loginHref}
-        className={`inline-flex h-10 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-4 text-sm font-medium text-emerald-700 hover:bg-emerald-100 ${className}`}
+        className={`interactive-button inline-flex h-10 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-4 text-sm font-medium text-emerald-700 hover:bg-emerald-100 ${className}`}
       >
         {signedOutLabel}
       </Link>
@@ -54,7 +54,7 @@ export function AmapNavigationButton({
       type="button"
       onClick={openNavigation}
       disabled={loading}
-      className={`inline-flex h-10 items-center justify-center rounded-xl bg-emerald-600 px-4 text-sm font-medium text-white disabled:cursor-wait disabled:opacity-70 ${className}`}
+      className={`interactive-button inline-flex h-10 items-center justify-center rounded-xl bg-emerald-600 px-4 text-sm font-medium text-white hover:bg-emerald-700 disabled:cursor-wait disabled:opacity-70 ${className}`}
     >
       {loading ? "\u6b63\u5728\u6253\u5f00\u5730\u56fe..." : label}
     </button>

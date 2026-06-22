@@ -44,7 +44,7 @@ function Top10Card({ item, locale, rank }: { item: DestinationItem; locale: Loca
   return (
     <Link
       href={`/destinations/${item.id}`}
-      className="group block w-64 shrink-0 snap-start overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+      className="interactive-card group block w-64 shrink-0 snap-start overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm"
     >
       <div className="relative h-32 overflow-hidden bg-slate-100">
         <img
@@ -53,7 +53,7 @@ function Top10Card({ item, locale, rank }: { item: DestinationItem; locale: Loca
           loading="lazy"
           decoding="async"
           draggable={false}
-          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+          className="interactive-image h-full w-full object-cover"
         />
         <span className={`absolute left-2 top-2 rounded-full px-2.5 py-1 text-xs font-black text-white ${topOne ? "bg-rose-500" : "bg-slate-950/85"}`}>
           TOP {rank}
@@ -117,7 +117,7 @@ export function Top10Carousel({ locale, homeCity, rankings }: Props) {
           <button
             type="button"
             onClick={() => scrollByCard("prev")}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50"
+            className="interactive-button inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"
             aria-label={pick(locale, "Previous", "上一组")}
           >
             <ChevronLeft className="h-5 w-5" />
@@ -125,7 +125,7 @@ export function Top10Carousel({ locale, homeCity, rankings }: Props) {
           <button
             type="button"
             onClick={() => scrollByCard("next")}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50"
+            className="interactive-button inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"
             aria-label={pick(locale, "Next", "下一组")}
           >
             <ChevronRight className="h-5 w-5" />
@@ -143,7 +143,7 @@ export function Top10Carousel({ locale, homeCity, rankings }: Props) {
               setActiveIndex(0);
               viewportRef.current?.scrollTo({ left: 0, behavior: "smooth" });
             }}
-            className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-bold transition ${
+            className={`interactive-button shrink-0 rounded-full px-3 py-1.5 text-xs font-bold ${
               activeTab === tab.key ? "bg-slate-950 text-white" : "bg-white text-slate-700 ring-1 ring-slate-200"
             }`}
           >

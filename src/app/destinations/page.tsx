@@ -79,7 +79,7 @@ export default async function DestinationsPage({
               <Link
                 key={value}
                 href={`/destinations?scenario=${value}&difficulty=${filters.difficulty}&maxDistance=${filters.maxDistanceKm}&needParking=${filters.needParking}&needToilet=${filters.needToilet}`}
-                className={`rounded-full px-3 py-1.5 text-sm ${
+                className={`interactive-button rounded-full px-3 py-1.5 text-sm ${
                   filters.scenario === value ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-700"
                 }`}
               >
@@ -93,7 +93,7 @@ export default async function DestinationsPage({
               <Link
                 key={value}
                 href={`/destinations?scenario=${filters.scenario}&difficulty=${value}&maxDistance=${filters.maxDistanceKm}&needParking=${filters.needParking}&needToilet=${filters.needToilet}`}
-                className={`rounded-full px-3 py-1.5 text-sm ${
+                className={`interactive-button rounded-full px-3 py-1.5 text-sm ${
                   filters.difficulty === value ? "bg-slate-800 text-white" : "bg-slate-100 text-slate-700"
                 }`}
               >
@@ -107,7 +107,7 @@ export default async function DestinationsPage({
               <Link
                 key={km}
                 href={`/destinations?scenario=${filters.scenario}&difficulty=${filters.difficulty}&maxDistance=${km}&needParking=${filters.needParking}&needToilet=${filters.needToilet}`}
-                className={`rounded-full px-3 py-1.5 text-sm ${
+                className={`interactive-button rounded-full px-3 py-1.5 text-sm ${
                   filters.maxDistanceKm === km ? "bg-sky-600 text-white" : "bg-slate-100 text-slate-700"
                 }`}
               >
@@ -119,7 +119,7 @@ export default async function DestinationsPage({
           <div className="mt-3 flex flex-wrap gap-2">
             <Link
               href={`/destinations?scenario=${filters.scenario}&difficulty=${filters.difficulty}&maxDistance=${filters.maxDistanceKm}&needParking=${!filters.needParking}&needToilet=${filters.needToilet}`}
-              className={`rounded-full px-3 py-1.5 text-sm ${
+              className={`interactive-button rounded-full px-3 py-1.5 text-sm ${
                 filters.needParking ? "bg-amber-600 text-white" : "bg-slate-100 text-slate-700"
               }`}
             >
@@ -127,7 +127,7 @@ export default async function DestinationsPage({
             </Link>
             <Link
               href={`/destinations?scenario=${filters.scenario}&difficulty=${filters.difficulty}&maxDistance=${filters.maxDistanceKm}&needParking=${filters.needParking}&needToilet=${!filters.needToilet}`}
-              className={`rounded-full px-3 py-1.5 text-sm ${
+              className={`interactive-button rounded-full px-3 py-1.5 text-sm ${
                 filters.needToilet ? "bg-amber-600 text-white" : "bg-slate-100 text-slate-700"
               }`}
             >
@@ -144,7 +144,7 @@ export default async function DestinationsPage({
           {list.map((item) => {
             const image = getDestinationImage(item);
             return (
-              <article key={item.id} className="flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
+              <article key={item.id} className="interactive-card group flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                 <Link href={`/destinations/${item.id}`} className="block h-44 overflow-hidden bg-slate-100">
                   <div className="relative h-full w-full">
                     <img
@@ -152,7 +152,7 @@ export default async function DestinationsPage({
                       alt={destinationName(item, locale)}
                       loading="lazy"
                       decoding="async"
-                      className="h-full w-full object-cover transition duration-300 hover:scale-105"
+                      className="interactive-image h-full w-full object-cover"
                     />
                   </div>
                 </Link>
@@ -179,7 +179,7 @@ export default async function DestinationsPage({
                 </div>
 
                 <h2 className="text-base font-semibold text-slate-900">
-                  <Link href={`/destinations/${item.id}`} className="hover:underline">
+                  <Link href={`/destinations/${item.id}`} className="interactive-text-link">
                     {destinationName(item, locale)}
                   </Link>
                 </h2>

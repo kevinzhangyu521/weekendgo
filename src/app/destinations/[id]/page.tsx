@@ -95,7 +95,7 @@ export default async function DestinationDetailPage({
   return (
     <main className="min-h-screen bg-slate-50 pb-28 md:pb-12">
       <section className="mx-auto max-w-6xl px-4 py-6 md:px-6">
-        <Link href="/destinations" className="mb-4 inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900">
+        <Link href="/destinations" className="interactive-text-link mb-4 inline-flex items-center gap-1 text-sm text-slate-600">
           <ChevronLeft className="h-4 w-4" />
           {pick(locale, "Back to destinations", "\u8fd4\u56de\u76ee\u7684\u5730\u5217\u8868")}
         </Link>
@@ -107,7 +107,7 @@ export default async function DestinationDetailPage({
               alt={destinationName(destination, locale)}
               fetchPriority="high"
               decoding="async"
-              className="h-full w-full object-cover"
+              className="interactive-image h-full w-full object-cover"
             />
           </div>
           <div className="space-y-4 p-5 md:p-6">

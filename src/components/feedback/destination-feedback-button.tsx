@@ -22,7 +22,7 @@ export function DestinationFeedbackButton({ destinationName }: Props) {
     <button
       type="button"
       onClick={openFeedback}
-      className="inline-flex h-10 items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 text-sm font-semibold text-amber-800 hover:bg-amber-100"
+      className="interactive-button inline-flex h-10 items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 text-sm font-semibold text-amber-800 hover:bg-amber-100"
     >
       <AlertCircle className="h-4 w-4" />
       信息有误？提交反馈

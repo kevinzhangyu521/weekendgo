@@ -325,14 +325,14 @@ export function PlanEditor({ plan, locale }: Props) {
             <p className="text-xs text-slate-600">{text.scanToOpen}</p>
             <img src={qrSrc} alt="Plan share QR code" className="mt-2 h-44 w-44 rounded-md border border-slate-200 bg-white" />
             <div className="mt-2 flex flex-wrap gap-2">
-              <button type="button" onClick={downloadQrPng} className="rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-700">
+              <button type="button" onClick={downloadQrPng} className="interactive-button rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-700 hover:bg-slate-50">
                 {text.downloadQrPng}
               </button>
-              <button type="button" onClick={downloadShareCardPng} className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-700">
+              <button type="button" onClick={downloadShareCardPng} className="interactive-button inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-700 hover:bg-slate-50">
                 <ImageDown className="h-3.5 w-3.5" />
                 {text.downloadShareCardPng}
               </button>
-              <Link href={`${sharePath}?view=card`} target="_blank" className="rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-700">
+              <Link href={`${sharePath}?view=card`} target="_blank" className="interactive-button rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-700 hover:bg-slate-50">
                 {text.openPrintableCard}
               </Link>
             </div>
@@ -356,13 +356,13 @@ export function PlanEditor({ plan, locale }: Props) {
                   {item.destination ? (
                     <AmapNavigationButton destination={item.destination} label={text.navigate} />
                   ) : null}
-                  <button type="button" onClick={() => moveItem(index, "up")} disabled={index === 0 || busyItemId === item.id} className="rounded-md border border-slate-200 p-2 text-slate-700 disabled:opacity-40" title={text.moveUp}>
+                  <button type="button" onClick={() => moveItem(index, "up")} disabled={index === 0 || busyItemId === item.id} className="interactive-button rounded-md border border-slate-200 p-2 text-slate-700 hover:bg-slate-50 disabled:opacity-40" title={text.moveUp}>
                     <ArrowUp className="h-4 w-4" />
                   </button>
-                  <button type="button" onClick={() => moveItem(index, "down")} disabled={index === plan.items.length - 1 || busyItemId === item.id} className="rounded-md border border-slate-200 p-2 text-slate-700 disabled:opacity-40" title={text.moveDown}>
+                  <button type="button" onClick={() => moveItem(index, "down")} disabled={index === plan.items.length - 1 || busyItemId === item.id} className="interactive-button rounded-md border border-slate-200 p-2 text-slate-700 hover:bg-slate-50 disabled:opacity-40" title={text.moveDown}>
                     <ArrowDown className="h-4 w-4" />
                   </button>
-                  <button type="button" onClick={() => removeItem(item.id)} disabled={busyItemId === item.id} className="rounded-md border border-rose-200 p-2 text-rose-700 disabled:opacity-40" title={text.remove}>
+                  <button type="button" onClick={() => removeItem(item.id)} disabled={busyItemId === item.id} className="interactive-button rounded-md border border-rose-200 p-2 text-rose-700 hover:bg-rose-50 disabled:opacity-40" title={text.remove}>
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>

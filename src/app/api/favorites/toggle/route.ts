@@ -16,8 +16,6 @@ const text = {
   readFailed: "\u8bfb\u53d6\u6536\u85cf\u72b6\u6001\u5931\u8d25\u3002",
   removeFailed: "\u53d6\u6d88\u6536\u85cf\u5931\u8d25\u3002",
   addFailed: "\u52a0\u5165\u6536\u85cf\u5931\u8d25\u3002",
-  removed: "\u5df2\u53d6\u6d88\u6536\u85cf\u3002",
-  added: "\u5df2\u52a0\u5165\u6536\u85cf\u3002"
 };
 
 async function getAuthDiagnostic(authSource: string) {
@@ -64,7 +62,7 @@ export async function POST(request: Request) {
   if (existing) {
     const { error } = await supabase.from("favorites").delete().eq("id", existing.id);
     if (error) return NextResponse.json({ ok: false, message: text.removeFailed }, { status: 500 });
-    return NextResponse.json({ ok: true, isFavorite: false, message: text.removed, authSource });
+    return NextResponse.json({ ok: true, isFavorite: false, authSource });
   }
 
   const { error } = await supabase.from("favorites").insert({
@@ -74,5 +72,5 @@ export async function POST(request: Request) {
 
   if (error) return NextResponse.json({ ok: false, message: text.addFailed }, { status: 500 });
 
-  return NextResponse.json({ ok: true, isFavorite: true, message: text.added, authSource });
+  return NextResponse.json({ ok: true, isFavorite: true, authSource });
 }

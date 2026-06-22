@@ -22,6 +22,7 @@ export function AddToPlanButton({ destinationId, locale }: Props) {
   const text = getAddToPlanMessages(locale);
   const currentUser = useCurrentUser();
   const [loading, setLoading] = useState(false);
+  const [addedToPlan, setAddedToPlan] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [needsLogin, setNeedsLogin] = useState(false);
@@ -78,10 +79,12 @@ export function AddToPlanButton({ destinationId, locale }: Props) {
       if (!response.ok || !result.ok) throw new Error(result.message ?? "Add to plan failed");
 
       if (result.alreadyInPlan) {
+        setAddedToPlan(true);
         setMessage(result.message ?? text.alreadyInPlan);
         return;
       }
 
+      setAddedToPlan(true);
       setMessage(result.message ?? text.added);
     } catch (error) {
       const detail = error instanceof Error && error.message !== "Add to plan failed" ? error.message : text.addFailed;
@@ -98,10 +101,10 @@ export function AddToPlanButton({ destinationId, locale }: Props) {
         type="button"
         onClick={handleAdd}
         disabled={loading}
-        className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+        className="interactive-button inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
       >
         <CalendarPlus className="h-4 w-4" />
-        {loading ? text.adding : currentUser.isAuthenticated ? text.addToPlan : "\u767b\u5f55\u540e\u52a0\u5165\u8ba1\u5212"}
+        {loading ? text.adding : addedToPlan ? "\u2713 \u5df2\u52a0\u5165\u5468\u672b\u8ba1\u5212" : currentUser.isAuthenticated ? text.addToPlan : "\u767b\u5f55\u540e\u52a0\u5165\u8ba1\u5212"}
       </button>
       {message ? <p className="mt-1 text-xs text-emerald-700">{message}</p> : null}
       {error ? <p className="mt-2 max-w-[240px] rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800">{error}</p> : null}

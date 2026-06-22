@@ -85,7 +85,7 @@ export function FavoritesClient({ locale }: { locale: Locale }) {
         {!loading && !currentUser.isAuthenticated ? (
           <div className="rounded-xl border border-slate-200 bg-white p-6 text-slate-700">
             <p className="font-medium">{pick(locale, "Please sign in to view favorites.", "\u8bf7\u5148\u767b\u5f55\uff0c\u7136\u540e\u67e5\u770b\u6536\u85cf\u3002")}</p>
-            <Link href="/login?next=/favorites" className="mt-4 inline-flex rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white">
+            <Link href="/login?next=/favorites" className="interactive-button mt-4 inline-flex rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
               {pick(locale, "Sign in", "\u53bb\u767b\u5f55")}
             </Link>
           </div>
@@ -95,7 +95,7 @@ export function FavoritesClient({ locale }: { locale: Locale }) {
           <div className="rounded-xl border border-slate-200 bg-white p-6 text-slate-700">
             <p className="font-medium">{pick(locale, "No favorites yet.", "\u8fd8\u6ca1\u6709\u6536\u85cf\u3002")}</p>
             <p className="mt-1 text-sm text-slate-600">{pick(locale, "Save places from the destination list or detail page.", "\u53ef\u5728\u5217\u8868\u9875\u6216\u8be6\u60c5\u9875\u6536\u85cf\u76ee\u7684\u5730\u3002")}</p>
-            <Link href="/destinations" className="mt-4 inline-flex rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white">
+            <Link href="/destinations" className="interactive-button mt-4 inline-flex rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
               {pick(locale, "Explore destinations", "\u53bb\u770b\u76ee\u7684\u5730")}
             </Link>
           </div>
@@ -105,9 +105,9 @@ export function FavoritesClient({ locale }: { locale: Locale }) {
             {list.map((item) => {
               const image = getDestinationImage(item);
               return (
-                <Link key={item.id} href={`/destinations/${item.id}`} className="flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
+                <Link key={item.id} href={`/destinations/${item.id}`} className="interactive-card group flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                   <div className="relative h-44 overflow-hidden bg-slate-100">
-                    <img src={image.src} alt={destinationName(item, locale)} loading="lazy" decoding="async" className="h-full w-full object-cover transition duration-300 hover:scale-105" />
+                    <img src={image.src} alt={destinationName(item, locale)} loading="lazy" decoding="async" className="interactive-image h-full w-full object-cover" />
                   </div>
                   <div className="flex flex-1 flex-col space-y-3 p-4">
                     <div className="flex items-center justify-between">
