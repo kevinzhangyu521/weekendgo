@@ -128,7 +128,7 @@ export default async function DestinationDetailPage({
               <DestinationFeedbackButton destinationName={destinationName(destination, locale)} />
             </div>
             <p className="rounded-xl bg-emerald-50 px-4 py-3 text-base font-semibold text-emerald-800">{destinationFamilyHighlight(destination, locale)}</p>
-            <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-3 lg:grid-cols-[auto_minmax(240px,1fr)_auto_auto] lg:items-center">
+            <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-3 lg:grid-cols-[auto_minmax(240px,1fr)_auto] lg:items-center">
               <div className="flex flex-wrap items-center gap-3">
                 <FavoriteButton destinationId={destination.id} initialIsLoggedIn={Boolean(user)} />
                 <AddToPlanButton destinationId={destination.id} locale={locale} />
@@ -143,7 +143,6 @@ export default async function DestinationDetailPage({
                   signedOutLabel={pick(locale, "Sign in to navigate", "\u767b\u5f55\u540e\u5bfc\u822a")}
                 />
               </div>
-              <span className="text-sm text-slate-600 lg:text-right">{pick(locale, "Save or add to plan", "\u6536\u85cf\u6216\u52a0\u5165\u8ba1\u5212")}</span>
             </div>
             <p className="text-slate-600">{destinationDescription(destination, locale)}</p>
             <div className="flex flex-wrap gap-2">
