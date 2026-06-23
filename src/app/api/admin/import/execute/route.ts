@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { executeImport, parseAndValidateCsv } from "@/features/importer/service";
 import { getRequestAuth } from "@/lib/auth/request-auth";
 
@@ -28,5 +28,7 @@ export async function POST(request: Request) {
   const result = await executeImport(parsed.rows.spots, parsed.rows.facilities, parsed.rows.photos, supabase);
   if (!result.ok) return NextResponse.json(result, { status: 400 });
   revalidateTag("destinations");
+  revalidatePath("/");
+  revalidatePath("/destinations");
   return NextResponse.json(result);
 }

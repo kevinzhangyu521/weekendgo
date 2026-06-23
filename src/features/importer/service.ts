@@ -62,6 +62,7 @@ function buildDestinationPayload(spots: SpotCsvRow[], facilities: FacilityCsvRow
       image: cover?.url || "",
       description: row.description || "",
       description_zh: row.description_zh || null,
+      is_active: true,
       updated_at: new Date().toISOString()
     };
   });
