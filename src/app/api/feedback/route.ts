@@ -43,9 +43,11 @@ export async function POST(request: Request) {
   }
 
   const { supabase, user } = await getRequestAuth(request);
+  const feedbackId = crypto.randomUUID();
   const feedbackNo = generateFeedbackNo();
   const now = new Date().toISOString();
   const { error } = await supabase.from("feedbacks").insert({
+    id: feedbackId,
     feedback_no: feedbackNo,
     user_id: user?.id ?? null,
     type,
@@ -63,5 +65,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, message: "反馈提交失败，请稍后再试。" }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, feedbackNo, message: `反馈已提交，编号：${feedbackNo}` });
+  await supabase.from("notifications").insert({
+    role: "admin",
+    type: "feedback_created",
+    title: "收到新的用户反馈",
+    content: "用户提交了新的反馈，请及时处理。",
+    related_id: feedbackId,
+    related_type: "feedback"
+  });
+
+  return NextResponse.json({ ok: true, feedbackId, feedbackNo, message: `反馈已提交，编号：${feedbackNo}` });
 }

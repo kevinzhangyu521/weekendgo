@@ -21,6 +21,11 @@ type NavItem = {
   adminOnly?: boolean;
 };
 
+type UnreadCountResponse = {
+  ok?: boolean;
+  unreadCount?: number;
+};
+
 const navItems: Record<Locale, NavItem[]> = {
   zh: [
     { href: "/destinations", label: "\u76ee\u7684\u5730" },
@@ -30,6 +35,7 @@ const navItems: Record<Locale, NavItem[]> = {
     { href: "/submit-spot", label: "\u6dfb\u52a0\u5730\u70b9", authOnly: true },
     { href: "/my-submissions", label: "\u6211\u7684\u6295\u7a3f", authOnly: true },
     { href: "/my-feedback", label: "\u6211\u7684\u53cd\u9988", authOnly: true },
+    { href: "/notifications", label: "\u6211\u7684\u6d88\u606f", authOnly: true },
     { href: "/profile", label: "\u6211\u7684\u8d44\u6599", authOnly: true },
     { href: "/admin/collections", label: "\u91c7\u96c6", adminOnly: true },
     { href: "/admin/feedback", label: "反馈", adminOnly: true },
@@ -45,6 +51,7 @@ const navItems: Record<Locale, NavItem[]> = {
     { href: "/submit-spot", label: "Add", authOnly: true },
     { href: "/my-submissions", label: "My Submissions", authOnly: true },
     { href: "/my-feedback", label: "My Feedback", authOnly: true },
+    { href: "/notifications", label: "Messages", authOnly: true },
     { href: "/profile", label: "Profile", authOnly: true },
     { href: "/admin/collections", label: "Collect", adminOnly: true },
     { href: "/admin/feedback", label: "Feedback", adminOnly: true },
@@ -62,6 +69,7 @@ export function AuthNavClient({ locale, initialIsAdmin }: Props) {
   const isAdmin = Boolean(email) && clientIsAdmin;
   const [loading, setLoading] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     let mounted = true;
@@ -100,6 +108,43 @@ export function AuthNavClient({ locale, initialIsAdmin }: Props) {
     };
   }, [currentUser.isAuthenticated, currentUser.isLoading]);
 
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadUnreadCount() {
+      if (currentUser.isLoading) return;
+      if (!currentUser.isAuthenticated) {
+        setUnreadCount(0);
+        return;
+      }
+
+      const supabase = createClient();
+      const {
+        data: { session }
+      } = await supabase.auth.getSession();
+      const headers: Record<string, string> = {};
+      if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
+
+      try {
+        const response = await fetch("/api/notifications/unread-count", {
+          headers,
+          credentials: "include",
+          cache: "no-store"
+        });
+        const result = (await response.json()) as UnreadCountResponse;
+        if (mounted) setUnreadCount(result.ok ? result.unreadCount ?? 0 : 0);
+      } catch {
+        if (mounted) setUnreadCount(0);
+      }
+    }
+
+    void loadUnreadCount();
+
+    return () => {
+      mounted = false;
+    };
+  }, [currentUser.isAuthenticated, currentUser.isLoading]);
+
   async function handleSignOut() {
     setLoading(true);
     setMenuOpen(false);
@@ -118,6 +163,18 @@ export function AuthNavClient({ locale, initialIsAdmin }: Props) {
   const accountItems = visibleItems.filter((item) => item.authOnly && !item.adminOnly);
   const adminItems = visibleItems.filter((item) => item.adminOnly);
   const menuItems = visibleItems.filter((item) => item.authOnly || item.adminOnly);
+
+  function itemLabel(item: NavItem) {
+    if (item.href !== "/notifications" || unreadCount <= 0) return item.label;
+    return (
+      <span className="relative inline-flex items-center gap-1.5">
+        <span>{item.label}</span>
+        <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+          {unreadCount > 99 ? "99+" : unreadCount}
+        </span>
+      </span>
+    );
+  }
 
   return (
     <div className="flex items-center gap-2 text-sm">
@@ -165,7 +222,7 @@ export function AuthNavClient({ locale, initialIsAdmin }: Props) {
                   pathname === item.href ? "bg-emerald-50 font-semibold text-emerald-700" : "text-slate-700 hover:bg-slate-50"
                 }`}
               >
-                {item.label}
+                {itemLabel(item)}
               </Link>
             ))}
           </div>
@@ -183,7 +240,7 @@ export function AuthNavClient({ locale, initialIsAdmin }: Props) {
                         pathname === item.href ? "bg-emerald-50 font-semibold text-emerald-700" : "text-slate-700 hover:bg-slate-50"
                       }`}
                     >
-                      {item.label}
+                      {itemLabel(item)}
                     </Link>
                   ))}
                 </div>
@@ -202,7 +259,7 @@ export function AuthNavClient({ locale, initialIsAdmin }: Props) {
                         pathname === item.href ? "bg-emerald-50 font-semibold text-emerald-700" : "font-medium text-emerald-700 hover:bg-emerald-50"
                       }`}
                     >
-                      {item.label}
+                      {itemLabel(item)}
                     </Link>
                   ))}
                 </div>

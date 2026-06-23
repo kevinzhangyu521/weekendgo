@@ -91,7 +91,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 
   const { data: existing, error: existingError } = await supabase
     .from("feedbacks")
-    .select("status,admin_reply,replied_at")
+    .select("user_id,status,admin_reply,replied_at")
     .eq("id", id)
     .maybeSingle();
 
@@ -113,6 +113,25 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   const { data, error } = await supabase.from("feedbacks").update(updatePayload).eq("id", id).select(selectFields).single();
 
   if (error || !data) return NextResponse.json({ ok: false, message: `更新失败：${error?.message ?? "未返回保存结果"}` }, { status: 500 });
+
+  const shouldNotifyUser = Boolean(
+    existing.user_id &&
+      adminReply &&
+      (replyChanged || statusChanged) &&
+      (status === "accepted" || status === "completed")
+  );
+
+  if (shouldNotifyUser) {
+    await supabase.from("notifications").insert({
+      user_id: existing.user_id,
+      role: "user",
+      type: "feedback_replied",
+      title: "你的反馈已处理",
+      content: "管理员已回复你的反馈，请查看处理结果。",
+      related_id: id,
+      related_type: "feedback"
+    });
+  }
 
   return NextResponse.json({
     ok: true,
