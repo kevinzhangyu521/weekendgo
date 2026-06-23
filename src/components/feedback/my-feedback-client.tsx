@@ -90,18 +90,18 @@ export function MyFeedbackClient() {
         <div className="mb-5">
           <h1 className="inline-flex items-center gap-2 text-2xl font-bold text-slate-900">
             <MessageSquare className="h-6 w-6 text-emerald-600" />
-            \u6211\u7684\u53cd\u9988
+            {"\u6211\u7684\u53cd\u9988"}
           </h1>
-          <p className="mt-2 text-sm text-slate-600">\u67e5\u770b\u4f60\u63d0\u4ea4\u7684\u95ee\u9898\u3001\u5efa\u8bae\u548c\u5904\u7406\u8fdb\u5ea6\u3002</p>
+          <p className="mt-2 text-sm text-slate-600">{"\u67e5\u770b\u4f60\u63d0\u4ea4\u7684\u95ee\u9898\u3001\u5efa\u8bae\u548c\u5904\u7406\u8fdb\u5ea6\u3002"}</p>
         </div>
 
-        {loading ? <div className="rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-600">\u6b63\u5728\u8bfb\u53d6\u6211\u7684\u53cd\u9988...</div> : null}
+        {loading ? <div className="rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-600">{"\u6b63\u5728\u8bfb\u53d6\u6211\u7684\u53cd\u9988..."}</div> : null}
 
         {!loading && !currentUser.isAuthenticated ? (
           <div className="rounded-2xl border border-slate-200 bg-white p-6 text-slate-700">
-            <p className="font-medium">\u8bf7\u5148\u767b\u5f55\uff0c\u7136\u540e\u67e5\u770b\u4f60\u7684\u53cd\u9988\u5904\u7406\u8fdb\u5ea6\u3002</p>
+            <p className="font-medium">{"\u8bf7\u5148\u767b\u5f55\uff0c\u7136\u540e\u67e5\u770b\u4f60\u7684\u53cd\u9988\u5904\u7406\u8fdb\u5ea6\u3002"}</p>
             <Link href="/login?next=/my-feedback" className="interactive-button mt-4 inline-flex rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
-              \u53bb\u767b\u5f55
+              {"\u53bb\u767b\u5f55"}
             </Link>
           </div>
         ) : null}
@@ -110,8 +110,8 @@ export function MyFeedbackClient() {
 
         {!loading && currentUser.isAuthenticated && items.length === 0 ? (
           <div className="rounded-2xl border border-slate-200 bg-white p-6 text-slate-700">
-            <p className="font-medium">\u6682\u65e0\u53cd\u9988\u3002</p>
-            <p className="mt-1 text-sm text-slate-600">\u4f60\u53ef\u4ee5\u70b9\u51fb\u53f3\u4e0b\u89d2\u201c\u53cd\u9988\u201d\u63d0\u4ea4\u95ee\u9898\u6216\u5efa\u8bae\u3002</p>
+            <p className="font-medium">{"\u6682\u65e0\u53cd\u9988\u3002"}</p>
+            <p className="mt-1 text-sm text-slate-600">{"\u4f60\u53ef\u4ee5\u70b9\u51fb\u53f3\u4e0b\u89d2\u201c\u53cd\u9988\u201d\u63d0\u4ea4\u95ee\u9898\u6216\u5efa\u8bae\u3002"}</p>
           </div>
         ) : null}
 
@@ -128,16 +128,16 @@ export function MyFeedbackClient() {
 
               {item.adminReply ? (
                 <div className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-                  <p className="font-semibold">\u7ba1\u7406\u5458\u56de\u590d</p>
+                  <p className="font-semibold">{"\u7ba1\u7406\u5458\u56de\u590d"}</p>
                   <p className="mt-1 whitespace-pre-wrap leading-6">{item.adminReply}</p>
                 </div>
               ) : (
-                <div className="mt-4 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-500">\u7ba1\u7406\u5458\u6682\u672a\u56de\u590d\uff0c\u6709\u8fdb\u5c55\u540e\u4f1a\u5728\u8fd9\u91cc\u66f4\u65b0\u3002</div>
+                <div className="mt-4 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-500">{"\u7ba1\u7406\u5458\u6682\u672a\u56de\u590d\uff0c\u6709\u8fdb\u5c55\u540e\u4f1a\u5728\u8fd9\u91cc\u66f4\u65b0\u3002"}</div>
               )}
 
               <div className="mt-4 grid gap-2 text-xs text-slate-500 md:grid-cols-2">
-                <p>\u63d0\u4ea4\u65f6\u95f4\uff1a{formatDate(item.createdAt)}</p>
-                <p>\u72b6\u6001\u66f4\u65b0\u65f6\u95f4\uff1a{formatDate(item.statusChangedAt ?? item.updatedAt)}</p>
+                <p>{"\u63d0\u4ea4\u65f6\u95f4\uff1a"}{formatDate(item.createdAt)}</p>
+                <p>{"\u72b6\u6001\u66f4\u65b0\u65f6\u95f4\uff1a"}{formatDate(item.statusChangedAt ?? item.updatedAt)}</p>
               </div>
             </article>
           ))}

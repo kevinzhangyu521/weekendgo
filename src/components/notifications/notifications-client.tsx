@@ -117,9 +117,9 @@ export function NotificationsClient() {
           <div>
             <h1 className="inline-flex items-center gap-2 text-2xl font-bold text-slate-900">
               <Bell className="h-6 w-6 text-emerald-600" />
-              \u901a\u77e5
+              {"\u901a\u77e5"}
             </h1>
-            <p className="mt-2 text-sm text-slate-600">\u67e5\u770b\u53cd\u9988\u8fdb\u5ea6\u3001\u7ba1\u7406\u5458\u56de\u590d\u548c\u7cfb\u7edf\u63d0\u9192\u3002</p>
+            <p className="mt-2 text-sm text-slate-600">{"\u67e5\u770b\u53cd\u9988\u8fdb\u5ea6\u3001\u7ba1\u7406\u5458\u56de\u590d\u548c\u7cfb\u7edf\u63d0\u9192\u3002"}</p>
           </div>
           <button
             type="button"
@@ -128,14 +128,14 @@ export function NotificationsClient() {
             className="interactive-button inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
           >
             <CheckCheck className="h-4 w-4" />
-            \u5168\u90e8\u5df2\u8bfb
+            {"\u5168\u90e8\u5df2\u8bfb"}
           </button>
         </div>
 
-        {loading ? <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-600">\u6b63\u5728\u8bfb\u53d6\u6d88\u606f...</div> : null}
+        {loading ? <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-600">{"\u6b63\u5728\u8bfb\u53d6\u6d88\u606f..."}</div> : null}
         {error ? <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">{error}</div> : null}
-        {!loading && !currentUser.isAuthenticated ? <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-700">\u8bf7\u5148\u767b\u5f55\uff0c\u7136\u540e\u67e5\u770b\u4f60\u7684\u6d88\u606f\u3002</div> : null}
-        {!loading && currentUser.isAuthenticated && items.length === 0 ? <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-600">\u6682\u65e0\u6d88\u606f\u3002</div> : null}
+        {!loading && !currentUser.isAuthenticated ? <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-700">{"\u8bf7\u5148\u767b\u5f55\uff0c\u7136\u540e\u67e5\u770b\u4f60\u7684\u6d88\u606f\u3002"}</div> : null}
+        {!loading && currentUser.isAuthenticated && items.length === 0 ? <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-600">{"\u6682\u65e0\u6d88\u606f\u3002"}</div> : null}
 
         <div className="mt-5 space-y-3">
           {items.map((item) => (
