@@ -26,8 +26,10 @@ export type SpotSubmission = {
   imageUrl: string | null;
   description: string;
   descriptionZh: string | null;
-  status: "pending" | "approved" | "rejected";
+  status: "pending" | "approved" | "needs_changes" | "rejected";
   reviewNote: string | null;
+  publishedDestinationId: string | null;
+  allowResubmit: boolean;
   isLocked: boolean;
   deletedAt: string | null;
   createdAt: string;

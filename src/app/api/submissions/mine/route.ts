@@ -30,6 +30,8 @@ type SubmissionRow = {
   description_zh: string | null;
   status: SpotSubmission["status"];
   review_note: string | null;
+  published_destination_id: string | null;
+  allow_resubmit: boolean | null;
   is_locked: boolean | null;
   deleted_at: string | null;
   created_at: string;
@@ -37,7 +39,7 @@ type SubmissionRow = {
 };
 
 const submissionSelect =
-  "id,user_id,user_email,user_name,user_role,contact,name,name_zh,province,province_zh,city,city_zh,latitude,longitude,address,scenario,difficulty,safety,distance_km,min_kid_age,has_parking,has_toilet,image_url,description,description_zh,status,review_note,is_locked,deleted_at,created_at,updated_at";
+  "id,user_id,user_email,user_name,user_role,contact,name,name_zh,province,province_zh,city,city_zh,latitude,longitude,address,scenario,difficulty,safety,distance_km,min_kid_age,has_parking,has_toilet,image_url,description,description_zh,status,review_note,published_destination_id,allow_resubmit,is_locked,deleted_at,created_at,updated_at";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -71,6 +73,8 @@ function normalize(row: SubmissionRow): SpotSubmission {
     descriptionZh: row.description_zh,
     status: row.status,
     reviewNote: row.review_note,
+    publishedDestinationId: row.published_destination_id,
+    allowResubmit: Boolean(row.allow_resubmit),
     isLocked: Boolean(row.is_locked),
     deletedAt: row.deleted_at,
     createdAt: row.created_at,

@@ -66,6 +66,8 @@ export async function updateSubmission(formData: FormData) {
     description_zh: descriptionZh || description,
     status: "pending",
     review_note: null,
+    allow_resubmit: false,
+    published_destination_id: null,
     reviewed_by: null,
     reviewed_at: null,
     updated_at: new Date().toISOString()

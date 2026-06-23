@@ -1,5 +1,5 @@
-import { CheckCircle2, XCircle } from "lucide-react";
-import { approveSubmission, rejectSubmission } from "./actions";
+import { CheckCircle2, Pencil, XCircle } from "lucide-react";
+import { approveSubmission, rejectSubmission, requestChangesSubmission } from "./actions";
 import { getPendingSubmissions } from "@/features/submissions/repository";
 import { toChineseRegionName } from "@/lib/geo/region-names";
 
@@ -47,7 +47,7 @@ export default async function AdminSubmissionsPage() {
   return (
     <main className="min-h-screen bg-slate-50">
       <section className="mx-auto max-w-5xl px-4 py-6 md:px-6">
-        <h1 className="text-2xl font-bold text-slate-900">{"\u5730\u70b9\u6295\u7a3f\u5ba1\u6838"}</h1>
+        <h1 className="text-2xl font-bold text-slate-900">{"\u5730\u70b9\u5ba1\u6838"}</h1>
         <p className="mt-2 text-sm text-slate-600">{"\u7528\u6237\u63d0\u4ea4\u7684\u4eb2\u5b50\u6237\u5916\u5730\u70b9\u4f1a\u51fa\u73b0\u5728\u8fd9\u91cc\uff0c\u5ba1\u6838\u901a\u8fc7\u540e\u5c06\u53d1\u5e03\u5230\u76ee\u7684\u5730\u5217\u8868\u3002"}</p>
 
         {submissions.length === 0 ? (
@@ -64,16 +64,16 @@ export default async function AdminSubmissionsPage() {
                     <h2 className="mt-1 text-lg font-semibold text-slate-900">{item.nameZh || item.name}</h2>
                     <div className="mt-2 grid gap-2 rounded-lg bg-slate-50 p-3 text-xs text-slate-600 md:grid-cols-3">
                       <p>
-                        <span className="font-semibold text-slate-800">投稿用户：</span>
+                        <span className="font-semibold text-slate-800">{"\u6295\u7a3f\u7528\u6237\uff1a"}</span>
                         {item.userEmail || item.userName || item.userId}
                       </p>
                       <p>
-                        <span className="font-semibold text-slate-800">联系方式：</span>
-                        {item.contact || item.userEmail || "未填写"}
+                        <span className="font-semibold text-slate-800">{"\u8054\u7cfb\u65b9\u5f0f\uff1a"}</span>
+                        {item.contact || item.userEmail || "\u672a\u586b\u5199"}
                       </p>
                       <p>
-                        <span className="font-semibold text-slate-800">用户角色：</span>
-                        {item.userRole === "admin" ? "管理员" : "普通用户"}
+                        <span className="font-semibold text-slate-800">{"\u7528\u6237\u89d2\u8272\uff1a"}</span>
+                        {item.userRole === "admin" ? "\u7ba1\u7406\u5458" : "\u666e\u901a\u7528\u6237"}
                       </p>
                     </div>
                     <p className="mt-1 text-sm text-slate-600">
@@ -97,7 +97,7 @@ export default async function AdminSubmissionsPage() {
                   </span>
                 </div>
 
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className="mt-4 grid gap-3 border-t border-slate-100 pt-4">
                   <form action={approveSubmission}>
                     <input type="hidden" name="id" value={item.id} />
                     <button className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white">
@@ -105,14 +105,25 @@ export default async function AdminSubmissionsPage() {
                       {"\u5ba1\u6838\u901a\u8fc7\u5e76\u53d1\u5e03"}
                     </button>
                   </form>
-                  <form action={rejectSubmission} className="flex flex-wrap gap-2">
-                    <input type="hidden" name="id" value={item.id} />
-                    <input name="review_note" placeholder={"\u62d2\u7edd\u539f\u56e0"} className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-                    <button className="inline-flex items-center gap-1 rounded-lg border border-rose-200 bg-white px-3 py-2 text-sm font-medium text-rose-700">
-                      <XCircle className="h-4 w-4" />
-                      {"\u62d2\u7edd"}
-                    </button>
-                  </form>
+
+                  <div className="grid gap-2 md:grid-cols-2">
+                    <form action={requestChangesSubmission} className="flex flex-wrap gap-2">
+                      <input type="hidden" name="id" value={item.id} />
+                      <input name="review_note" placeholder={"\u9700\u4fee\u6539\u7684\u5185\u5bb9"} className="min-w-0 flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+                      <button className="inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800">
+                        <Pencil className="h-4 w-4" />
+                        {"\u9700\u4fee\u6539"}
+                      </button>
+                    </form>
+                    <form action={rejectSubmission} className="flex flex-wrap gap-2">
+                      <input type="hidden" name="id" value={item.id} />
+                      <input name="review_note" placeholder={"\u672a\u901a\u8fc7\u539f\u56e0"} className="min-w-0 flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+                      <button className="inline-flex items-center gap-1 rounded-lg border border-rose-200 bg-white px-3 py-2 text-sm font-medium text-rose-700">
+                        <XCircle className="h-4 w-4" />
+                        {"\u672a\u901a\u8fc7"}
+                      </button>
+                    </form>
+                  </div>
                 </div>
               </article>
             ))}

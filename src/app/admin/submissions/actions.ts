@@ -30,7 +30,7 @@ export async function approveSubmission(formData: FormData) {
   const now = new Date().toISOString();
   const externalId = `submission-${submission.id}`;
 
-  await supabase.from("destinations").upsert(
+  const { data: destination } = await supabase.from("destinations").upsert(
     {
       external_id: externalId,
       name: submission.name,
@@ -55,12 +55,14 @@ export async function approveSubmission(formData: FormData) {
       updated_at: now
     },
     { onConflict: "external_id" }
-  );
+  ).select("id").single();
 
   await supabase
     .from("spot_submissions")
     .update({
       status: "approved",
+      published_destination_id: destination?.id ?? null,
+      allow_resubmit: false,
       reviewed_by: user.id,
       reviewed_at: now,
       updated_at: now,
@@ -71,7 +73,7 @@ export async function approveSubmission(formData: FormData) {
   await supabase.from("user_notifications").insert({
     user_id: submission.user_id,
     type: "submission_approved",
-    title: "\u63a8\u8350\u5730\u70b9\u5ba1\u6838\u901a\u8fc7",
+    title: "\u6295\u7a3f\u5df2\u901a\u8fc7",
     body: `\u4f60\u63a8\u8350\u7684\u300c${submission.name_zh || submission.name}\u300d\u5df2\u5ba1\u6838\u901a\u8fc7\uff0c\u5730\u70b9\u5df2\u53d1\u5e03\u5230\u76ee\u7684\u5730\u5217\u8868\u3002`,
     href: "/my-submissions"
   });
@@ -80,7 +82,7 @@ export async function approveSubmission(formData: FormData) {
     user_id: submission.user_id,
     role: "user",
     type: "submission_approved",
-    title: "\u63a8\u8350\u5730\u70b9\u5ba1\u6838\u901a\u8fc7",
+    title: "\u6295\u7a3f\u5df2\u901a\u8fc7",
     content: `\u4f60\u63a8\u8350\u7684\u300c${submission.name_zh || submission.name}\u300d\u5df2\u5ba1\u6838\u901a\u8fc7\uff0c\u5730\u70b9\u5df2\u53d1\u5e03\u5230\u76ee\u7684\u5730\u5217\u8868\u3002`,
     related_id: submission.id,
     related_type: "submission"
@@ -92,6 +94,56 @@ export async function approveSubmission(formData: FormData) {
   revalidatePath("/notifications");
   revalidatePath("/destinations");
   revalidatePath("/map");
+}
+
+export async function requestChangesSubmission(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  const note =
+    String(formData.get("review_note") ?? "").trim() ||
+    "\u8bf7\u8865\u5145\u66f4\u5b8c\u6574\u7684\u5730\u70b9\u4fe1\u606f\u3001\u73b0\u573a\u56fe\u7247\u6216\u5b89\u5168\u63d0\u793a\u540e\u518d\u6b21\u63d0\u4ea4\u3002";
+  if (!id) return;
+
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+  if (!user || !(await isAdminUser(supabase, user.id))) return;
+
+  const { data: submission } = await supabase
+    .from("spot_submissions")
+    .select("id,user_id,name,name_zh")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!submission) return;
+
+  const now = new Date().toISOString();
+
+  await supabase
+    .from("spot_submissions")
+    .update({
+      status: "needs_changes",
+      allow_resubmit: true,
+      reviewed_by: user.id,
+      reviewed_at: now,
+      updated_at: now,
+      review_note: note
+    })
+    .eq("id", id);
+
+  await supabase.from("notifications").insert({
+    user_id: submission.user_id,
+    role: "user",
+    type: "submission_needs_changes",
+    title: "\u6295\u7a3f\u9700\u4fee\u6539",
+    content: `\u4f60\u63d0\u4ea4\u7684\u300c${submission.name_zh || submission.name}\u300d\u9700\u8981\u8865\u5145\u4fe1\u606f\u540e\u518d\u5ba1\u6838\u3002\u5907\u6ce8\uff1a${note}`,
+    related_id: id,
+    related_type: "submission"
+  });
+
+  revalidatePath("/admin/submissions");
+  revalidatePath("/my-submissions");
+  revalidatePath("/notifications");
 }
 
 export async function rejectSubmission(formData: FormData) {
@@ -121,6 +173,7 @@ export async function rejectSubmission(formData: FormData) {
     .from("spot_submissions")
     .update({
       status: "rejected",
+      allow_resubmit: false,
       reviewed_by: user.id,
       reviewed_at: now,
       updated_at: now,
@@ -131,7 +184,7 @@ export async function rejectSubmission(formData: FormData) {
   await supabase.from("user_notifications").insert({
     user_id: submission.user_id,
     type: "submission_rejected",
-    title: "\u63a8\u8350\u5730\u70b9\u672a\u901a\u8fc7\u5ba1\u6838",
+    title: "\u6295\u7a3f\u672a\u901a\u8fc7",
     body: `\u4f60\u63a8\u8350\u7684\u300c${submission.name_zh || submission.name}\u300d\u6682\u672a\u901a\u8fc7\u5ba1\u6838\u3002\u539f\u56e0\uff1a${note}`,
     href: "/my-submissions"
   });
@@ -140,7 +193,7 @@ export async function rejectSubmission(formData: FormData) {
     user_id: submission.user_id,
     role: "user",
     type: "submission_rejected",
-    title: "\u63a8\u8350\u5730\u70b9\u672a\u901a\u8fc7\u5ba1\u6838",
+    title: "\u6295\u7a3f\u672a\u901a\u8fc7",
     content: `\u4f60\u63a8\u8350\u7684\u300c${submission.name_zh || submission.name}\u300d\u6682\u672a\u901a\u8fc7\u5ba1\u6838\u3002\u539f\u56e0\uff1a${note}`,
     related_id: id,
     related_type: "submission"
