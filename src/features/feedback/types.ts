@@ -25,19 +25,19 @@ export type FeedbackItem = {
 };
 
 export const feedbackTypeLabels: Record<FeedbackType, string> = {
-  bug: "程序问题",
-  place_error: "地点信息错误",
-  feature: "功能建议",
-  experience: "体验问题",
-  other: "其他"
+  bug: "\u7a0b\u5e8f\u95ee\u9898",
+  place_error: "\u5730\u70b9\u4fe1\u606f\u9519\u8bef",
+  feature: "\u529f\u80fd\u5efa\u8bae",
+  experience: "\u4f53\u9a8c\u95ee\u9898",
+  other: "\u5176\u4ed6"
 };
 
 export const feedbackStatusLabels: Record<FeedbackStatus, string> = {
-  pending: "待处理",
-  in_progress: "处理中",
-  accepted: "已采纳",
-  completed: "已完成",
-  rejected: "不采纳"
+  pending: "\u5f85\u5904\u7406",
+  in_progress: "\u5904\u7406\u4e2d",
+  accepted: "\u5df2\u91c7\u7eb3",
+  completed: "\u5df2\u5b8c\u6210",
+  rejected: "\u4e0d\u91c7\u7eb3"
 };
 
 export const feedbackStatusOptions: FeedbackStatus[] = ["pending", "in_progress", "accepted", "completed", "rejected"];
