@@ -6,6 +6,9 @@ type FeedbackRow = {
   id: string;
   feedback_no: string | null;
   user_id: string | null;
+  user_email: string | null;
+  user_name: string | null;
+  user_role: string | null;
   type: FeedbackType;
   content: string;
   contact: string | null;
@@ -34,13 +37,16 @@ type FeedbackUpdatePayload = {
 const feedbackStatuses = new Set<FeedbackStatus>(["pending", "in_progress", "accepted", "completed", "rejected"]);
 
 const selectFields =
-  "id,feedback_no,user_id,type,content,contact,page_url,device_type,user_agent,status,admin_note,admin_reply,replied_at,status_changed_at,wechat_notify_reserved,created_at,updated_at";
+  "id,feedback_no,user_id,user_email,user_name,user_role,type,content,contact,page_url,device_type,user_agent,status,admin_note,admin_reply,replied_at,status_changed_at,wechat_notify_reserved,created_at,updated_at";
 
 function normalize(row: FeedbackRow): FeedbackItem {
   return {
     id: row.id,
     feedbackNo: row.feedback_no,
     userId: row.user_id,
+    userEmail: row.user_email,
+    userName: row.user_name,
+    userRole: row.user_role,
     type: row.type,
     content: row.content,
     contact: row.contact,
@@ -78,16 +84,16 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   const id = cleanText(rawId, 80);
   const { supabase, user, isAdmin } = await requireBrowserAdmin(request);
 
-  if (!user) return NextResponse.json({ ok: false, message: "请先登录。" }, { status: 401 });
-  if (!isAdmin) return NextResponse.json({ ok: false, message: "你没有管理员权限。" }, { status: 403 });
+  if (!user) return NextResponse.json({ ok: false, message: "\u8bf7\u5148\u767b\u5f55\u3002" }, { status: 401 });
+  if (!isAdmin) return NextResponse.json({ ok: false, message: "\u4f60\u6ca1\u6709\u7ba1\u7406\u5458\u6743\u9650\u3002" }, { status: 403 });
 
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
   const status = cleanText(body?.status, 50) as FeedbackStatus;
   const adminNote = cleanText(body?.adminNote, 1000);
   const adminReply = cleanText(body?.adminReply, 1000);
 
-  if (!id) return NextResponse.json({ ok: false, message: "缺少反馈 ID。" }, { status: 400 });
-  if (!feedbackStatuses.has(status)) return NextResponse.json({ ok: false, message: "状态不正确。" }, { status: 400 });
+  if (!id) return NextResponse.json({ ok: false, message: "\u7f3a\u5c11\u53cd\u9988 ID\u3002" }, { status: 400 });
+  if (!feedbackStatuses.has(status)) return NextResponse.json({ ok: false, message: "\u72b6\u6001\u4e0d\u6b63\u786e\u3002" }, { status: 400 });
 
   const { data: existing, error: existingError } = await supabase
     .from("feedbacks")
@@ -95,8 +101,8 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     .eq("id", id)
     .maybeSingle();
 
-  if (existingError) return NextResponse.json({ ok: false, message: `读取反馈失败：${existingError.message}` }, { status: 500 });
-  if (!existing) return NextResponse.json({ ok: false, message: "反馈不存在。" }, { status: 404 });
+  if (existingError) return NextResponse.json({ ok: false, message: `\u8bfb\u53d6\u53cd\u9988\u5931\u8d25\uff1a${existingError.message}` }, { status: 500 });
+  if (!existing) return NextResponse.json({ ok: false, message: "\u53cd\u9988\u4e0d\u5b58\u5728\u3002" }, { status: 404 });
 
   const now = new Date().toISOString();
   const statusChanged = existing.status !== status;
@@ -111,23 +117,15 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   };
 
   const { data, error } = await supabase.from("feedbacks").update(updatePayload).eq("id", id).select(selectFields).single();
+  if (error || !data) return NextResponse.json({ ok: false, message: `\u66f4\u65b0\u5931\u8d25\uff1a${error?.message ?? "\u672a\u8fd4\u56de\u4fdd\u5b58\u7ed3\u679c"}` }, { status: 500 });
 
-  if (error || !data) return NextResponse.json({ ok: false, message: `更新失败：${error?.message ?? "未返回保存结果"}` }, { status: 500 });
-
-  const shouldNotifyUser = Boolean(
-    existing.user_id &&
-      adminReply &&
-      (replyChanged || statusChanged) &&
-      (status === "accepted" || status === "completed")
-  );
-
-  if (shouldNotifyUser) {
+  if (existing.user_id && adminReply && (replyChanged || statusChanged) && (status === "accepted" || status === "completed")) {
     await supabase.from("notifications").insert({
       user_id: existing.user_id,
       role: "user",
       type: "feedback_replied",
-      title: "你的反馈已处理",
-      content: "管理员已回复你的反馈，请查看处理结果。",
+      title: "\u4f60\u7684\u53cd\u9988\u5df2\u5904\u7406",
+      content: "\u7ba1\u7406\u5458\u5df2\u56de\u590d\u4f60\u7684\u53cd\u9988\uff0c\u8bf7\u67e5\u770b\u5904\u7406\u7ed3\u679c\u3002",
       related_id: id,
       related_type: "feedback"
     });
@@ -136,7 +134,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   return NextResponse.json({
     ok: true,
     item: normalize(data as FeedbackRow),
-    message: "反馈已更新。"
+    message: "\u53cd\u9988\u5df2\u66f4\u65b0\u3002"
   });
 }
 
@@ -145,17 +143,16 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
   const id = cleanText(rawId, 80);
   const { supabase, user, isAdmin } = await requireBrowserAdmin(request);
 
-  if (!user) return NextResponse.json({ ok: false, message: "请先登录。" }, { status: 401 });
-  if (!isAdmin) return NextResponse.json({ ok: false, message: "你没有管理员权限。" }, { status: 403 });
-  if (!id) return NextResponse.json({ ok: false, message: "缺少反馈 ID。" }, { status: 400 });
+  if (!user) return NextResponse.json({ ok: false, message: "\u8bf7\u5148\u767b\u5f55\u3002" }, { status: 401 });
+  if (!isAdmin) return NextResponse.json({ ok: false, message: "\u4f60\u6ca1\u6709\u7ba1\u7406\u5458\u6743\u9650\u3002" }, { status: 403 });
+  if (!id) return NextResponse.json({ ok: false, message: "\u7f3a\u5c11\u53cd\u9988 ID\u3002" }, { status: 400 });
 
   const { error } = await supabase.from("feedbacks").delete().eq("id", id);
-
-  if (error) return NextResponse.json({ ok: false, message: `删除失败：${error.message}` }, { status: 500 });
+  if (error) return NextResponse.json({ ok: false, message: `\u5220\u9664\u5931\u8d25\uff1a${error.message}` }, { status: 500 });
 
   return NextResponse.json({
     ok: true,
     deletedId: id,
-    message: "反馈已删除。"
+    message: "\u53cd\u9988\u5df2\u5220\u9664\u3002"
   });
 }

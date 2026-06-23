@@ -5,6 +5,9 @@ export type FeedbackItem = {
   id: string;
   feedbackNo: string | null;
   userId: string | null;
+  userEmail: string | null;
+  userName: string | null;
+  userRole: string | null;
   type: FeedbackType;
   content: string;
   contact: string | null;

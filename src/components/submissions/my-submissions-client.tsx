@@ -125,6 +125,8 @@ export function MySubmissionsClient() {
             <p className="text-xs text-slate-500">{item.createdAt}</p>
             <h2 className="mt-1 text-lg font-semibold text-slate-900">{item.nameZh || item.name}</h2>
             <p className="mt-1 text-sm text-slate-600">{formatRegion(item)}</p>
+            {item.address ? <p className="mt-1 text-sm text-slate-600">地址：{item.address}</p> : null}
+            <p className="mt-1 text-xs text-slate-400">更新时间：{item.updatedAt || item.createdAt}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {item.isLocked ? <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200"><Lock className="h-3.5 w-3.5" />{"\u5df2\u9501\u5b9a"}</span> : null}

@@ -24,7 +24,7 @@ export async function GET(request: Request) {
     .or(filter)
     .eq("is_read", false);
 
-  if (error) return NextResponse.json({ ok: false, unreadCount: 0, message: "读取未读消息失败。" }, { status: 500 });
+  if (error) return NextResponse.json({ ok: false, unreadCount: 0, message: "\u8bfb\u53d6\u672a\u8bfb\u6d88\u606f\u5931\u8d25\u3002" }, { status: 500 });
 
   return NextResponse.json({ ok: true, unreadCount: count ?? 0, isAdmin, authSource });
 }

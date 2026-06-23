@@ -35,24 +35,31 @@ export async function POST(request: Request) {
   const userAgent = cleanText(body?.userAgent, 500) || getHeaderUserAgent(request);
 
   if (!feedbackTypes.has(type)) {
-    return NextResponse.json({ ok: false, message: "请选择反馈类型。" }, { status: 400 });
+    return NextResponse.json({ ok: false, message: "\u8bf7\u9009\u62e9\u53cd\u9988\u7c7b\u578b\u3002" }, { status: 400 });
   }
 
   if (content.length < 5) {
-    return NextResponse.json({ ok: false, message: "请至少填写 5 个字，方便我们定位问题。" }, { status: 400 });
+    return NextResponse.json({ ok: false, message: "\u8bf7\u81f3\u5c11\u586b\u5199 5 \u4e2a\u5b57\uff0c\u65b9\u4fbf\u6211\u4eec\u5b9a\u4f4d\u95ee\u9898\u3002" }, { status: 400 });
   }
 
   const { supabase, user } = await getRequestAuth(request);
+  const userEmail = user?.email ?? null;
+  const userName = userEmail?.split("@")[0] ?? null;
+  const userRole = user ? "user" : "guest";
   const feedbackId = crypto.randomUUID();
   const feedbackNo = generateFeedbackNo();
   const now = new Date().toISOString();
+
   const { error } = await supabase.from("feedbacks").insert({
     id: feedbackId,
     feedback_no: feedbackNo,
     user_id: user?.id ?? null,
+    user_email: userEmail,
+    user_name: userName,
+    user_role: userRole,
     type,
     content,
-    contact: contact || null,
+    contact: contact || userEmail,
     page_url: pageUrl || null,
     device_type: deviceType || null,
     user_agent: userAgent || null,
@@ -62,17 +69,22 @@ export async function POST(request: Request) {
   });
 
   if (error) {
-    return NextResponse.json({ ok: false, message: "反馈提交失败，请稍后再试。" }, { status: 500 });
+    return NextResponse.json({ ok: false, message: "\u53cd\u9988\u63d0\u4ea4\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002" }, { status: 500 });
   }
 
   await supabase.from("notifications").insert({
     role: "admin",
     type: "feedback_created",
-    title: "收到新的用户反馈",
-    content: "用户提交了新的反馈，请及时处理。",
+    title: "\u6536\u5230\u65b0\u7684\u7528\u6237\u53cd\u9988",
+    content: "\u7528\u6237\u63d0\u4ea4\u4e86\u65b0\u7684\u53cd\u9988\uff0c\u8bf7\u53ca\u65f6\u5904\u7406\u3002",
     related_id: feedbackId,
     related_type: "feedback"
   });
 
-  return NextResponse.json({ ok: true, feedbackId, feedbackNo, message: `反馈已提交，编号：${feedbackNo}` });
+  return NextResponse.json({
+    ok: true,
+    feedbackId,
+    feedbackNo,
+    message: `\u53cd\u9988\u5df2\u63d0\u4ea4\uff0c\u7f16\u53f7\uff1a${feedbackNo}`
+  });
 }

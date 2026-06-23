@@ -62,6 +62,20 @@ export default async function AdminSubmissionsPage() {
                   <div>
                     <p className="text-xs text-slate-500">{item.createdAt}</p>
                     <h2 className="mt-1 text-lg font-semibold text-slate-900">{item.nameZh || item.name}</h2>
+                    <div className="mt-2 grid gap-2 rounded-lg bg-slate-50 p-3 text-xs text-slate-600 md:grid-cols-3">
+                      <p>
+                        <span className="font-semibold text-slate-800">投稿用户：</span>
+                        {item.userEmail || item.userName || item.userId}
+                      </p>
+                      <p>
+                        <span className="font-semibold text-slate-800">联系方式：</span>
+                        {item.contact || item.userEmail || "未填写"}
+                      </p>
+                      <p>
+                        <span className="font-semibold text-slate-800">用户角色：</span>
+                        {item.userRole === "admin" ? "管理员" : "普通用户"}
+                      </p>
+                    </div>
                     <p className="mt-1 text-sm text-slate-600">
                       {formatRegion(item)} - {scenarioLabelMap[item.scenario]} - {difficultyLabelMap[item.difficulty]} - {safetyLabelMap[item.safety]}
                     </p>

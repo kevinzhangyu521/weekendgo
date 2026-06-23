@@ -14,13 +14,13 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   const id = cleanText(rawId, 80);
   const { supabase, user, authSource } = await getRequestAuth(request);
 
-  if (!user) return NextResponse.json({ ok: false, authSource, message: "请先登录。" }, { status: 401 });
-  if (!id) return NextResponse.json({ ok: false, message: "缺少消息 ID。" }, { status: 400 });
+  if (!user) return NextResponse.json({ ok: false, authSource, message: "\u8bf7\u5148\u767b\u5f55\u3002" }, { status: 401 });
+  if (!id) return NextResponse.json({ ok: false, message: "\u7f3a\u5c11\u6d88\u606f ID\u3002" }, { status: 400 });
 
   const now = new Date().toISOString();
   const { error } = await supabase.from("notifications").update({ is_read: true, read_at: now }).eq("id", id);
 
-  if (error) return NextResponse.json({ ok: false, message: `标记已读失败：${error.message}` }, { status: 500 });
+  if (error) return NextResponse.json({ ok: false, message: `\u6807\u8bb0\u5df2\u8bfb\u5931\u8d25\uff1a${error.message}` }, { status: 500 });
 
   return NextResponse.json({ ok: true, readAt: now, authSource });
 }

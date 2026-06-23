@@ -424,6 +424,20 @@ export function FeedbackAdminClient() {
                     <span className="text-xs text-slate-400">提交：{formatDate(item.createdAt)}</span>
                     <span className="text-xs text-slate-400">状态更新：{formatDate(item.statusChangedAt ?? item.updatedAt)}</span>
                   </div>
+                  <div className="mt-3 grid gap-2 rounded-xl bg-slate-50 p-3 text-xs text-slate-600 md:grid-cols-3">
+                    <p>
+                      <span className="font-semibold text-slate-800">提交用户：</span>
+                      {item.userEmail || item.userName || (item.userId ? item.userId : "游客")}
+                    </p>
+                    <p>
+                      <span className="font-semibold text-slate-800">联系方式：</span>
+                      {item.contact || item.userEmail || "未填写"}
+                    </p>
+                    <p>
+                      <span className="font-semibold text-slate-800">用户角色：</span>
+                      {item.userRole === "guest" ? "游客" : item.userRole === "admin" ? "管理员" : "普通用户"}
+                    </p>
+                  </div>
                   <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-800">{item.content}</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">

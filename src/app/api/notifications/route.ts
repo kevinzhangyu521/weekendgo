@@ -22,6 +22,9 @@ function hrefFor(row: NotificationRow) {
   if (row.related_type === "feedback" && row.related_id) {
     return row.role === "admin" ? `/admin/feedback?feedbackId=${row.related_id}` : `/my-feedback?feedbackId=${row.related_id}`;
   }
+  if (row.related_type === "submission" && row.related_id) {
+    return row.role === "admin" ? `/admin/submissions?submissionId=${row.related_id}` : "/my-submissions";
+  }
   return row.role === "admin" ? "/admin/feedback" : "/my-feedback";
 }
 
@@ -52,7 +55,9 @@ export const revalidate = 0;
 
 export async function GET(request: Request) {
   const { supabase, user, authSource } = await getRequestAuth(request);
-  if (!user) return NextResponse.json({ ok: false, items: [], unreadCount: 0, authSource, message: "请先登录。" }, { status: 401 });
+  if (!user) {
+    return NextResponse.json({ ok: false, items: [], unreadCount: 0, authSource, message: "\u8bf7\u5148\u767b\u5f55\u3002" }, { status: 401 });
+  }
 
   const isAdmin = await getAdminStatus(supabase, user.id);
   const userQuery = `user_id.eq.${user.id}`;
@@ -66,7 +71,9 @@ export async function GET(request: Request) {
     .order("created_at", { ascending: false })
     .limit(100);
 
-  if (error || !data) return NextResponse.json({ ok: false, items: [], unreadCount: 0, message: "读取消息失败。" }, { status: 500 });
+  if (error || !data) {
+    return NextResponse.json({ ok: false, items: [], unreadCount: 0, message: "\u8bfb\u53d6\u6d88\u606f\u5931\u8d25\u3002" }, { status: 500 });
+  }
 
   const items = (data as NotificationRow[]).map(normalize);
   return NextResponse.json({

@@ -5,6 +5,10 @@ import { getRequestAuth } from "@/lib/auth/request-auth";
 type SubmissionRow = {
   id: string;
   user_id: string;
+  user_email: string | null;
+  user_name: string | null;
+  user_role: string | null;
+  contact: string | null;
   name: string;
   name_zh: string | null;
   province: string | null;
@@ -29,10 +33,11 @@ type SubmissionRow = {
   is_locked: boolean | null;
   deleted_at: string | null;
   created_at: string;
+  updated_at: string | null;
 };
 
 const submissionSelect =
-  "id,user_id,name,name_zh,province,province_zh,city,city_zh,latitude,longitude,address,scenario,difficulty,safety,distance_km,min_kid_age,has_parking,has_toilet,image_url,description,description_zh,status,review_note,is_locked,deleted_at,created_at";
+  "id,user_id,user_email,user_name,user_role,contact,name,name_zh,province,province_zh,city,city_zh,latitude,longitude,address,scenario,difficulty,safety,distance_km,min_kid_age,has_parking,has_toilet,image_url,description,description_zh,status,review_note,is_locked,deleted_at,created_at,updated_at";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -41,6 +46,10 @@ function normalize(row: SubmissionRow): SpotSubmission {
   return {
     id: row.id,
     userId: row.user_id,
+    userEmail: row.user_email,
+    userName: row.user_name,
+    userRole: row.user_role,
+    contact: row.contact,
     name: row.name,
     nameZh: row.name_zh,
     province: row.province,
@@ -64,7 +73,8 @@ function normalize(row: SubmissionRow): SpotSubmission {
     reviewNote: row.review_note,
     isLocked: Boolean(row.is_locked),
     deletedAt: row.deleted_at,
-    createdAt: row.created_at
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
   };
 }
 

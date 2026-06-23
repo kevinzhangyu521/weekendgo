@@ -3,6 +3,11 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
+async function isAdminUser(supabase: Awaited<ReturnType<typeof createClient>>, userId: string) {
+  const { data } = await supabase.from("admin_users").select("user_id").eq("user_id", userId).maybeSingle();
+  return Boolean(data);
+}
+
 export async function approveSubmission(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   if (!id) return;
@@ -11,7 +16,7 @@ export async function approveSubmission(formData: FormData) {
   const {
     data: { user }
   } = await supabase.auth.getUser();
-  if (!user) return;
+  if (!user || !(await isAdminUser(supabase, user.id))) return;
 
   const { data: submission, error } = await supabase
     .from("spot_submissions")
@@ -22,7 +27,9 @@ export async function approveSubmission(formData: FormData) {
 
   if (error || !submission) return;
 
+  const now = new Date().toISOString();
   const externalId = `submission-${submission.id}`;
+
   await supabase.from("destinations").upsert(
     {
       external_id: externalId,
@@ -45,7 +52,7 @@ export async function approveSubmission(formData: FormData) {
       image: submission.image_url ?? "",
       description: submission.description,
       description_zh: submission.description_zh,
-      updated_at: new Date().toISOString()
+      updated_at: now
     },
     { onConflict: "external_id" }
   );
@@ -55,7 +62,8 @@ export async function approveSubmission(formData: FormData) {
     .update({
       status: "approved",
       reviewed_by: user.id,
-      reviewed_at: new Date().toISOString(),
+      reviewed_at: now,
+      updated_at: now,
       review_note: "\u5ba1\u6838\u5df2\u901a\u8fc7\uff0c\u5730\u70b9\u5df2\u53d1\u5e03\u5230\u76ee\u7684\u5730\u5217\u8868\u3002"
     })
     .eq("id", id);
@@ -68,9 +76,20 @@ export async function approveSubmission(formData: FormData) {
     href: "/my-submissions"
   });
 
+  await supabase.from("notifications").insert({
+    user_id: submission.user_id,
+    role: "user",
+    type: "submission_approved",
+    title: "\u63a8\u8350\u5730\u70b9\u5ba1\u6838\u901a\u8fc7",
+    content: `\u4f60\u63a8\u8350\u7684\u300c${submission.name_zh || submission.name}\u300d\u5df2\u5ba1\u6838\u901a\u8fc7\uff0c\u5730\u70b9\u5df2\u53d1\u5e03\u5230\u76ee\u7684\u5730\u5217\u8868\u3002`,
+    related_id: submission.id,
+    related_type: "submission"
+  });
+
   revalidateTag("destinations");
   revalidatePath("/admin/submissions");
   revalidatePath("/my-submissions");
+  revalidatePath("/notifications");
   revalidatePath("/destinations");
   revalidatePath("/map");
 }
@@ -86,34 +105,48 @@ export async function rejectSubmission(formData: FormData) {
   const {
     data: { user }
   } = await supabase.auth.getUser();
-  if (!user) return;
+  if (!user || !(await isAdminUser(supabase, user.id))) return;
+
+  const { data: submission } = await supabase
+    .from("spot_submissions")
+    .select("id,user_id,name,name_zh")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!submission) return;
+
+  const now = new Date().toISOString();
 
   await supabase
     .from("spot_submissions")
     .update({
       status: "rejected",
       reviewed_by: user.id,
-      reviewed_at: new Date().toISOString(),
+      reviewed_at: now,
+      updated_at: now,
       review_note: note
     })
     .eq("id", id);
 
-  const { data: submission } = await supabase
-    .from("spot_submissions")
-    .select("user_id,name,name_zh")
-    .eq("id", id)
-    .maybeSingle();
+  await supabase.from("user_notifications").insert({
+    user_id: submission.user_id,
+    type: "submission_rejected",
+    title: "\u63a8\u8350\u5730\u70b9\u672a\u901a\u8fc7\u5ba1\u6838",
+    body: `\u4f60\u63a8\u8350\u7684\u300c${submission.name_zh || submission.name}\u300d\u6682\u672a\u901a\u8fc7\u5ba1\u6838\u3002\u539f\u56e0\uff1a${note}`,
+    href: "/my-submissions"
+  });
 
-  if (submission) {
-    await supabase.from("user_notifications").insert({
-      user_id: submission.user_id,
-      type: "submission_rejected",
-      title: "\u63a8\u8350\u5730\u70b9\u672a\u901a\u8fc7\u5ba1\u6838",
-      body: `\u4f60\u63a8\u8350\u7684\u300c${submission.name_zh || submission.name}\u300d\u6682\u672a\u901a\u8fc7\u5ba1\u6838\u3002\u539f\u56e0\uff1a${note}`,
-      href: "/my-submissions"
-    });
-  }
+  await supabase.from("notifications").insert({
+    user_id: submission.user_id,
+    role: "user",
+    type: "submission_rejected",
+    title: "\u63a8\u8350\u5730\u70b9\u672a\u901a\u8fc7\u5ba1\u6838",
+    content: `\u4f60\u63a8\u8350\u7684\u300c${submission.name_zh || submission.name}\u300d\u6682\u672a\u901a\u8fc7\u5ba1\u6838\u3002\u539f\u56e0\uff1a${note}`,
+    related_id: id,
+    related_type: "submission"
+  });
 
   revalidatePath("/admin/submissions");
   revalidatePath("/my-submissions");
+  revalidatePath("/notifications");
 }

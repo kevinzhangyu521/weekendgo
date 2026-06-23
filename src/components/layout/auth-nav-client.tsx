@@ -38,10 +38,11 @@ const navItems: Record<Locale, NavItem[]> = {
     { href: "/notifications", label: "\u6211\u7684\u6d88\u606f", authOnly: true },
     { href: "/profile", label: "\u6211\u7684\u8d44\u6599", authOnly: true },
     { href: "/admin/collections", label: "\u91c7\u96c6", adminOnly: true },
-    { href: "/admin/feedback", label: "反馈", adminOnly: true },
-    { href: "/admin/submissions", label: "\u5ba1\u6838", adminOnly: true },
+    { href: "/admin/feedback", label: "\u53cd\u9988\u7ba1\u7406", adminOnly: true },
+    { href: "/admin/submissions", label: "\u6295\u7a3f\u7ba1\u7406", adminOnly: true },
     { href: "/admin/destinations", label: "\u5730\u70b9\u7ba1\u7406", adminOnly: true },
-    { href: "/admin/settings", label: "\u7ba1\u7406\u8bbe\u7f6e", adminOnly: true }
+    { href: "/admin/settings", label: "\u7528\u6237\u7ba1\u7406", adminOnly: true },
+    { href: "/notifications", label: "\u7cfb\u7edf\u901a\u77e5", adminOnly: true }
   ],
   en: [
     { href: "/destinations", label: "Destinations" },
@@ -54,10 +55,11 @@ const navItems: Record<Locale, NavItem[]> = {
     { href: "/notifications", label: "Messages", authOnly: true },
     { href: "/profile", label: "Profile", authOnly: true },
     { href: "/admin/collections", label: "Collect", adminOnly: true },
-    { href: "/admin/feedback", label: "Feedback", adminOnly: true },
-    { href: "/admin/submissions", label: "Review", adminOnly: true },
-    { href: "/admin/destinations", label: "Manage", adminOnly: true },
-    { href: "/admin/settings", label: "Settings", adminOnly: true }
+    { href: "/admin/feedback", label: "Feedback admin", adminOnly: true },
+    { href: "/admin/submissions", label: "Submission admin", adminOnly: true },
+    { href: "/admin/destinations", label: "Destinations admin", adminOnly: true },
+    { href: "/admin/settings", label: "Users", adminOnly: true },
+    { href: "/notifications", label: "System notices", adminOnly: true }
   ]
 };
 
@@ -154,6 +156,7 @@ export function AuthNavClient({ locale, initialIsAdmin }: Props) {
   }
 
   const visibleItems = navItems[locale].filter((item) => {
+    if (isAdmin && item.authOnly && (item.href === "/my-submissions" || item.href === "/my-feedback")) return false;
     if (item.adminOnly) return isAdmin;
     if (item.authOnly) return Boolean(email);
     return true;
@@ -185,7 +188,7 @@ export function AuthNavClient({ locale, initialIsAdmin }: Props) {
           className="interactive-button inline-flex items-center justify-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-50"
           aria-label={menuOpen ? "\u5173\u95ed\u83dc\u5355" : "\u6253\u5f00\u83dc\u5355"}
         >
-          <span className="hidden md:inline">{locale === "zh" ? "菜单" : "Menu"}</span>
+          <span className="hidden md:inline">{locale === "zh" ? "\u83dc\u5355" : "Menu"}</span>
           <span className="md:hidden">{menuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}</span>
           <ChevronDown className={`hidden h-4 w-4 transition md:block ${menuOpen ? "rotate-180" : ""}`} />
         </button>
@@ -215,7 +218,7 @@ export function AuthNavClient({ locale, initialIsAdmin }: Props) {
           <div className="grid gap-1 md:hidden">
             {visibleItems.map((item) => (
               <Link
-                key={item.href}
+                key={`${item.href}-${item.adminOnly ? "admin" : "user"}`}
                 href={item.href}
                 onClick={() => setMenuOpen(false)}
                 className={`interactive-button rounded-lg px-3 py-2 text-sm ${
@@ -229,11 +232,11 @@ export function AuthNavClient({ locale, initialIsAdmin }: Props) {
           <div className="hidden gap-3 md:grid">
             {accountItems.length > 0 ? (
               <div>
-                <p className="px-3 pb-1 text-xs font-semibold text-slate-400">{locale === "zh" ? "我的功能" : "My tools"}</p>
+                <p className="px-3 pb-1 text-xs font-semibold text-slate-400">{locale === "zh" ? "\u6211\u7684\u529f\u80fd" : "My tools"}</p>
                 <div className="grid gap-1">
                   {accountItems.map((item) => (
                     <Link
-                      key={item.href}
+                      key={`${item.href}-account`}
                       href={item.href}
                       onClick={() => setMenuOpen(false)}
                       className={`interactive-button rounded-lg px-3 py-2 text-sm ${
@@ -248,11 +251,11 @@ export function AuthNavClient({ locale, initialIsAdmin }: Props) {
             ) : null}
             {adminItems.length > 0 ? (
               <div className={accountItems.length > 0 ? "border-t border-slate-100 pt-3" : ""}>
-                <p className="px-3 pb-1 text-xs font-semibold text-emerald-700">{locale === "zh" ? "管理员" : "Admin"}</p>
+                <p className="px-3 pb-1 text-xs font-semibold text-emerald-700">{locale === "zh" ? "\u7ba1\u7406\u5458" : "Admin"}</p>
                 <div className="grid gap-1">
                   {adminItems.map((item) => (
                     <Link
-                      key={item.href}
+                      key={`${item.href}-admin`}
                       href={item.href}
                       onClick={() => setMenuOpen(false)}
                       className={`interactive-button rounded-lg px-3 py-2 text-sm ${

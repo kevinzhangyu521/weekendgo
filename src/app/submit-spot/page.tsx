@@ -20,7 +20,12 @@ const labelClass = "block text-sm font-bold text-slate-900";
 const inputClass = "mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm";
 
 type SpotSubmissionPayload = {
+  id: string;
   user_id: string;
+  user_email: string | null;
+  user_name: string | null;
+  user_role: string;
+  contact: string | null;
   name: string;
   name_zh: string;
   province: string;
@@ -44,6 +49,19 @@ type SpotSubmissionPayload = {
 
 type InsertableSpotSubmissionsTable = {
   insert(payload: SpotSubmissionPayload): Promise<{ error: { message: string } | null }>;
+};
+
+type NotificationInsertPayload = {
+  role: "admin" | "user";
+  type: string;
+  title: string;
+  content: string;
+  related_id: string;
+  related_type: string;
+};
+
+type InsertableNotificationsTable = {
+  insert(payload: NotificationInsertPayload): Promise<{ error: { message: string } | null }>;
 };
 
 function safeFileName(name: string) {
@@ -124,9 +142,17 @@ export default function SubmitSpotPage() {
 
     try {
       const imageUrl = await uploadImage(user.id, imageFile);
+      const userEmail = user.email ?? null;
+      const userName = userEmail?.split("@")[0] ?? null;
+      const submissionId = crypto.randomUUID();
 
       const payload: SpotSubmissionPayload = {
+        id: submissionId,
         user_id: user.id,
+        user_email: userEmail,
+        user_name: userName,
+        user_role: "user",
+        contact: userEmail,
         name,
         name_zh: name,
         province,
@@ -151,6 +177,15 @@ export default function SubmitSpotPage() {
       const submissionsTable = supabase.from("spot_submissions") as unknown as InsertableSpotSubmissionsTable;
       const { error: insertError } = await submissionsTable.insert(payload);
       if (insertError) throw new Error("\u63d0\u4ea4\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002");
+
+      await (supabase.from("notifications") as unknown as InsertableNotificationsTable).insert({
+        role: "admin",
+        type: "submission_created",
+        title: "收到新的地点投稿",
+        content: "用户提交了新的推荐地点，请及时审核。",
+        related_id: submissionId,
+        related_type: "submission"
+      });
 
       formElement.reset();
       setAddress("");

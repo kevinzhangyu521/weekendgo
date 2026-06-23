@@ -3,6 +3,10 @@ import type { Difficulty, Safety, Scenario } from "@/features/destinations/types
 export type SpotSubmission = {
   id: string;
   userId: string;
+  userEmail: string | null;
+  userName: string | null;
+  userRole: string | null;
+  contact: string | null;
   name: string;
   nameZh: string | null;
   province: string | null;
@@ -27,4 +31,5 @@ export type SpotSubmission = {
   isLocked: boolean;
   deletedAt: string | null;
   createdAt: string;
+  updatedAt: string | null;
 };
