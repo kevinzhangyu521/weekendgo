@@ -154,7 +154,7 @@ export function MySubmissionsClient() {
 
   function renderCard(item: SpotSubmission, deleted = false) {
     const status = statusMap[item.status];
-    const canEdit = !deleted && !item.isLocked && item.status === "needs_changes" && item.allowResubmit;
+    const canEdit = !deleted && !item.isLocked && (item.status === "pending" || (item.status === "needs_changes" && item.allowResubmit));
 
     return (
       <article key={item.id} className={`rounded-xl border bg-white p-5 shadow-sm ${deleted ? "border-slate-200 opacity-80" : "border-slate-200"}`}>
