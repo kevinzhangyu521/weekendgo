@@ -17,6 +17,7 @@ export type CollectedSpot = {
   canCreek: boolean;
   isCamping: boolean;
   isFree: boolean;
+  ticketPrice: string | null;
   parkingInfo: string | null;
   safetyTips: string | null;
   tags: string[];

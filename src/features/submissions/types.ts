@@ -23,6 +23,7 @@ export type SpotSubmission = {
   minKidAge: number;
   hasParking: boolean;
   hasToilet: boolean;
+  ticketPrice: string | null;
   imageUrl: string | null;
   description: string;
   descriptionZh: string | null;

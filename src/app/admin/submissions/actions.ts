@@ -49,6 +49,7 @@ export async function approveSubmission(formData: FormData) {
       has_parking: submission.has_parking,
       has_toilet: submission.has_toilet,
       min_kid_age: submission.min_kid_age,
+      ticket_price: submission.ticket_price ?? null,
       image: submission.image_url ?? "",
       description: submission.description,
       description_zh: submission.description_zh,

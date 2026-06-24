@@ -20,6 +20,7 @@ type CollectionRow = {
   can_creek: boolean;
   is_camping: boolean;
   is_free: boolean;
+  ticket_price: string | null;
   parking_info: string | null;
   safety_tips: string | null;
   tags: string[] | null;
@@ -44,6 +45,7 @@ type CreatePayload = {
   canCreek?: boolean;
   isCamping?: boolean;
   isFree?: boolean;
+  ticketPrice?: string;
   parkingInfo?: string;
   safetyTips?: string;
   tags?: string[];
@@ -86,6 +88,7 @@ function normalize(row: CollectionRow): CollectedSpot {
     canCreek: row.can_creek,
     isCamping: row.is_camping,
     isFree: row.is_free,
+    ticketPrice: row.ticket_price,
     parkingInfo: row.parking_info,
     safetyTips: row.safety_tips,
     tags: row.tags ?? [],
@@ -159,6 +162,7 @@ export async function POST(request: Request) {
     can_creek: Boolean(body.canCreek),
     is_camping: Boolean(body.isCamping),
     is_free: Boolean(body.isFree),
+    ticket_price: trimOrNull(body.ticketPrice),
     parking_info: trimOrNull(body.parkingInfo),
     safety_tips: trimOrNull(body.safetyTips),
     tags: normalizeTags(body.tags),
@@ -195,6 +199,7 @@ export async function PATCH(request: Request) {
   const descriptionParts = [
     row.recommendation,
     row.suitable_age ? `\u9002\u5408\u5e74\u9f84\uff1a${row.suitable_age}` : null,
+    row.ticket_price ? `\u95e8\u7968\u4fe1\u606f\uff1a${row.ticket_price}` : null,
     row.parking_info ? `\u505c\u8f66\u4fe1\u606f\uff1a${row.parking_info}` : null,
     row.safety_tips ? `\u5b89\u5168\u63d0\u9192\uff1a${row.safety_tips}` : null,
     row.is_free ? "\u514d\u8d39\u4fe1\u606f\uff1a\u514d\u8d39\u6216\u4ee5\u73b0\u573a\u4e3a\u51c6" : null
@@ -219,6 +224,7 @@ export async function PATCH(request: Request) {
       has_parking: Boolean(row.parking_info),
       has_toilet: false,
       min_kid_age: row.min_kid_age,
+      ticket_price: row.ticket_price,
       image: "",
       description: descriptionParts.join("\n"),
       description_zh: descriptionParts.join("\n"),

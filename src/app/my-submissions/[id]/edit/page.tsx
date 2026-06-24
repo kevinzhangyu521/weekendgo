@@ -100,6 +100,10 @@ export default async function EditSubmissionPage({
                 {"\u9002\u5408\u5e74\u9f84"}
                 <input name="min_kid_age" type="number" min="0" defaultValue={item.minKidAge} className={inputClass} />
               </label>
+              <label className={labelClass}>
+                {"\u95e8\u7968\u4fe1\u606f"}
+                <input name="ticket_price" defaultValue={item.ticketPrice ?? ""} placeholder={"\u4f8b\u5982\uff1a\u514d\u8d39 / 30\u5143 / \u4ee5\u666f\u533a\u4e3a\u51c6"} className={inputClass} />
+              </label>
             </div>
             <div className="flex flex-wrap gap-4 rounded-lg bg-slate-50 p-3 text-sm text-slate-700">
               <label className="inline-flex items-center gap-2 font-semibold">

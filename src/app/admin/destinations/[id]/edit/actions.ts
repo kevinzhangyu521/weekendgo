@@ -63,6 +63,7 @@ export async function saveDestination(_state: UpdateDestinationState, formData: 
       has_parking: formData.get("has_parking") === "on",
       has_toilet: formData.get("has_toilet") === "on",
       min_kid_age: Number(formData.get("min_kid_age") || "0") || 0,
+      ticket_price: String(formData.get("ticket_price") ?? "").trim() || null,
       ...(imageUrl ? { image: imageUrl } : {}),
       description,
       description_zh: description,

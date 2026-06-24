@@ -23,6 +23,7 @@ type DestinationRow = {
   has_parking: boolean | null;
   has_toilet: boolean | null;
   min_kid_age: number | null;
+  ticket_price: string | null;
   image: string | null;
   description: string | null;
   description_zh: string | null;
@@ -54,6 +55,7 @@ function normalizeRow(row: DestinationRow): DestinationItem | null {
     hasParking: row.has_parking ?? false,
     hasToilet: row.has_toilet ?? false,
     minKidAge: row.min_kid_age ?? 0,
+    ticketPrice: row.ticket_price,
     image: row.image ?? "",
     description: row.description ?? "",
     descriptionZh: row.description_zh,
@@ -62,7 +64,7 @@ function normalizeRow(row: DestinationRow): DestinationItem | null {
 }
 
 const destinationSelectFields =
-  "id,name,name_zh,province,province_zh,city,city_zh,latitude,longitude,scenario,distance_km,difficulty,safety,rating,has_parking,has_toilet,min_kid_age,image,description,description_zh,is_active";
+  "id,name,name_zh,province,province_zh,city,city_zh,latitude,longitude,scenario,distance_km,difficulty,safety,rating,has_parking,has_toilet,min_kid_age,ticket_price,image,description,description_zh,is_active";
 
 async function fetchPublicSupabaseDestinations(): Promise<DestinationItem[] | null> {
   if (!hasSupabaseEnv()) return null;

@@ -106,6 +106,7 @@ export function CollectionWorkbenchClient() {
       recommendation: String(form.get("recommendation") ?? ""),
       suitableAge: String(form.get("suitable_age") ?? ""),
       minKidAge: String(form.get("min_kid_age") ?? "0"),
+      ticketPrice: String(form.get("ticket_price") ?? ""),
       isFamilyFriendly: form.get("is_family_friendly") === "on",
       canCreek: form.get("can_creek") === "on",
       isCamping: form.get("is_camping") === "on",
@@ -184,6 +185,7 @@ export function CollectionWorkbenchClient() {
             <label className={labelClass}>{"经度"}<input name="longitude" type="number" step="0.000001" className={inputClass} /></label>
             <label className={labelClass}>{"适合年龄"}<input name="suitable_age" placeholder="3-6岁 / 6-12岁" className={inputClass} /></label>
             <label className={labelClass}>{"最小年龄"}<input name="min_kid_age" type="number" min="0" defaultValue="0" className={inputClass} /></label>
+            <label className={labelClass}>{"门票信息"}<input name="ticket_price" placeholder="免费 / 30元 / 以景区为准" className={inputClass} /></label>
           </div>
           <label className={labelClass}>{"推荐理由 *"}<textarea name="recommendation" required rows={3} className={inputClass} /></label>
           <div className="grid gap-4 md:grid-cols-3">
@@ -239,6 +241,7 @@ export function CollectionWorkbenchClient() {
               </div>
               <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-600">
                 {tagText(item).map((tag) => <span key={tag} className="rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700">{tag}</span>)}
+                {item.ticketPrice ? <span className="rounded-full bg-slate-100 px-2.5 py-1">门票：{item.ticketPrice}</span> : null}
                 {item.parkingInfo ? <span className="rounded-full bg-slate-100 px-2.5 py-1">停车：{item.parkingInfo}</span> : null}
                 {item.safetyTips ? <span className="rounded-full bg-amber-50 px-2.5 py-1 text-amber-800">安全：{item.safetyTips}</span> : null}
               </div>

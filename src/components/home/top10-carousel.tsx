@@ -100,12 +100,12 @@ function MiniInfo({
   value: string;
 }) {
   return (
-    <div className="min-w-0 rounded-xl bg-white/60 px-2 py-2">
-      <p className="flex items-center gap-1 text-[11px] leading-4 text-slate-500">
-        <Icon className="h-3.5 w-3.5 shrink-0 text-slate-500" />
+    <div className="min-w-0 rounded-xl bg-white/60 px-2 py-1.5">
+      <p className="flex items-center gap-1 text-[10px] leading-4 text-slate-500">
+        <Icon className="h-3 w-3 shrink-0 text-slate-500" />
         <span>{label}</span>
       </p>
-      <p className="mt-1 whitespace-normal break-words text-xs font-semibold leading-4 text-slate-700">{value}</p>
+      <p className="mt-0.5 whitespace-normal break-words text-[11px] font-semibold leading-4 text-slate-700">{value}</p>
     </div>
   );
 }
@@ -179,7 +179,7 @@ function RecommendationCard({
           <p className="line-clamp-2 min-h-11 text-sm leading-5 text-slate-700">{destinationDescription(item, locale)}</p>
         </div>
 
-        <div className="mt-3 grid grid-cols-2 gap-2 rounded-2xl bg-slate-50/80 px-3 py-2.5">
+        <div className="mt-3 grid grid-cols-2 gap-2 rounded-2xl bg-slate-50/80 px-2.5 py-2">
           <MiniInfo icon={Users} label={pick(locale, "Age", "适合")} value={item.suitableAge || destinationAgeRange(item, locale)} />
           <MiniInfo icon={Ticket} label={pick(locale, "Ticket", "门票")} value={ticketText(item, locale)} />
           <MiniInfo icon={Car} label={pick(locale, "Parking", "停车")} value={parkingText(item, locale)} />

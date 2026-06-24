@@ -25,6 +25,7 @@ type SubmissionRow = {
   min_kid_age: number;
   has_parking: boolean;
   has_toilet: boolean;
+  ticket_price: string | null;
   image_url: string | null;
   description: string;
   description_zh: string | null;
@@ -39,7 +40,7 @@ type SubmissionRow = {
 };
 
 const submissionSelect =
-  "id,user_id,user_email,user_name,user_role,contact,name,name_zh,province,province_zh,city,city_zh,latitude,longitude,address,scenario,difficulty,safety,distance_km,min_kid_age,has_parking,has_toilet,image_url,description,description_zh,status,review_note,published_destination_id,allow_resubmit,is_locked,deleted_at,created_at,updated_at";
+  "id,user_id,user_email,user_name,user_role,contact,name,name_zh,province,province_zh,city,city_zh,latitude,longitude,address,scenario,difficulty,safety,distance_km,min_kid_age,has_parking,has_toilet,ticket_price,image_url,description,description_zh,status,review_note,published_destination_id,allow_resubmit,is_locked,deleted_at,created_at,updated_at";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -68,6 +69,7 @@ function normalize(row: SubmissionRow): SpotSubmission {
     minKidAge: row.min_kid_age,
     hasParking: row.has_parking,
     hasToilet: row.has_toilet,
+    ticketPrice: row.ticket_price,
     imageUrl: row.image_url,
     description: row.description,
     descriptionZh: row.description_zh,

@@ -59,6 +59,7 @@ function buildDestinationPayload(spots: SpotCsvRow[], facilities: FacilityCsvRow
       has_parking: facilityCodes.has("parking"),
       has_toilet: facilityCodes.has("toilet"),
       min_kid_age: row.scenario === "creek" ? 3 : row.difficulty === "easy" ? 3 : 6,
+      ticket_price: row.ticket_price || null,
       image: cover?.url || "",
       description: row.description || "",
       description_zh: row.description_zh || null,

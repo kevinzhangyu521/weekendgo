@@ -18,6 +18,7 @@ export type SpotCsvRow = {
   difficulty: string;
   safety: string;
   distance_km?: string;
+  ticket_price?: string;
   description?: string;
   description_zh?: string;
 };

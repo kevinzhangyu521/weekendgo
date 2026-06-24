@@ -61,6 +61,7 @@ export async function updateSubmission(formData: FormData) {
     min_kid_age: Number(formData.get("min_kid_age") || "0"),
     has_parking: formData.get("has_parking") === "on",
     has_toilet: formData.get("has_toilet") === "on",
+    ticket_price: String(formData.get("ticket_price") ?? "").trim() || null,
     ...(imageUrl ? { image_url: imageUrl } : {}),
     description,
     description_zh: descriptionZh || description,
