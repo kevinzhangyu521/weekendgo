@@ -74,9 +74,16 @@ export function ProfileClient() {
     setError("");
 
     const form = new FormData(event.currentTarget);
+    const nickname = String(form.get("nickname") ?? "").trim();
+    if (!nickname) {
+      setError("请填写昵称，评价会显示这个名称。");
+      setSaving(false);
+      return;
+    }
+
     const kidAgeRaw = String(form.get("kid_age") ?? "").trim();
     const payload = {
-      nickname: String(form.get("nickname") ?? ""),
+      nickname,
       homeCity: String(form.get("home_city") ?? ""),
       kidAge: kidAgeRaw ? Number(kidAgeRaw) : null,
       preferredScenarios: form.getAll("preferred_scenarios").map(String),
@@ -130,8 +137,9 @@ export function ProfileClient() {
               </label>
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="block text-sm font-bold text-slate-900">
-                  {"\u6635\u79f0"}
-                  <input name="nickname" defaultValue={profile.nickname} placeholder={"\u4f8b\u5982\uff1a\u5c0f\u660e\u7238\u7238"} className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+                  {"\u6635\u79f0 *"}
+                  <input name="nickname" required defaultValue={profile.nickname} placeholder={"\u4f8b\u5982\uff1a\u5c0f\u660e\u7238\u7238"} className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+                  <span className="mt-1 block text-xs font-normal text-slate-500">{"\u4f60\u7684\u8bc4\u4ef7\u4f1a\u663e\u793a\u8fd9\u4e2a\u540d\u79f0\u3002"}</span>
                 </label>
                 <label className="block text-sm font-bold text-slate-900">
                   {"\u5e38\u4f4f\u57ce\u5e02"}

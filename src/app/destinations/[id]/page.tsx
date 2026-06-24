@@ -306,7 +306,7 @@ export default async function DestinationDetailPage({
                           ))}
                         </div>
                         <p className="mt-1 text-xs font-medium text-slate-500">
-                          {review.isMine ? pick(locale, "Me", "我") : review.userName || pick(locale, "Family user", "亲子用户")}
+                          {review.isMine ? pick(locale, "Me", "我") : review.userName || pick(locale, "Nickname not set", "未设置昵称")}
                         </p>
                       </div>
                       <div className="flex flex-wrap items-center justify-end gap-2 text-xs text-slate-500">

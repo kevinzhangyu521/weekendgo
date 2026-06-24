@@ -47,6 +47,10 @@ export async function saveMyProfile(formData: FormData) {
   const preferredScenarios = normalizeScenarios(formData.getAll("preferred_scenarios"));
   const receiveNotifications = formData.get("receive_notifications") === "on";
 
+  if (!nickname) {
+    return { ok: false, message: "\u8bf7\u586b\u5199\u6635\u79f0\uff0c\u8bc4\u4ef7\u4f1a\u663e\u793a\u8fd9\u4e2a\u540d\u79f0\u3002" };
+  }
+
   if (kidAge !== null && (Number.isNaN(kidAge) || kidAge < 0 || kidAge > 18)) {
     return { ok: false, message: "\u8bf7\u586b\u5199 0-18 \u4e4b\u95f4\u7684\u5b69\u5b50\u5e74\u9f84\u3002" };
   }
@@ -54,7 +58,7 @@ export async function saveMyProfile(formData: FormData) {
   const { error } = await supabase.from("user_profiles").upsert(
     {
       user_id: user.id,
-      nickname: nickname || null,
+      nickname,
       home_city: homeCity || null,
       kid_age: kidAge,
       preferred_scenarios: preferredScenarios,
