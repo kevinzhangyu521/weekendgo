@@ -66,6 +66,22 @@ function reviewToiletLabel(value: string | null, locale: "en" | "zh") {
   return pick(locale, labels[value]?.en ?? value, labels[value]?.zh ?? value);
 }
 
+function formatReviewDateTime(value: string, locale: "en" | "zh") {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  const formatted = new Intl.DateTimeFormat(locale === "zh" ? "zh-CN" : "en-US", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  }).format(date);
+
+  return formatted.replace(/\//g, "-");
+}
+
 export default async function DestinationDetailPage({
   params
 }: {
@@ -283,14 +299,19 @@ export default async function DestinationDetailPage({
                 return (
                   <article key={review.id} className="rounded-xl bg-slate-50 p-4 text-sm text-slate-700">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="inline-flex items-center gap-1 text-amber-500">
-                        {Array.from({ length: 5 }).map((_, index) => (
-                          <Star key={index} className={`h-4 w-4 ${index < review.rating ? "fill-current" : "text-slate-300"}`} />
-                        ))}
+                      <div>
+                        <div className="inline-flex items-center gap-1 text-amber-500">
+                          {Array.from({ length: 5 }).map((_, index) => (
+                            <Star key={index} className={`h-4 w-4 ${index < review.rating ? "fill-current" : "text-slate-300"}`} />
+                          ))}
+                        </div>
+                        <p className="mt-1 text-xs font-medium text-slate-500">
+                          {review.isMine ? pick(locale, "Me", "我") : review.userName || pick(locale, "Family user", "亲子用户")}
+                        </p>
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-slate-500">
+                      <div className="flex flex-wrap items-center justify-end gap-2 text-xs text-slate-500">
                         {review.isMine ? <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-emerald-700">{"我的体验"}</span> : null}
-                        {review.visitDate ? <span>{review.visitDate}</span> : null}
+                        <span>{formatReviewDateTime(review.createdAt, locale)}</span>
                       </div>
                     </div>
                     {tags.length > 0 ? (

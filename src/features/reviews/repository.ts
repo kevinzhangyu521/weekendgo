@@ -16,11 +16,17 @@ type ReviewRow = {
   created_at: string;
 };
 
-function normalize(row: ReviewRow, userId?: string): DestinationReview {
+type ProfileRow = {
+  user_id: string;
+  nickname: string | null;
+};
+
+function normalize(row: ReviewRow, userId?: string, profileNames = new Map<string, string>()): DestinationReview {
   return {
     id: row.id,
     destinationId: row.destination_id,
     userId: row.user_id,
+    userName: profileNames.get(row.user_id) ?? null,
     rating: row.rating,
     content: row.content,
     suitableAge: row.suitable_age,
@@ -45,7 +51,22 @@ export async function getDestinationReviewsForUser(destinationId: string, userId
 
   if (error || !data) return { reviews: [], myReview: null };
 
-  const reviews = (data as ReviewRow[]).map((row) => normalize(row, userId));
+  const rows = data as ReviewRow[];
+  const reviewerIds = Array.from(new Set(rows.map((row) => row.user_id).filter(Boolean)));
+  const profileNames = new Map<string, string>();
+
+  if (reviewerIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("user_profiles")
+      .select("user_id,nickname")
+      .in("user_id", reviewerIds);
+
+    (profiles as ProfileRow[] | null)?.forEach((profile) => {
+      if (profile.nickname?.trim()) profileNames.set(profile.user_id, profile.nickname.trim());
+    });
+  }
+
+  const reviews = rows.map((row) => normalize(row, userId, profileNames));
   return {
     reviews,
     myReview: reviews.find((review) => review.isMine) ?? null
