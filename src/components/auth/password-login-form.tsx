@@ -130,9 +130,17 @@ export function PasswordLoginForm({ next, loginError }: Props) {
         </button>
       </div>
 
-      <Link href="/reset-password" className="mt-4 block text-center text-sm text-emerald-700 hover:underline">
-        忘记密码？
-      </Link>
+      <div className="mt-4 space-y-2 text-center text-sm">
+        <Link href="/reset-password" className="block text-emerald-700 hover:underline">
+          忘记密码？
+        </Link>
+        <p className="text-slate-600">
+          还没有账号？
+          <Link href="/register" className="font-medium text-emerald-700 hover:underline">
+            立即注册
+          </Link>
+        </p>
+      </div>
 
       {status ? <p className="mt-3 text-sm text-slate-600">{status}</p> : null}
     </form>
