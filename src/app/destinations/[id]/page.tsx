@@ -7,6 +7,7 @@ import { AuthActionHint } from "@/components/auth/auth-action-hint";
 import { AddToPlanButton } from "@/components/plans/add-to-plan-button";
 import { AmapNavigationButton } from "@/components/plans/amap-navigation-button";
 import { ReviewForm } from "@/components/reviews/review-form";
+import { DestinationViewTracker } from "@/components/destinations/destination-view-tracker";
 import { getDestinationImage, hasUsableDestinationImage } from "@/features/destinations/images";
 import {
   destinationDescription,
@@ -110,6 +111,7 @@ export default async function DestinationDetailPage({
 
   return (
     <main className="min-h-screen bg-slate-50 pb-28 md:pb-12">
+      <DestinationViewTracker destinationId={destination.id} />
       <section className="mx-auto max-w-6xl px-4 py-6 md:px-6">
         <Link href="/destinations" className="interactive-text-link mb-4 inline-flex items-center gap-1 text-sm text-slate-600">
           <ChevronLeft className="h-4 w-4" />

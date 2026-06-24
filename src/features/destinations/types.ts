@@ -33,6 +33,9 @@ export type DestinationItem = {
   suitableAge?: string | null;
   tags?: string[] | null;
   reviewCount?: number | null;
+  favoriteCount?: number | null;
+  viewCount?: number | null;
+  shareCount?: number | null;
   badgeText?: string | null;
 };
 

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Top10Carousel } from "@/components/home/top10-carousel";
 import { getDestinationImage, hasUsableDestinationImage } from "@/features/destinations/images";
+import { getDestinationStats } from "@/features/destinations/stats";
 import {
   destinationDescription,
   destinationDecisionTags,
@@ -117,23 +118,6 @@ function formatDistance(distanceKm: number, locale: Locale) {
 function shortText(text: string, maxLength = 80) {
   const normalized = text.replace(/\s+/g, " ").trim();
   return normalized.length > maxLength ? `${normalized.slice(0, maxLength)}...` : normalized;
-}
-
-function stableMetric(id: string, base: number, range: number) {
-  const seed = id.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
-  return base + (seed % range);
-}
-
-function familySaveCount(item: DestinationItem) {
-  return stableMetric(item.id, 18, 66);
-}
-
-function viewCount(item: DestinationItem) {
-  return stableMetric(item.id, 120, 680);
-}
-
-function shareCount(item: DestinationItem) {
-  return stableMetric(item.id, 6, 34);
 }
 
 function sharePersona(item: DestinationItem, index: number, locale: Locale) {
@@ -259,7 +243,7 @@ function NearbyDestinationCard({ item, locale, reason }: { item: DestinationItem
         <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-600">
           <span className="inline-flex items-center gap-1 rounded-2xl bg-rose-50 px-2.5 py-2 text-rose-700">
             <Heart className="h-3.5 w-3.5 fill-current" />
-            {pick(locale, `${familySaveCount(item)} families saved`, `${familySaveCount(item)}个家庭收藏`)}
+            {pick(locale, `${item.favoriteCount ?? 0} families saved`, `${item.favoriteCount ?? 0}个家庭收藏`)}
           </span>
           <span className="inline-flex items-center gap-1 rounded-2xl bg-emerald-50 px-2.5 py-2 text-emerald-700">
             <Navigation className="h-3.5 w-3.5" />
@@ -267,11 +251,11 @@ function NearbyDestinationCard({ item, locale, reason }: { item: DestinationItem
           </span>
           <span className="inline-flex items-center gap-1 rounded-2xl bg-sky-50 px-2.5 py-2 text-sky-700">
             <Eye className="h-3.5 w-3.5" />
-            {viewCount(item)}
+            {item.viewCount ?? 0}
           </span>
           <span className="inline-flex items-center gap-1 rounded-2xl bg-violet-50 px-2.5 py-2 text-violet-700">
             <Camera className="h-3.5 w-3.5" />
-            {shareCount(item)}
+            {item.shareCount ?? 0}
           </span>
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
@@ -293,10 +277,17 @@ export default async function HomePage() {
   const city = displayCity(homeCity, locale);
   const weekendWeather = getWeekendWeather(homeCity, preferredScenarios, locale);
   const allDestinations = withDistanceFromCity(rawDestinations, homeCity).filter(hasUsableDestinationImage);
-  const reviewCounts = await getReviewCountsForDestinations(allDestinations.map((item) => item.id));
+  const destinationIds = allDestinations.map((item) => item.id);
+  const [reviewCounts, destinationStats] = await Promise.all([
+    getReviewCountsForDestinations(destinationIds),
+    getDestinationStats(destinationIds)
+  ]);
   const destinationsWithReviews = allDestinations.map((item) => ({
     ...item,
-    reviewCount: reviewCounts.get(item.id) ?? 0
+    reviewCount: reviewCounts.get(item.id) ?? 0,
+    favoriteCount: destinationStats.get(item.id)?.favoriteCount ?? 0,
+    viewCount: destinationStats.get(item.id)?.viewCount ?? 0,
+    shareCount: destinationStats.get(item.id)?.shareCount ?? 0
   }));
   const topDestinations = getTopDestinations(destinationsWithReviews, homeCity);
   const topRankings = {
@@ -443,15 +434,15 @@ export default async function HomePage() {
                 <div className="flex flex-wrap gap-2 text-xs text-slate-600">
                   <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-rose-700">
                     <Heart className="h-3.5 w-3.5 fill-current" />
-                    {familySaveCount(item)}
+                    {item.favoriteCount ?? 0}
                   </span>
                   <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2.5 py-1 text-sky-700">
                     <Eye className="h-3.5 w-3.5" />
-                    {viewCount(item)}
+                    {item.viewCount ?? 0}
                   </span>
                   <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2.5 py-1 text-violet-700">
                     <Camera className="h-3.5 w-3.5" />
-                    {shareCount(item)}
+                    {item.shareCount ?? 0}
                   </span>
                 </div>
                 <span className="inline-flex items-center gap-1 text-sm font-bold text-emerald-700">
