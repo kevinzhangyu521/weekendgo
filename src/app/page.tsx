@@ -27,6 +27,7 @@ import {
 import { getAllDestinations } from "@/features/destinations/repository";
 import type { DestinationItem, Scenario } from "@/features/destinations/types";
 import { getMyProfile } from "@/features/profiles/repository";
+import { getReviewCountsForDestinations } from "@/features/reviews/repository";
 import { DEFAULT_HOME_CITY, withDistanceFromCity } from "@/lib/geo/distance";
 import type { Locale } from "@/lib/i18n/config";
 import { getLocale, pick } from "@/lib/i18n/server";
@@ -207,19 +208,24 @@ export default async function HomePage() {
   const city = displayCity(homeCity, locale);
   const weekendWeather = getWeekendWeather(homeCity, preferredScenarios, locale);
   const allDestinations = withDistanceFromCity(rawDestinations, homeCity).filter(hasUsableDestinationImage);
-  const topDestinations = getTopDestinations(allDestinations, homeCity);
+  const reviewCounts = await getReviewCountsForDestinations(allDestinations.map((item) => item.id));
+  const destinationsWithReviews = allDestinations.map((item) => ({
+    ...item,
+    reviewCount: reviewCounts.get(item.id) ?? 0
+  }));
+  const topDestinations = getTopDestinations(destinationsWithReviews, homeCity);
   const topRankings = {
     overall: topDestinations,
-    creek: getScenarioTopDestinations(allDestinations, homeCity, "creek"),
-    camping: getScenarioTopDestinations(allDestinations, homeCity, "camping"),
-    youngKids: getYoungKidTopDestinations(allDestinations, homeCity)
+    creek: getScenarioTopDestinations(destinationsWithReviews, homeCity, "creek"),
+    camping: getScenarioTopDestinations(destinationsWithReviews, homeCity, "camping"),
+    youngKids: getYoungKidTopDestinations(destinationsWithReviews, homeCity)
   };
-  const weatherDestinations = allDestinations
+  const weatherDestinations = destinationsWithReviews
     .filter((item) => item.scenario === weekendWeather.scenario)
     .sort((a, b) => worthScore(b) - worthScore(a))
     .slice(0, 4);
-  const nearbyDestinations = [...allDestinations].sort((a, b) => a.distanceKm - b.distanceKm).slice(0, 4);
-  const latestShares = [...allDestinations].slice(0, 6);
+  const nearbyDestinations = [...destinationsWithReviews].sort((a, b) => a.distanceKm - b.distanceKm).slice(0, 4);
+  const latestShares = [...destinationsWithReviews].slice(0, 6);
 
   return (
     <main className="min-h-screen bg-slate-50 pb-10">
