@@ -83,6 +83,16 @@ function getCoverBadges(item: DestinationItem, rank: number, locale: Locale) {
   return Array.from(new Set(badges)).slice(0, 3);
 }
 
+function coverBadgeColor(index: number) {
+  const colors = [
+    "bg-orange-500",
+    "bg-emerald-500",
+    "bg-sky-500",
+    "bg-violet-500"
+  ];
+  return colors[index % colors.length];
+}
+
 function reviewText(item: DestinationItem, locale: Locale) {
   if (typeof item.reviewCount === "number" && item.reviewCount > 0) {
     return pick(locale, `${item.reviewCount} reviews`, `${item.reviewCount}条评价`);
@@ -156,9 +166,9 @@ function RecommendationCard({
           }}
           className="interactive-image h-full w-full object-cover"
         />
-        <div className="absolute left-3 right-3 top-3 flex flex-wrap gap-2">
+        <div className="absolute left-3 right-3 top-3 flex max-w-[170px] flex-wrap gap-2 sm:max-w-[185px]">
           {getCoverBadges(item, rank, locale).map((badge, index) => (
-            <span key={`${item.id}-cover-badge-${badge}`} className={`rounded-full px-2.5 py-1 text-xs font-bold text-white shadow-sm ${index === 0 ? "bg-emerald-500" : "bg-sky-500"}`}>
+            <span key={`${item.id}-cover-badge-${badge}`} className={`rounded-full px-2.5 py-1 text-xs font-bold text-white shadow-sm ${coverBadgeColor(index)}`}>
               {badge}
             </span>
           ))}
