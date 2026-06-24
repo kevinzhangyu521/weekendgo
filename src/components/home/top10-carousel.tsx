@@ -78,6 +78,11 @@ function getBadge(item: DestinationItem, rank: number, locale: Locale) {
   return pick(locale, scenarioBadge[item.scenario], scenarioBadge[item.scenario]);
 }
 
+function getCoverBadges(item: DestinationItem, rank: number, locale: Locale) {
+  const badges = [getBadge(item, rank, locale), ...getTags(item)];
+  return Array.from(new Set(badges)).slice(0, 3);
+}
+
 function reviewText(item: DestinationItem, locale: Locale) {
   if (typeof item.reviewCount === "number" && item.reviewCount > 0) {
     return pick(locale, `${item.reviewCount} reviews`, `${item.reviewCount}条评价`);
@@ -95,12 +100,12 @@ function MiniInfo({
   value: string;
 }) {
   return (
-    <div className="min-w-0 border-r border-slate-100 pr-2 last:border-r-0 last:pr-0">
-      <p className="flex items-center gap-1 text-[11px] text-slate-500">
+    <div className="min-w-0 rounded-xl bg-white/60 px-2 py-2">
+      <p className="flex items-center gap-1 text-[11px] leading-4 text-slate-500">
         <Icon className="h-3.5 w-3.5 shrink-0 text-slate-500" />
         <span>{label}</span>
       </p>
-      <p className="mt-1 line-clamp-2 text-xs font-semibold leading-4 text-slate-700">{value}</p>
+      <p className="mt-1 whitespace-normal break-words text-xs font-semibold leading-4 text-slate-700">{value}</p>
     </div>
   );
 }
@@ -135,7 +140,7 @@ function RecommendationCard({
       }}
       className="interactive-card flex h-full shrink-0 snap-start basis-[78vw] cursor-pointer flex-col overflow-hidden rounded-[18px] border border-slate-100 bg-white shadow-[0_10px_26px_rgba(15,23,42,0.06)] sm:basis-[300px] lg:basis-[calc(25%_-_12px)]"
     >
-      <Link href={detailHref} className="relative block aspect-[4/3] w-full overflow-hidden rounded-t-[18px] bg-slate-100">
+      <Link href={detailHref} onClick={(event) => event.stopPropagation()} className="relative block aspect-[4/3] w-full overflow-hidden rounded-t-[18px] bg-slate-100">
         <img
           src={image.src}
           alt={name}
@@ -151,15 +156,18 @@ function RecommendationCard({
           }}
           className="interactive-image h-full w-full object-cover"
         />
-        <div className="absolute left-3 top-3 flex flex-wrap gap-2">
-          <span className="rounded-full bg-emerald-500 px-2.5 py-1 text-xs font-bold text-white shadow-sm">{getBadge(item, rank, locale)}</span>
-          {rank <= 3 ? <span className="rounded-full bg-amber-400 px-2.5 py-1 text-xs font-bold text-white shadow-sm">TOP {rank}</span> : null}
+        <div className="absolute left-3 right-3 top-3 flex flex-wrap gap-2">
+          {getCoverBadges(item, rank, locale).map((badge, index) => (
+            <span key={`${item.id}-cover-badge-${badge}`} className={`rounded-full px-2.5 py-1 text-xs font-bold text-white shadow-sm ${index === 0 ? "bg-emerald-500" : "bg-sky-500"}`}>
+              {badge}
+            </span>
+          ))}
         </div>
       </Link>
 
       <div className="flex flex-1 flex-col p-4">
         <div className="space-y-2">
-          <Link href={detailHref} className="interactive-text-link line-clamp-1 text-lg font-black text-slate-950">
+          <Link href={detailHref} onClick={(event) => event.stopPropagation()} className="interactive-text-link line-clamp-1 text-lg font-black text-slate-950">
             {name}
           </Link>
           <p className="flex items-center gap-1.5 text-sm text-slate-500">
@@ -171,7 +179,7 @@ function RecommendationCard({
           <p className="line-clamp-2 min-h-11 text-sm leading-5 text-slate-700">{destinationDescription(item, locale)}</p>
         </div>
 
-        <div className="mt-3 grid grid-cols-4 gap-2 rounded-2xl bg-slate-50/80 px-3 py-2.5">
+        <div className="mt-3 grid grid-cols-2 gap-2 rounded-2xl bg-slate-50/80 px-3 py-2.5">
           <MiniInfo icon={Users} label={pick(locale, "Age", "适合")} value={item.suitableAge || destinationAgeRange(item, locale)} />
           <MiniInfo icon={Ticket} label={pick(locale, "Ticket", "门票")} value={ticketText(item, locale)} />
           <MiniInfo icon={Car} label={pick(locale, "Parking", "停车")} value={parkingText(item, locale)} />
@@ -202,7 +210,7 @@ function RecommendationCard({
           </div>
 
           <div className="grid grid-cols-2 gap-2">
-            <Link href={detailHref} className="interactive-button inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 hover:bg-slate-50">
+            <Link href={detailHref} onClick={(event) => event.stopPropagation()} className="interactive-button inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 hover:bg-slate-50">
               {pick(locale, "Details", "查看详情")}
             </Link>
             <div onClick={(event) => event.stopPropagation()}>
