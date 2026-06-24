@@ -239,7 +239,7 @@ export default async function DestinationDetailPage({
           </div>
         </section>
 
-        <section className="mt-5 rounded-xl border border-slate-200 bg-white p-4">
+        <section id="reviews" className="mt-5 scroll-mt-24 rounded-xl border border-slate-200 bg-white p-4">
           <h2 className="inline-flex items-center gap-2 text-base font-semibold text-slate-900">
             <Backpack className="h-4 w-4" />
             {pick(locale, "Before Departure Checklist", "\u51fa\u53d1\u524d\u51c6\u5907\u6e05\u5355")}

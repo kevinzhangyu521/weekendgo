@@ -201,11 +201,15 @@ function DecisionDestinationCard({
 
         <div className="mt-auto border-t border-slate-100 pt-4">
           <div className="mb-4 flex items-center justify-between gap-3">
-            <span className="inline-flex min-w-0 items-center gap-1 text-sm font-semibold text-slate-700">
+            <Link
+              href={`${detailHref}#reviews`}
+              className="interactive-text-link inline-flex min-w-0 items-center gap-1 text-sm font-semibold text-slate-700"
+              aria-label={pick(locale, "View reviews", "查看评价")}
+            >
               <Star className="h-4 w-4 shrink-0 fill-current text-amber-500" />
               <span>{item.rating.toFixed(1)}</span>
               <span className="truncate font-normal text-slate-500">({reviewText(item, locale)})</span>
-            </span>
+            </Link>
             <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">{destinationScenario(item, locale)}</span>
           </div>
 
