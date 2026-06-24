@@ -2,10 +2,12 @@
 
 import { useRef } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, MapPin, Star } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Bath, Car, ChevronLeft, ChevronRight, MapPin, Star, Ticket, Users } from "lucide-react";
 import { AmapNavigationButton } from "@/components/plans/amap-navigation-button";
 import { DEFAULT_DESTINATION_IMAGE, getDestinationImage } from "@/features/destinations/images";
 import {
+  destinationAgeRange,
   destinationDescription,
   destinationName,
   destinationRegion,
@@ -46,6 +48,22 @@ function formatDistance(distanceKm: number, homeCity: string, locale: Locale) {
   return pick(locale, `About ${distanceKm}km from ${homeCity}`, `距${homeCity}约${distanceKm}公里`);
 }
 
+function ticketText(item: DestinationItem, locale: Locale) {
+  if (item.ticketPrice) return item.ticketPrice;
+  if (item.scenario === "picnic") return pick(locale, "Check locally", "以现场为准");
+  return pick(locale, "Check official price", "以景区为准");
+}
+
+function parkingText(item: DestinationItem, locale: Locale) {
+  if (item.parkingInfo) return item.parkingInfo;
+  return item.hasParking ? pick(locale, "Available", "可停车") : pick(locale, "Limited", "停车少");
+}
+
+function toiletText(item: DestinationItem, locale: Locale) {
+  if (item.toiletInfo) return item.toiletInfo;
+  return item.hasToilet ? pick(locale, "Available", "有") : pick(locale, "Limited", "较少");
+}
+
 function getTags(item: DestinationItem) {
   if (item.tags?.length) {
     const hiddenCoreWords = ["停车", "厕所", "门票", "适合", "年龄", "免费"];
@@ -67,6 +85,26 @@ function reviewText(item: DestinationItem, locale: Locale) {
   return pick(locale, "No reviews yet", "暂无评价");
 }
 
+function MiniInfo({
+  icon: Icon,
+  label,
+  value
+}: {
+  icon: typeof Users;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="min-w-0 border-r border-slate-100 pr-2 last:border-r-0 last:pr-0">
+      <p className="flex items-center gap-1 text-[11px] text-slate-500">
+        <Icon className="h-3.5 w-3.5 shrink-0 text-slate-500" />
+        <span>{label}</span>
+      </p>
+      <p className="mt-1 line-clamp-2 text-xs font-semibold leading-4 text-slate-700">{value}</p>
+    </div>
+  );
+}
+
 function RecommendationCard({
   item,
   locale,
@@ -80,6 +118,7 @@ function RecommendationCard({
   rank: number;
   isSignedIn: boolean;
 }) {
+  const router = useRouter();
   const image = getDestinationImage(item);
   const name = destinationName(item, locale);
   const detailHref = `/destinations/${item.id}`;
@@ -87,7 +126,15 @@ function RecommendationCard({
   const tags = getTags(item);
 
   return (
-    <article className="interactive-card flex h-full shrink-0 snap-start basis-[78vw] flex-col overflow-hidden rounded-[18px] border border-slate-100 bg-white shadow-[0_10px_26px_rgba(15,23,42,0.06)] sm:basis-[300px] lg:basis-[calc(25%_-_12px)]">
+    <article
+      role="link"
+      tabIndex={0}
+      onClick={() => router.push(detailHref)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter") router.push(detailHref);
+      }}
+      className="interactive-card flex h-full shrink-0 snap-start basis-[78vw] cursor-pointer flex-col overflow-hidden rounded-[18px] border border-slate-100 bg-white shadow-[0_10px_26px_rgba(15,23,42,0.06)] sm:basis-[300px] lg:basis-[calc(25%_-_12px)]"
+    >
       <Link href={detailHref} className="relative block aspect-[4/3] w-full overflow-hidden rounded-t-[18px] bg-slate-100">
         <img
           src={image.src}
@@ -124,6 +171,13 @@ function RecommendationCard({
           <p className="line-clamp-2 min-h-11 text-sm leading-5 text-slate-700">{destinationDescription(item, locale)}</p>
         </div>
 
+        <div className="mt-3 grid grid-cols-4 gap-2 rounded-2xl bg-slate-50/80 px-3 py-2.5">
+          <MiniInfo icon={Users} label={pick(locale, "Age", "适合")} value={item.suitableAge || destinationAgeRange(item, locale)} />
+          <MiniInfo icon={Ticket} label={pick(locale, "Ticket", "门票")} value={ticketText(item, locale)} />
+          <MiniInfo icon={Car} label={pick(locale, "Parking", "停车")} value={parkingText(item, locale)} />
+          <MiniInfo icon={Bath} label={pick(locale, "Toilet", "厕所")} value={toiletText(item, locale)} />
+        </div>
+
         <div className="mt-3 flex min-h-8 flex-wrap content-start gap-1.5">
           {tags.map((tag, index) => (
             <span key={`${item.id}-${tag}-${index}`} className={`rounded-full px-2.5 py-1 text-xs font-semibold ${index % 2 === 0 ? "bg-emerald-50 text-emerald-700" : "bg-sky-50 text-sky-700"}`}>
@@ -136,6 +190,7 @@ function RecommendationCard({
           <div className="mb-3 flex items-center justify-between gap-3">
             <Link
               href={`${detailHref}#reviews`}
+              onClick={(event) => event.stopPropagation()}
               className="interactive-text-link inline-flex min-w-0 items-center gap-1 text-sm font-semibold text-slate-700"
               aria-label={pick(locale, "View reviews", "查看评价")}
             >
@@ -150,14 +205,16 @@ function RecommendationCard({
             <Link href={detailHref} className="interactive-button inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 hover:bg-slate-50">
               {pick(locale, "Details", "查看详情")}
             </Link>
-            <AmapNavigationButton
-              destination={item}
-              label={navigationLabel}
-              className="h-10 rounded-xl px-3 text-sm font-bold"
-              isSignedIn={isSignedIn}
-              loginHref={`/login?next=${encodeURIComponent(detailHref)}`}
-              signedOutLabel={navigationLabel}
-            />
+            <div onClick={(event) => event.stopPropagation()}>
+              <AmapNavigationButton
+                destination={item}
+                label={navigationLabel}
+                className="h-10 w-full rounded-xl px-3 text-sm font-bold"
+                isSignedIn={isSignedIn}
+                loginHref={`/login?next=${encodeURIComponent(detailHref)}`}
+                signedOutLabel={navigationLabel}
+              />
+            </div>
           </div>
         </div>
       </div>
