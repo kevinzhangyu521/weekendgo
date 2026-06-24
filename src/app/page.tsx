@@ -278,7 +278,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <Top10Carousel locale={locale} homeCity={homeCity} rankings={topRankings} />
+      <Top10Carousel locale={locale} homeCity={homeCity} rankings={topRankings} isSignedIn={Boolean(profile)} />
 
       <section className="mx-auto mt-6 max-w-6xl px-4">
         <div className="rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-600 p-4 text-white shadow-sm">

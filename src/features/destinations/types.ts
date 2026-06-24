@@ -24,6 +24,16 @@ export type DestinationItem = {
   description: string;
   descriptionZh?: string | null;
   isActive?: boolean;
+  coverImage?: string | null;
+  region?: string | null;
+  driveTime?: string | null;
+  ticketPrice?: string | null;
+  parkingInfo?: string | null;
+  toiletInfo?: string | null;
+  suitableAge?: string | null;
+  tags?: string[] | null;
+  reviewCount?: number | null;
+  badgeText?: string | null;
 };
 
 export type DestinationFilters = {
