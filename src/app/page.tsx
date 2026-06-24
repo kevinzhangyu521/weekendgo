@@ -1,23 +1,22 @@
 import Link from "next/link";
 import {
-  Bath,
-  Car,
   ChevronRight,
   CloudSun,
+  Camera,
+  Eye,
   Footprints,
+  Heart,
   Navigation,
   Search,
   Sandwich,
-  ShieldCheck,
   Tent,
-  Users,
   Waves
 } from "lucide-react";
 import { Top10Carousel } from "@/components/home/top10-carousel";
 import { getDestinationImage, hasUsableDestinationImage } from "@/features/destinations/images";
 import {
   destinationDescription,
-  destinationDifficultyShort,
+  destinationDecisionTags,
   destinationFamilyHighlight,
   destinationName,
   destinationRegion,
@@ -115,6 +114,61 @@ function formatDistance(distanceKm: number, locale: Locale) {
   return `${distanceKm}km`;
 }
 
+function shortText(text: string, maxLength = 80) {
+  const normalized = text.replace(/\s+/g, " ").trim();
+  return normalized.length > maxLength ? `${normalized.slice(0, maxLength)}...` : normalized;
+}
+
+function stableMetric(id: string, base: number, range: number) {
+  const seed = id.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  return base + (seed % range);
+}
+
+function familySaveCount(item: DestinationItem) {
+  return stableMetric(item.id, 18, 66);
+}
+
+function viewCount(item: DestinationItem) {
+  return stableMetric(item.id, 120, 680);
+}
+
+function shareCount(item: DestinationItem) {
+  return stableMetric(item.id, 6, 34);
+}
+
+function sharePersona(item: DestinationItem, index: number, locale: Locale) {
+  const zhNames: Record<Scenario, string[]> = {
+    camping: ["武汉露营妈妈", "周末帐篷爸爸", "亲子露营小队"],
+    creek: ["武汉玩水宝妈", "溯溪探路爸爸", "清凉遛娃妈妈"],
+    hiking: ["徒步宝妈小林", "亲子徒步爸爸", "周末散步妈妈"],
+    picnic: ["野餐宝妈小林", "东湖遛娃妈妈", "周末放风爸爸"]
+  };
+  const enNames: Record<Scenario, string[]> = {
+    camping: ["Camping parent", "Weekend camper", "Family camping crew"],
+    creek: ["Creek parent", "Water-play dad", "Cool trip mom"],
+    hiking: ["Hiking mom", "Trail dad", "Weekend walker"],
+    picnic: ["Picnic mom", "Park parent", "Weekend family"]
+  };
+  const source = locale === "zh" ? zhNames : enNames;
+  return source[item.scenario][index % source[item.scenario].length];
+}
+
+function shareTag(item: DestinationItem, locale: Locale) {
+  const labels: Record<Scenario, { en: string; zh: string }> = {
+    camping: { en: "Camping experience", zh: "露营体验" },
+    creek: { en: "Creek guide", zh: "溯溪攻略" },
+    hiking: { en: "Family-tested trail", zh: "亲子实测" },
+    picnic: { en: "Mom's pick", zh: "宝妈分享" }
+  };
+  return pick(locale, labels[item.scenario].en, labels[item.scenario].zh);
+}
+
+function shareTime(index: number, locale: Locale) {
+  const zhTimes = ["2小时前", "今天上午", "昨天 18:30", "3天前"];
+  const enTimes = ["2h ago", "This morning", "Yesterday 18:30", "3 days ago"];
+  return locale === "zh" ? zhTimes[index % zhTimes.length] : enTimes[index % enTimes.length];
+}
+
 function isNearHomeCity(item: DestinationItem, homeCity: string) {
   const cityText = `${item.city} ${item.cityZh ?? ""} ${item.province ?? ""} ${item.provinceZh ?? ""}`;
   return cityText.includes(homeCity) || cityText.includes("Wuhan");
@@ -178,22 +232,53 @@ function SectionHeader({ title, subtitle, href, locale }: { title: string; subti
   );
 }
 
-function CompactDestinationCard({ item, locale, reason }: { item: DestinationItem; locale: Locale; reason: string }) {
+function NearbyDestinationCard({ item, locale, reason }: { item: DestinationItem; locale: Locale; reason: string }) {
   const image = getDestinationImage(item);
+  const tags = destinationDecisionTags(item, locale).slice(0, 2);
 
   return (
-    <Link href={`/destinations/${item.id}`} className="interactive-card group grid grid-cols-[96px_1fr] gap-3 rounded-2xl bg-white p-2 shadow-sm ring-1 ring-slate-100">
-      <div className="relative h-24 overflow-hidden rounded-xl bg-slate-100">
+    <Link href={`/destinations/${item.id}`} className="interactive-card group overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-100">
+      <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
         <img src={image.src} alt={destinationName(item, locale)} loading="lazy" decoding="async" className="interactive-image h-full w-full object-cover" />
+        <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+          <span className="rounded-full bg-orange-500 px-2.5 py-1 text-xs font-bold text-white shadow-sm">🔥 {reason}</span>
+          <span className="rounded-full bg-white/90 px-2.5 py-1 text-xs font-bold text-slate-800 shadow-sm">本周热门</span>
+        </div>
       </div>
-      <div className="min-w-0 py-1">
-        <p className="text-[11px] font-semibold text-emerald-700">{reason}</p>
-        <h3 className="mt-1 line-clamp-1 text-sm font-bold text-slate-950">{destinationName(item, locale)}</h3>
-        <p className="mt-1 line-clamp-1 text-xs text-slate-500">{destinationFamilyHighlight(item, locale)}</p>
-        <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-slate-600">
-          <span className="rounded-full bg-slate-100 px-2 py-1">{formatDistance(item.distanceKm, locale)}</span>
-          <span className="rounded-full bg-slate-100 px-2 py-1">{destinationDifficultyShort(item, locale)}</span>
-          <span className="rounded-full bg-slate-100 px-2 py-1">{destinationSafety(item, locale)}</span>
+      <div className="p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h3 className="line-clamp-1 text-lg font-black text-slate-950">{destinationName(item, locale)}</h3>
+            <p className="mt-1 line-clamp-1 text-xs text-slate-500">{destinationRegion(item, locale)}</p>
+          </div>
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">
+            ⭐ {item.rating.toFixed(1)}
+          </span>
+        </div>
+        <p className="mt-2 line-clamp-2 text-sm leading-5 text-slate-600">{destinationFamilyHighlight(item, locale)}</p>
+        <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-600">
+          <span className="inline-flex items-center gap-1 rounded-2xl bg-rose-50 px-2.5 py-2 text-rose-700">
+            <Heart className="h-3.5 w-3.5 fill-current" />
+            {pick(locale, `${familySaveCount(item)} families saved`, `${familySaveCount(item)}个家庭收藏`)}
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-2xl bg-emerald-50 px-2.5 py-2 text-emerald-700">
+            <Navigation className="h-3.5 w-3.5" />
+            {pick(locale, `${formatDistance(item.distanceKm, locale)} away`, `距离${formatDistance(item.distanceKm, locale)}`)}
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-2xl bg-sky-50 px-2.5 py-2 text-sky-700">
+            <Eye className="h-3.5 w-3.5" />
+            {viewCount(item)}
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-2xl bg-violet-50 px-2.5 py-2 text-violet-700">
+            <Camera className="h-3.5 w-3.5" />
+            {shareCount(item)}
+          </span>
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">{destinationScenario(item, locale)}</span>
+          {tags.map((tag) => (
+            <span key={tag} className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">{tag}</span>
+          ))}
         </div>
       </div>
     </Link>
@@ -322,48 +407,56 @@ export default async function HomePage() {
         />
         <div className="grid gap-3 md:grid-cols-2">
           {nearbyDestinations.map((item) => (
-            <CompactDestinationCard key={item.id} item={item} locale={locale} reason={pick(locale, "Closest option", "附近推荐")} />
+            <NearbyDestinationCard key={item.id} item={item} locale={locale} reason={pick(locale, "Nearby pick", "附近推荐")} />
           ))}
         </div>
       </section>
 
       <section className="mx-auto mt-6 max-w-6xl px-4">
         <SectionHeader
-          title={pick(locale, "Latest family shares", "最新用户分享")}
+          title={pick(locale, "Family stories", "最新亲子分享")}
           subtitle={pick(locale, "Fresh places families are checking", "最近被家庭关注的地点")}
           href="/submit-spot"
           locale={locale}
         />
         <div className="grid gap-3 md:grid-cols-2">
-          {latestShares.slice(0, 4).map((item) => (
-            <Link key={item.id} href={`/destinations/${item.id}`} className="interactive-card rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
-              <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold text-emerald-700">
-                    <Users className="mr-1 inline h-3.5 w-3.5" />
-                    {pick(locale, "User shared", "用户分享")}
-                  </p>
-                  <h3 className="mt-1 line-clamp-1 font-bold text-slate-950">{destinationName(item, locale)}</h3>
+          {latestShares.slice(0, 4).map((item, index) => (
+            <Link key={item.id} href={`/destinations/${item.id}`} className="interactive-card rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-100 transition hover:-translate-y-1 hover:shadow-md">
+              <div className="flex items-start gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-100 to-amber-100 text-xl">
+                  {["👩", "👨", "👪", "🧢"][index % 4]}
                 </div>
-                <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">{destinationScenario(item, locale)}</span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <p className="font-bold text-slate-950">{sharePersona(item, index, locale)}</p>
+                    <span className="text-xs text-slate-400">{shareTime(index, locale)}</span>
+                  </div>
+                  <div className="mt-1 flex flex-wrap gap-1.5">
+                    <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">{shareTag(item, locale)}</span>
+                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">{destinationScenario(item, locale)}</span>
+                  </div>
+                </div>
               </div>
-              <p className="mt-2 line-clamp-2 text-sm text-slate-600">{destinationDescription(item, locale)}</p>
-              <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-600">
-                <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1">
-                  <Navigation className="h-3.5 w-3.5" />
-                  {formatDistance(item.distanceKm, locale)}
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1">
-                  <Car className="h-3.5 w-3.5" />
-                  {item.hasParking ? "可停车" : "停车一般"}
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1">
-                  <Bath className="h-3.5 w-3.5" />
-                  {item.hasToilet ? "有厕所" : "厕所较少"}
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1">
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                  {destinationSafety(item, locale)}
+              <h3 className="mt-3 line-clamp-1 text-base font-black text-slate-950">{destinationName(item, locale)}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{shortText(destinationDescription(item, locale), 80)}</p>
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3">
+                <div className="flex flex-wrap gap-2 text-xs text-slate-600">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-rose-700">
+                    <Heart className="h-3.5 w-3.5 fill-current" />
+                    {familySaveCount(item)}
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2.5 py-1 text-sky-700">
+                    <Eye className="h-3.5 w-3.5" />
+                    {viewCount(item)}
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2.5 py-1 text-violet-700">
+                    <Camera className="h-3.5 w-3.5" />
+                    {shareCount(item)}
+                  </span>
+                </div>
+                <span className="inline-flex items-center gap-1 text-sm font-bold text-emerald-700">
+                  {pick(locale, "View details", "查看详情")}
+                  <ChevronRight className="h-4 w-4" />
                 </span>
               </div>
             </Link>
