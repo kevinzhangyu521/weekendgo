@@ -3,6 +3,7 @@ export type DestinationReview = {
   destinationId: string;
   userId: string;
   userName: string | null;
+  userAvatarUrl: string | null;
   rating: number;
   content: string;
   suitableAge: "0-3" | "3-6" | "6-12" | "12+" | null;

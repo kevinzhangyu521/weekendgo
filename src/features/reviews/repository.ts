@@ -19,14 +19,36 @@ type ReviewRow = {
 type ProfileRow = {
   user_id: string;
   nickname: string | null;
+  avatar_url: string | null;
 };
 
-function normalize(row: ReviewRow, userId?: string, profileNames = new Map<string, string>()): DestinationReview {
+async function getPublicProfileNames(userIds: string[]) {
+  const profiles = new Map<string, { nickname: string | null; avatarUrl: string | null }>();
+  const reviewerIds = Array.from(new Set(userIds.filter(Boolean)));
+  if (reviewerIds.length === 0) return profiles;
+
+  const supabase = createPublicClient();
+  const { data } = await supabase.rpc("get_public_review_profile_names", { user_ids: reviewerIds });
+
+  (data as ProfileRow[] | null)?.forEach((profile) => {
+    profiles.set(profile.user_id, {
+      nickname: profile.nickname?.trim() || null,
+      avatarUrl: profile.avatar_url?.trim() || null
+    });
+  });
+
+  return profiles;
+}
+
+function normalize(row: ReviewRow, userId?: string, profiles = new Map<string, { nickname: string | null; avatarUrl: string | null }>()): DestinationReview {
+  const profile = profiles.get(row.user_id);
+
   return {
     id: row.id,
     destinationId: row.destination_id,
     userId: row.user_id,
-    userName: profileNames.get(row.user_id) ?? null,
+    userName: profile?.nickname ?? null,
+    userAvatarUrl: profile?.avatarUrl ?? null,
     rating: row.rating,
     content: row.content,
     suitableAge: row.suitable_age,
@@ -52,19 +74,7 @@ export async function getDestinationReviewsForUser(destinationId: string, userId
   if (error || !data) return { reviews: [], myReview: null };
 
   const rows = data as ReviewRow[];
-  const reviewerIds = Array.from(new Set(rows.map((row) => row.user_id).filter(Boolean)));
-  const profileNames = new Map<string, string>();
-
-  if (reviewerIds.length > 0) {
-    const { data: profiles } = await supabase
-      .from("user_profiles")
-      .select("user_id,nickname")
-      .in("user_id", reviewerIds);
-
-    (profiles as ProfileRow[] | null)?.forEach((profile) => {
-      if (profile.nickname?.trim()) profileNames.set(profile.user_id, profile.nickname.trim());
-    });
-  }
+  const profileNames = await getPublicProfileNames(rows.map((row) => row.user_id));
 
   const reviews = rows.map((row) => normalize(row, userId, profileNames));
   return {
@@ -93,4 +103,22 @@ export async function getReviewCountsForDestinations(destinationIds: string[]) {
   });
 
   return counts;
+}
+
+export async function getLatestDestinationReviews(destinationIds: string[], limit = 4) {
+  if (destinationIds.length === 0) return [];
+
+  const supabase = createPublicClient();
+  const { data, error } = await supabase
+    .from("destination_reviews")
+    .select("id,destination_id,user_id,rating,content,suitable_age,parking_rating,toilet_rating,safety_note,recommend,visit_date,created_at")
+    .in("destination_id", destinationIds)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error || !data) return [];
+
+  const rows = data as ReviewRow[];
+  const profileNames = await getPublicProfileNames(rows.map((row) => row.user_id));
+  return rows.map((row) => normalize(row, undefined, profileNames));
 }

@@ -4,6 +4,7 @@ export type UserProfile = {
   userId: string;
   email: string;
   nickname: string;
+  avatarUrl: string | null;
   homeCity: string;
   kidAge: number | null;
   preferredScenarios: Scenario[];

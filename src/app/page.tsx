@@ -27,7 +27,8 @@ import {
 import { getAllDestinations } from "@/features/destinations/repository";
 import type { DestinationItem, Scenario } from "@/features/destinations/types";
 import { getMyProfile } from "@/features/profiles/repository";
-import { getReviewCountsForDestinations } from "@/features/reviews/repository";
+import { getLatestDestinationReviews, getReviewCountsForDestinations } from "@/features/reviews/repository";
+import type { DestinationReview } from "@/features/reviews/types";
 import { DEFAULT_HOME_CITY, withDistanceFromCity } from "@/lib/geo/distance";
 import type { Locale } from "@/lib/i18n/config";
 import { getLocale, pick } from "@/lib/i18n/server";
@@ -120,23 +121,6 @@ function shortText(text: string, maxLength = 80) {
   return normalized.length > maxLength ? `${normalized.slice(0, maxLength)}...` : normalized;
 }
 
-function sharePersona(item: DestinationItem, index: number, locale: Locale) {
-  const zhNames: Record<Scenario, string[]> = {
-    camping: ["武汉露营妈妈", "周末帐篷爸爸", "亲子露营小队"],
-    creek: ["武汉玩水宝妈", "溯溪探路爸爸", "清凉遛娃妈妈"],
-    hiking: ["徒步宝妈小林", "亲子徒步爸爸", "周末散步妈妈"],
-    picnic: ["野餐宝妈小林", "东湖遛娃妈妈", "周末放风爸爸"]
-  };
-  const enNames: Record<Scenario, string[]> = {
-    camping: ["Camping parent", "Weekend camper", "Family camping crew"],
-    creek: ["Creek parent", "Water-play dad", "Cool trip mom"],
-    hiking: ["Hiking mom", "Trail dad", "Weekend walker"],
-    picnic: ["Picnic mom", "Park parent", "Weekend family"]
-  };
-  const source = locale === "zh" ? zhNames : enNames;
-  return source[item.scenario][index % source[item.scenario].length];
-}
-
 function shareTag(item: DestinationItem, locale: Locale) {
   const labels: Record<Scenario, { en: string; zh: string }> = {
     camping: { en: "Camping experience", zh: "露营体验" },
@@ -147,10 +131,42 @@ function shareTag(item: DestinationItem, locale: Locale) {
   return pick(locale, labels[item.scenario].en, labels[item.scenario].zh);
 }
 
-function shareTime(index: number, locale: Locale) {
-  const zhTimes = ["2小时前", "今天上午", "昨天 18:30", "3天前"];
-  const enTimes = ["2h ago", "This morning", "Yesterday 18:30", "3 days ago"];
-  return locale === "zh" ? zhTimes[index % zhTimes.length] : enTimes[index % enTimes.length];
+function formatShareTime(value: string, locale: Locale) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return new Intl.DateTimeFormat(locale === "zh" ? "zh-CN" : "en-US", {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(date);
+}
+
+function reviewAvatarLabel(review: DestinationReview, locale: Locale) {
+  const name = review.userName?.trim();
+  if (name) return name.slice(0, 1).toUpperCase();
+  return locale === "zh" ? "亲" : "U";
+}
+
+function ReviewAvatar({ review, locale }: { review: DestinationReview; locale: Locale }) {
+  if (review.userAvatarUrl) {
+    return (
+      <img
+        src={review.userAvatarUrl}
+        alt={review.userName || pick(locale, "User avatar", "用户头像")}
+        className="h-11 w-11 shrink-0 rounded-full object-cover ring-1 ring-slate-100"
+        loading="lazy"
+        decoding="async"
+      />
+    );
+  }
+
+  return (
+    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-100 to-sky-100 text-base font-black text-emerald-800">
+      {reviewAvatarLabel(review, locale)}
+    </div>
+  );
 }
 
 function isNearHomeCity(item: DestinationItem, homeCity: string) {
@@ -301,7 +317,8 @@ export default async function HomePage() {
     .sort((a, b) => worthScore(b) - worthScore(a))
     .slice(0, 4);
   const nearbyDestinations = [...destinationsWithReviews].sort((a, b) => a.distanceKm - b.distanceKm).slice(0, 4);
-  const latestShares = [...destinationsWithReviews].slice(0, 6);
+  const latestReviews = await getLatestDestinationReviews(destinationIds, 4);
+  const destinationsById = new Map(destinationsWithReviews.map((item) => [item.id, item]));
 
   return (
     <main className="min-h-screen bg-slate-50 pb-10">
@@ -411,47 +428,55 @@ export default async function HomePage() {
           locale={locale}
         />
         <div className="grid gap-3 md:grid-cols-2">
-          {latestShares.slice(0, 4).map((item, index) => (
-            <Link key={item.id} href={`/destinations/${item.id}`} className="interactive-card rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-100 transition hover:-translate-y-1 hover:shadow-md">
-              <div className="flex items-start gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-100 to-amber-100 text-xl">
-                  {["👩", "👨", "👪", "🧢"][index % 4]}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <p className="font-bold text-slate-950">{sharePersona(item, index, locale)}</p>
-                    <span className="text-xs text-slate-400">{shareTime(index, locale)}</span>
+          {latestReviews.length > 0 ? (
+            latestReviews.map((review) => {
+              const item = destinationsById.get(review.destinationId);
+              if (!item) return null;
+
+              return (
+                <Link key={review.id} href={`/destinations/${item.id}#reviews`} className="interactive-card rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-100 transition hover:-translate-y-1 hover:shadow-md">
+                  <div className="flex items-start gap-3">
+                    <ReviewAvatar review={review} locale={locale} />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <p className="font-bold text-slate-950">{review.userName || pick(locale, "Nickname not set", "未设置昵称")}</p>
+                        <span className="text-xs text-slate-400">{formatShareTime(review.createdAt, locale)}</span>
+                      </div>
+                      <div className="mt-1 flex flex-wrap gap-1.5">
+                        <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">{shareTag(item, locale)}</span>
+                        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">{destinationScenario(item, locale)}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="mt-1 flex flex-wrap gap-1.5">
-                    <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">{shareTag(item, locale)}</span>
-                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">{destinationScenario(item, locale)}</span>
+                  <h3 className="mt-3 line-clamp-1 text-base font-black text-slate-950">{destinationName(item, locale)}</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">{shortText(review.content, 80)}</p>
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3">
+                    <div className="flex flex-wrap gap-2 text-xs text-slate-600">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-amber-700">
+                        ⭐ {review.rating.toFixed(1)}
+                      </span>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-rose-700">
+                        <Heart className="h-3.5 w-3.5 fill-current" />
+                        {item.favoriteCount ?? 0}
+                      </span>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2.5 py-1 text-sky-700">
+                        <Eye className="h-3.5 w-3.5" />
+                        {item.viewCount ?? 0}
+                      </span>
+                    </div>
+                    <span className="inline-flex items-center gap-1 text-sm font-bold text-emerald-700">
+                      {pick(locale, "View review", "查看评价")}
+                      <ChevronRight className="h-4 w-4" />
+                    </span>
                   </div>
-                </div>
-              </div>
-              <h3 className="mt-3 line-clamp-1 text-base font-black text-slate-950">{destinationName(item, locale)}</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600">{shortText(destinationDescription(item, locale), 80)}</p>
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3">
-                <div className="flex flex-wrap gap-2 text-xs text-slate-600">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-rose-700">
-                    <Heart className="h-3.5 w-3.5 fill-current" />
-                    {item.favoriteCount ?? 0}
-                  </span>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2.5 py-1 text-sky-700">
-                    <Eye className="h-3.5 w-3.5" />
-                    {item.viewCount ?? 0}
-                  </span>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2.5 py-1 text-violet-700">
-                    <Camera className="h-3.5 w-3.5" />
-                    {item.shareCount ?? 0}
-                  </span>
-                </div>
-                <span className="inline-flex items-center gap-1 text-sm font-bold text-emerald-700">
-                  {pick(locale, "View details", "查看详情")}
-                  <ChevronRight className="h-4 w-4" />
-                </span>
-              </div>
-            </Link>
-          ))}
+                </Link>
+              );
+            })
+          ) : (
+            <div className="rounded-3xl bg-white p-5 text-sm text-slate-600 shadow-sm ring-1 ring-slate-100 md:col-span-2">
+              {pick(locale, "No family stories yet. Reviews submitted by users will appear here.", "暂无真实亲子分享。用户提交评价后，会显示在这里。")}
+            </div>
+          )}
         </div>
       </section>
     </main>

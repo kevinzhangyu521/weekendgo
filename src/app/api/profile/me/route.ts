@@ -6,6 +6,7 @@ import { getRequestAuth } from "@/lib/auth/request-auth";
 type ProfileRow = {
   user_id: string;
   nickname: string | null;
+  avatar_url: string | null;
   home_city: string | null;
   kid_age: number | null;
   preferred_scenarios: Scenario[] | null;
@@ -30,7 +31,7 @@ export async function GET(request: Request) {
 
   const { data } = await supabase
     .from("user_profiles")
-    .select("user_id,nickname,home_city,kid_age,preferred_scenarios,receive_notifications")
+    .select("user_id,nickname,avatar_url,home_city,kid_age,preferred_scenarios,receive_notifications")
     .eq("user_id", user.id)
     .maybeSingle();
   const row = data as ProfileRow | null;
@@ -39,6 +40,7 @@ export async function GET(request: Request) {
     userId: user.id,
     email: user.email ?? "",
     nickname: row?.nickname ?? "",
+    avatarUrl: row?.avatar_url ?? null,
     homeCity: row?.home_city ?? "",
     kidAge: row?.kid_age ?? null,
     preferredScenarios: row?.preferred_scenarios ?? [],

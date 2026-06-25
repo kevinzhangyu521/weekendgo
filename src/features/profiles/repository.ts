@@ -5,6 +5,7 @@ import type { UserProfile } from "./types";
 type ProfileRow = {
   user_id: string;
   nickname: string | null;
+  avatar_url: string | null;
   home_city: string | null;
   kid_age: number | null;
   preferred_scenarios: Scenario[] | null;
@@ -21,13 +22,14 @@ export async function getMyProfile(): Promise<UserProfile | null> {
   const { supabase, user } = await getCurrentAuth();
   if (!user) return null;
 
-  const { data } = await supabase.from("user_profiles").select("user_id,nickname,home_city,kid_age,preferred_scenarios,receive_notifications").eq("user_id", user.id).maybeSingle();
+  const { data } = await supabase.from("user_profiles").select("user_id,nickname,avatar_url,home_city,kid_age,preferred_scenarios,receive_notifications").eq("user_id", user.id).maybeSingle();
   const row = data as ProfileRow | null;
 
   return {
     userId: user.id,
     email: user.email ?? "",
     nickname: row?.nickname ?? "",
+    avatarUrl: row?.avatar_url ?? null,
     homeCity: row?.home_city ?? "",
     kidAge: row?.kid_age ?? null,
     preferredScenarios: row?.preferred_scenarios ?? [],
