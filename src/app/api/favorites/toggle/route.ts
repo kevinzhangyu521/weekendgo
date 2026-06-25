@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getRequestAuth } from "@/lib/auth/request-auth";
 
@@ -18,16 +17,6 @@ const text = {
   addFailed: "\u52a0\u5165\u6536\u85cf\u5931\u8d25\u3002",
 };
 
-async function getAuthDiagnostic(authSource: string) {
-  const cookieStore = await cookies();
-  const cookieNames = cookieStore.getAll().map((cookie) => cookie.name).sort();
-  return {
-    authSource,
-    hasSupabaseAuthCookie: cookieNames.some((name) => name.startsWith("sb-") && name.includes("auth-token")),
-    cookiesReceived: cookieNames
-  };
-}
-
 export async function POST(request: Request) {
   let payload: ToggleFavoritePayload = {};
 
@@ -44,8 +33,7 @@ export async function POST(request: Request) {
   const { supabase, user, authSource } = await getRequestAuth(request);
 
   if (!user) {
-    const diagnostic = await getAuthDiagnostic(authSource);
-    return NextResponse.json({ ok: false, message: text.signInRequired, diagnostic }, { status: 401 });
+    return NextResponse.json({ ok: false, message: text.signInRequired }, { status: 401 });
   }
 
   const { data: existing, error: existingError } = await supabase

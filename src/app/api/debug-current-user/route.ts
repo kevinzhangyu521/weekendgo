@@ -14,6 +14,20 @@ export async function GET() {
   const hasSiteSessionCookie = cookiesReceived.includes(QIMEIDE_ACCESS_TOKEN_COOKIE);
   const loginDebug = cookieStore.get(QIMEIDE_LOGIN_DEBUG_COOKIE)?.value ?? null;
 
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json(
+      {
+        hasUser: Boolean(user),
+        email: user?.email ?? null
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store"
+        }
+      }
+    );
+  }
+
   return NextResponse.json(
     {
       hasUser: Boolean(user),

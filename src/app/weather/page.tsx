@@ -34,7 +34,7 @@ export default async function WeatherPage({
             <p className="text-sm text-emerald-100">{pick(locale, "Live weather", "\u5b9e\u65f6\u5929\u6c14")}</p>
             <h1 className="mt-1 text-2xl font-bold">{city}</h1>
             <p className="mt-2 text-sm text-emerald-50">
-              {weather ? pick(locale, "Updated from Open-Meteo live weather data.", "\u6570\u636e\u6765\u81ea Open-Meteo \u5b9e\u65f6\u5929\u6c14\u3002") : pick(locale, "Weather data is temporarily unavailable.", "\u6682\u65f6\u65e0\u6cd5\u83b7\u53d6\u5929\u6c14\u6570\u636e\u3002")}
+              {weather ? pick(locale, "Updated from a third-party live weather service.", "数据来自第三方实时天气服务，仅供出行参考。") : pick(locale, "Weather data is temporarily unavailable.", "\u6682\u65f6\u65e0\u6cd5\u83b7\u53d6\u5929\u6c14\u6570\u636e\u3002")}
             </p>
           </div>
 

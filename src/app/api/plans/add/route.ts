@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getRequestAuth } from "@/lib/auth/request-auth";
 
@@ -29,16 +28,6 @@ function getNextSaturdayISO() {
   return now.toISOString().slice(0, 10);
 }
 
-async function getAuthDiagnostic(authSource: string) {
-  const cookieStore = await cookies();
-  const cookieNames = cookieStore.getAll().map((cookie) => cookie.name).sort();
-  return {
-    authSource,
-    hasSupabaseAuthCookie: cookieNames.some((name) => name.startsWith("sb-") && name.includes("auth-token")),
-    cookiesReceived: cookieNames
-  };
-}
-
 export async function POST(request: Request) {
   let payload: AddToPlanPayload = {};
 
@@ -55,8 +44,7 @@ export async function POST(request: Request) {
   const { supabase, user, authSource } = await getRequestAuth(request);
 
   if (!user) {
-    const diagnostic = await getAuthDiagnostic(authSource);
-    return NextResponse.json({ ok: false, message: text.signInRequired, diagnostic }, { status: 401 });
+    return NextResponse.json({ ok: false, message: text.signInRequired }, { status: 401 });
   }
 
   const today = new Date().toISOString().slice(0, 10);

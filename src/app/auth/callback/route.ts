@@ -58,11 +58,8 @@ export async function GET(request: NextRequest) {
       setCookieCount,
       redirectTo: `${origin}${next}`
     });
-    response.headers.set("X-Qimeide-Callback-Has-Session", data.session ? "true" : "false");
   }
 
   response.headers.set("Cache-Control", "no-store");
-  response.headers.set("X-Qimeide-Callback-Has-Code", code ? "true" : "false");
-  response.headers.set("X-Qimeide-Callback-Set-Cookie-Count", String(setCookieCount));
   return response;
 }

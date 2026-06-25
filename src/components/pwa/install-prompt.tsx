@@ -95,7 +95,7 @@ export function InstallPrompt() {
         <X className="h-4 w-4" />
       </button>
       <div className="pr-7">
-        <p className="text-sm font-bold text-slate-900">{"\u628a\u6816\u7f8e\u5730\u6dfb\u52a0\u5230\u624b\u673a\u684c\u9762"}</p>
+        <p className="text-sm font-bold text-slate-900">{"添加到手机桌面"}</p>
         <p className="mt-1 text-xs leading-5 text-slate-600">
           {installEvent ? "\u70b9\u51fb\u6309\u94ae\u540e\uff0c\u624b\u673a\u4f1a\u5f39\u51fa\u5b89\u88c5\u786e\u8ba4\u7a97\u53e3\u3002" : "\u4e0d\u540c\u624b\u673a\u6d4f\u89c8\u5668\u5165\u53e3\u7565\u6709\u4e0d\u540c\uff0c\u70b9\u51fb\u4e0b\u65b9\u67e5\u770b\u65b9\u6cd5\u3002"}
         </p>

@@ -40,7 +40,7 @@ async function readJsonResponse<T extends { message?: string }>(response: Respon
   try {
     return JSON.parse(text) as T;
   } catch {
-    const fallback = response.status === 404 ? "保存接口不存在，请确认新版代码已部署。" : "接口返回异常，请稍后再试。";
+    const fallback = response.status === 404 ? "保存失败，请刷新页面后重试。" : "操作暂时无法完成，请稍后再试。";
     return { message: fallback } as T;
   }
 }

@@ -10,6 +10,18 @@ function hasValue(value: string | undefined) {
 }
 
 export async function GET() {
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json(
+      { ok: false, message: "Not found" },
+      {
+        status: 404,
+        headers: {
+          "Cache-Control": "no-store"
+        }
+      }
+    );
+  }
+
   const cookieStore = await cookies();
   const headerStore = await headers();
   const host = headerStore.get("host") ?? "unknown";
