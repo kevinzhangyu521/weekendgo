@@ -1,9 +1,9 @@
 "use client";
 
-import { useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, MapPin, Star } from "lucide-react";
+import type { ReactNode } from "react";
+import { MapPin, Star } from "lucide-react";
 import { AmapNavigationButton } from "@/components/plans/amap-navigation-button";
 import { DEFAULT_DESTINATION_IMAGE, getDestinationImage } from "@/features/destinations/images";
 import { destinationName } from "@/features/destinations/presenter";
@@ -18,6 +18,17 @@ type Props = {
   rankings: Record<RankingKey, DestinationItem[]>;
   isSignedIn?: boolean;
 };
+
+type CardProps = {
+  item: DestinationItem;
+  locale: Locale;
+  homeCity: string;
+  isSignedIn: boolean;
+  badgeLabel?: string;
+};
+
+const homeContainerClass = "mx-auto max-w-[1440px] px-4 md:px-8";
+const homeGridClass = "grid gap-6 md:grid-cols-2 lg:grid-cols-3";
 
 const scenarioBadge: Record<Scenario, { en: string; zh: string }> = {
   camping: { en: "Camping pick", zh: "露营推荐" },
@@ -70,10 +81,10 @@ function distanceLine(item: DestinationItem, homeCity: string, locale: Locale) {
   );
 }
 
-function recommendationBadge(item: DestinationItem, rank: number, locale: Locale) {
+function recommendationBadge(item: DestinationItem, locale: Locale, badgeLabel?: string) {
+  if (badgeLabel) return badgeLabel;
   const customBadge = item.badgeText?.trim();
   if (customBadge && !/^top\s*\d+$/i.test(customBadge)) return customBadge;
-  if (rank === 1) return pick(locale, "Hot this week", "本周热门");
   return locale === "zh" ? scenarioBadge[item.scenario].zh : scenarioBadge[item.scenario].en;
 }
 
@@ -117,6 +128,7 @@ function shortReason(item: DestinationItem, locale: Locale) {
     hiking: { en: "A light outdoor walk for family weekends.", zh: "适合周末轻松徒步和放风。" },
     picnic: { en: "An easy city escape for picnic and cycling.", zh: "市区内最轻松的骑行路线。" }
   };
+
   return trimText(pick(locale, defaultReasons[item.scenario].en, defaultReasons[item.scenario].zh), locale === "zh" ? 36 : 88);
 }
 
@@ -137,19 +149,36 @@ function tagClassName(tag: string) {
   return "bg-orange-50 text-orange-700";
 }
 
-function RecommendationCard({
-  item,
-  locale,
-  homeCity,
-  rank,
-  isSignedIn
+export function HomeSectionHeader({
+  title,
+  subtitle,
+  href,
+  action,
+  locale
 }: {
-  item: DestinationItem;
+  title: string;
+  subtitle?: string;
+  href?: string;
+  action?: ReactNode;
   locale: Locale;
-  homeCity: string;
-  rank: number;
-  isSignedIn: boolean;
 }) {
+  return (
+    <div className="mb-6 flex items-end justify-between gap-4">
+      <div>
+        <h2 className="text-[26px] font-black text-slate-950 md:text-[34px]">{title}</h2>
+        {subtitle ? <p className="mt-2 text-base text-slate-500">{subtitle}</p> : null}
+      </div>
+      {action ??
+        (href ? (
+          <Link href={href} className="inline-flex shrink-0 items-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-emerald-700 transition hover:border-emerald-200 hover:bg-emerald-50">
+            {pick(locale, "More", "更多")}
+          </Link>
+        ) : null)}
+    </div>
+  );
+}
+
+export function HomeDestinationCard({ item, locale, homeCity, isSignedIn, badgeLabel }: CardProps) {
   const router = useRouter();
   const image = getDestinationImage(item);
   const name = destinationName(item, locale);
@@ -165,18 +194,13 @@ function RecommendationCard({
       onKeyDown={(event) => {
         if (event.key === "Enter") router.push(detailHref);
       }}
-      className="group flex h-full shrink-0 snap-start basis-[88%] cursor-pointer flex-col overflow-hidden rounded-[22px] border border-slate-100 bg-white shadow-[0_10px_24px_rgba(15,23,42,0.06)] transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-[0_18px_38px_rgba(15,23,42,0.12)] sm:basis-[calc(50%_-_8px)] lg:basis-[calc(33.333%_-_11px)]"
+      className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-[24px] border border-[#E5E7EB] bg-white shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(15,23,42,0.12)]"
     >
-      <Link
-        href={detailHref}
-        onClick={(event) => event.stopPropagation()}
-        className="relative block aspect-[4/3] w-full overflow-hidden rounded-t-[22px] bg-slate-100"
-      >
+      <Link href={detailHref} onClick={(event) => event.stopPropagation()} className="relative block aspect-[4/3] w-full overflow-hidden rounded-t-[24px] bg-slate-100">
         <img
           src={image.src}
           alt={name}
-          loading={rank <= 3 ? "eager" : "lazy"}
-          fetchPriority={rank <= 3 ? "high" : "auto"}
+          loading="lazy"
           decoding="async"
           referrerPolicy="no-referrer"
           onError={(event) => {
@@ -189,18 +213,14 @@ function RecommendationCard({
         />
         <div className="absolute left-4 top-4">
           <span className="rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm">
-            {recommendationBadge(item, rank, locale)}
+            {recommendationBadge(item, locale, badgeLabel)}
           </span>
         </div>
       </Link>
 
       <div className="flex flex-1 flex-col px-[22px] py-5">
         <div className="space-y-3">
-          <Link
-            href={detailHref}
-            onClick={(event) => event.stopPropagation()}
-            className="interactive-text-link line-clamp-2 text-[22px] font-bold leading-tight text-slate-950 md:text-[30px]"
-          >
+          <Link href={detailHref} onClick={(event) => event.stopPropagation()} className="line-clamp-2 text-[22px] font-bold leading-tight text-slate-950 md:text-[30px]">
             {name}
           </Link>
 
@@ -214,25 +234,16 @@ function RecommendationCard({
 
         <div className="mt-4 flex min-h-8 flex-wrap gap-2">
           {tags.map((tag, index) => (
-            <span
-              key={`${item.id}-${tag}-${index}`}
-              className={`rounded-full px-3 py-1.5 text-xs font-semibold ${tagClassName(tag)}`}
-            >
+            <span key={`${item.id}-${tag}-${index}`} className={`rounded-full px-3 py-1.5 text-xs font-semibold ${tagClassName(tag)}`}>
               {tag}
             </span>
           ))}
         </div>
 
         <div className="mt-auto border-t border-slate-100 pt-4">
-          <Link
-            href={`${detailHref}#reviews`}
-            onClick={(event) => event.stopPropagation()}
-            className="interactive-text-link mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700"
-            aria-label={pick(locale, "View reviews", "查看评价")}
-          >
+          <Link href={`${detailHref}#reviews`} onClick={(event) => event.stopPropagation()} className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 hover:text-emerald-700">
             <Star className="h-4 w-4 fill-current text-amber-500" />
             <span>{ratingText(item, locale)}</span>
-            <span className="sr-only">{pick(locale, "reviews", "评价")}</span>
           </Link>
 
           <div className="grid grid-cols-2 gap-2">
@@ -261,81 +272,33 @@ function RecommendationCard({
 }
 
 export function Top10Carousel({ locale, homeCity, rankings, isSignedIn = false }: Props) {
-  const items = rankings.overall ?? [];
-  const viewportRef = useRef<HTMLDivElement | null>(null);
-  const dragRef = useRef({ active: false, startX: 0, scrollLeft: 0 });
-
-  function scrollByCard(direction: "prev" | "next") {
-    const viewport = viewportRef.current;
-    if (!viewport) return;
-    viewport.scrollBy({ left: direction === "next" ? viewport.clientWidth : -viewport.clientWidth, behavior: "smooth" });
-  }
+  const items = (rankings.overall ?? []).slice(0, 6);
 
   return (
-    <section id="top10" className="mx-auto mt-5 max-w-7xl scroll-mt-20 px-4">
-      <div className="mb-4 flex items-end justify-between gap-3">
-        <div>
-          <h2 className="text-[26px] font-black text-slate-950 md:text-[34px]">
-            {pick(locale, "Where to go this weekend?", "这个周末去哪？")}
-          </h2>
-          <p className="mt-2 text-base text-slate-500">
-            {pick(locale, `Weekly picks for families near ${homeCity}.`, `我们为${homeCity}家庭精选了本周最值得去的目的地。`)}
-          </p>
-        </div>
-        <div className="hidden shrink-0 gap-2 md:flex">
-          <button
-            type="button"
-            onClick={() => scrollByCard("prev")}
-            className="interactive-button inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"
-            aria-label={pick(locale, "Previous", "上一组")}
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => scrollByCard("next")}
-            className="interactive-button inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"
-            aria-label={pick(locale, "Next", "下一组")}
-          >
-            <ChevronRight className="h-5 w-5" />
-          </button>
-        </div>
-      </div>
+    <section id="top10" className={`${homeContainerClass} mt-14 scroll-mt-20`}>
+      <HomeSectionHeader
+        title={pick(locale, "Where to go this weekend?", "这个周末去哪？")}
+        subtitle={pick(locale, `Weekly picks for families near ${homeCity}.`, `我们为${homeCity}家庭精选了本周最值得去的目的地。`)}
+        locale={locale}
+      />
 
-      <div
-        ref={viewportRef}
-        onWheel={(event) => {
-          if (!viewportRef.current) return;
-          if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
-          event.preventDefault();
-          viewportRef.current.scrollLeft += event.deltaY;
-        }}
-        onMouseDown={(event) => {
-          const viewport = viewportRef.current;
-          if (!viewport) return;
-          dragRef.current = { active: true, startX: event.pageX, scrollLeft: viewport.scrollLeft };
-          viewport.classList.add("cursor-grabbing");
-        }}
-        onMouseMove={(event) => {
-          const viewport = viewportRef.current;
-          if (!viewport || !dragRef.current.active) return;
-          event.preventDefault();
-          viewport.scrollLeft = dragRef.current.scrollLeft - (event.pageX - dragRef.current.startX);
-        }}
-        onMouseUp={() => {
-          dragRef.current.active = false;
-          viewportRef.current?.classList.remove("cursor-grabbing");
-        }}
-        onMouseLeave={() => {
-          dragRef.current.active = false;
-          viewportRef.current?.classList.remove("cursor-grabbing");
-        }}
-        className="flex cursor-grab snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-3 select-none [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      >
+      <div className={homeGridClass}>
         {items.map((item, index) => (
-          <RecommendationCard key={item.id} item={item} locale={locale} homeCity={homeCity} rank={index + 1} isSignedIn={isSignedIn} />
+          <HomeDestinationCard
+            key={item.id}
+            item={item}
+            locale={locale}
+            homeCity={homeCity}
+            isSignedIn={isSignedIn}
+            badgeLabel={index === 0 ? pick(locale, "Hot this week", "本周热门") : undefined}
+          />
         ))}
       </div>
     </section>
   );
 }
+
+export const homeLayoutClasses = {
+  container: homeContainerClass,
+  grid: homeGridClass
+};

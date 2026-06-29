@@ -1,27 +1,16 @@
 import Link from "next/link";
 import {
-  ChevronRight,
-  CloudSun,
-  Camera,
-  Eye,
   Footprints,
-  Heart,
-  Navigation,
   Search,
   Sandwich,
   Tent,
   Waves
 } from "lucide-react";
-import { Top10Carousel } from "@/components/home/top10-carousel";
-import { getDestinationImage, hasUsableDestinationImage } from "@/features/destinations/images";
+import { HomeDestinationCard, HomeSectionHeader, Top10Carousel } from "@/components/home/top10-carousel";
+import { hasUsableDestinationImage } from "@/features/destinations/images";
 import { getDestinationStats } from "@/features/destinations/stats";
 import {
-  destinationDescription,
-  destinationDecisionTags,
-  destinationFamilyHighlight,
   destinationName,
-  destinationRegion,
-  destinationSafety,
   destinationScenario
 } from "@/features/destinations/presenter";
 import { getAllDestinations } from "@/features/destinations/repository";
@@ -109,11 +98,6 @@ function getWeekendWeather(city: string, preferredScenarios: Scenario[], locale:
         ? pick(locale, "Matched with your saved preferences", "已根据你的偏好场景匹配")
         : pick(locale, profile.adviceEn, profile.advice)
   };
-}
-
-function formatDistance(distanceKm: number, locale: Locale) {
-  if (!distanceKm || distanceKm <= 0) return pick(locale, "Distance pending", "距离待计算");
-  return `${distanceKm}km`;
 }
 
 function shortText(text: string, maxLength = 80) {
@@ -215,76 +199,6 @@ function destinationListHref(params: Record<string, string | number | boolean>) 
   return `/destinations?${searchParams.toString()}`;
 }
 
-function SectionHeader({ title, subtitle, href, locale }: { title: string; subtitle?: string; href?: string; locale: Locale }) {
-  return (
-    <div className="mb-3 flex items-end justify-between gap-3">
-      <div>
-        <h2 className="text-lg font-bold text-slate-950">{title}</h2>
-        {subtitle ? <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p> : null}
-      </div>
-      {href ? (
-        <Link href={href} className="inline-flex shrink-0 items-center text-xs font-semibold text-emerald-700">
-          {pick(locale, "More", "更多")}
-          <ChevronRight className="h-3.5 w-3.5" />
-        </Link>
-      ) : null}
-    </div>
-  );
-}
-
-function NearbyDestinationCard({ item, locale, reason }: { item: DestinationItem; locale: Locale; reason: string }) {
-  const image = getDestinationImage(item);
-  const tags = destinationDecisionTags(item, locale).slice(0, 2);
-
-  return (
-    <Link href={`/destinations/${item.id}`} className="interactive-card group overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-100">
-      <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
-        <img src={image.src} alt={destinationName(item, locale)} loading="lazy" decoding="async" className="interactive-image h-full w-full object-cover" />
-        <div className="absolute left-3 top-3 flex flex-wrap gap-2">
-          <span className="rounded-full bg-orange-500 px-2.5 py-1 text-xs font-bold text-white shadow-sm">🔥 {reason}</span>
-          <span className="rounded-full bg-white/90 px-2.5 py-1 text-xs font-bold text-slate-800 shadow-sm">本周热门</span>
-        </div>
-      </div>
-      <div className="p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h3 className="line-clamp-1 text-lg font-black text-slate-950">{destinationName(item, locale)}</h3>
-            <p className="mt-1 line-clamp-1 text-xs text-slate-500">{destinationRegion(item, locale)}</p>
-          </div>
-          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">
-            ⭐ {item.rating.toFixed(1)}
-          </span>
-        </div>
-        <p className="mt-2 line-clamp-2 text-sm leading-5 text-slate-600">{destinationFamilyHighlight(item, locale)}</p>
-        <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-600">
-          <span className="inline-flex items-center gap-1 rounded-2xl bg-rose-50 px-2.5 py-2 text-rose-700">
-            <Heart className="h-3.5 w-3.5 fill-current" />
-            {pick(locale, `${item.favoriteCount ?? 0} families saved`, `${item.favoriteCount ?? 0}个家庭收藏`)}
-          </span>
-          <span className="inline-flex items-center gap-1 rounded-2xl bg-emerald-50 px-2.5 py-2 text-emerald-700">
-            <Navigation className="h-3.5 w-3.5" />
-            {pick(locale, `${formatDistance(item.distanceKm, locale)} away`, `距离${formatDistance(item.distanceKm, locale)}`)}
-          </span>
-          <span className="inline-flex items-center gap-1 rounded-2xl bg-sky-50 px-2.5 py-2 text-sky-700">
-            <Eye className="h-3.5 w-3.5" />
-            {item.viewCount ?? 0}
-          </span>
-          <span className="inline-flex items-center gap-1 rounded-2xl bg-violet-50 px-2.5 py-2 text-violet-700">
-            <Camera className="h-3.5 w-3.5" />
-            {item.shareCount ?? 0}
-          </span>
-        </div>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">{destinationScenario(item, locale)}</span>
-          {tags.map((tag) => (
-            <span key={tag} className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">{tag}</span>
-          ))}
-        </div>
-      </div>
-    </Link>
-  );
-}
-
 export default async function HomePage() {
   const [locale, profile, rawDestinations] = await Promise.all([getLocale(), getMyProfile(), getAllDestinations()]);
   const zh = locale === "zh";
@@ -322,8 +236,8 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-screen bg-slate-50 pb-10">
-      <section className="bg-white px-4 pb-3 pt-3 shadow-sm">
-        <div className="mx-auto max-w-6xl">
+      <section className="bg-white pb-3 pt-3 shadow-sm">
+        <div className="mx-auto max-w-[1440px] px-4 md:px-8">
           <div>
             <h1 className="mt-0.5 text-2xl font-black leading-tight text-slate-950 md:text-3xl">
               {pick(locale, `Where to take kids near ${city}`, `${homeCity}本周去哪遛娃`)}
@@ -379,62 +293,49 @@ export default async function HomePage() {
 
       <Top10Carousel locale={locale} homeCity={homeCity} rankings={topRankings} isSignedIn={Boolean(profile)} />
 
-      <section className="mx-auto mt-6 max-w-6xl px-4">
-        <div className="rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-600 p-4 text-white shadow-sm">
-          <div className="flex items-start gap-3">
-            <span className="rounded-2xl bg-white/15 p-2">
-              <CloudSun className="h-5 w-5" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold text-emerald-50">{pick(locale, "Weather-based picks", "根据天气推荐")}</p>
-              <h2 className="mt-1 text-lg font-black">{weekendWeather.weather} · {weekendWeather.advice}</h2>
-              <p className="mt-1 text-xs text-emerald-50">{weekendWeather.wind} · {pick(locale, "Tap to view weather details", "可点击查看天气详情")}</p>
-            </div>
-            <Link href={`/weather?city=${encodeURIComponent(homeCity)}`} className="interactive-button shrink-0 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-emerald-700">
-              {pick(locale, "Details", "详情")}
-            </Link>
-          </div>
-          <div className="mt-4 grid gap-2 md:grid-cols-2">
-            {weatherDestinations.slice(0, 2).map((item) => (
-              <Link key={item.id} href={`/destinations/${item.id}`} className="interactive-card rounded-2xl bg-white/95 p-3 text-slate-900">
-                <p className="text-xs font-semibold text-emerald-700">{destinationScenario(item, locale)}</p>
-                <h3 className="mt-1 line-clamp-1 font-bold">{destinationName(item, locale)}</h3>
-                <p className="mt-1 line-clamp-1 text-xs text-slate-500">{destinationFamilyHighlight(item, locale)}</p>
-              </Link>
-            ))}
-          </div>
+      <section className="mx-auto mt-14 max-w-[1440px] px-4 md:px-8">
+        <HomeSectionHeader
+          title={pick(locale, "Weather picks", "根据天气推荐")}
+          subtitle={pick(locale, `${weekendWeather.weather}. ${weekendWeather.advice}.`, `今天${homeCity}${weekendWeather.weather}，${weekendWeather.advice}。`)}
+          href={`/weather?city=${encodeURIComponent(homeCity)}`}
+          locale={locale}
+        />
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {weatherDestinations.slice(0, 3).map((item) => (
+            <HomeDestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} isSignedIn={Boolean(profile)} badgeLabel={pick(locale, "Weather pick", "天气推荐")} />
+          ))}
         </div>
       </section>
 
-      <section id="nearby" className="mx-auto mt-6 max-w-6xl scroll-mt-20 px-4">
-        <SectionHeader
+      <section id="nearby" className="mx-auto mt-14 max-w-[1440px] scroll-mt-20 px-4 md:px-8">
+        <HomeSectionHeader
           title={pick(locale, "Near me", "离我最近去哪")}
           subtitle={pick(locale, `Calculated from ${city}`, `按常住城市「${homeCity}」计算距离`)}
           href={destinationListHref({ city: homeCity, scenario: "all", difficulty: "all", maxDistance: 50, needParking: false, needToilet: false })}
           locale={locale}
         />
-        <div className="grid gap-3 md:grid-cols-2">
-          {nearbyDestinations.map((item) => (
-            <NearbyDestinationCard key={item.id} item={item} locale={locale} reason={pick(locale, "Nearby pick", "附近推荐")} />
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {nearbyDestinations.slice(0, 3).map((item) => (
+            <HomeDestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} isSignedIn={Boolean(profile)} badgeLabel={pick(locale, "Nearby pick", "附近推荐")} />
           ))}
         </div>
       </section>
 
-      <section className="mx-auto mt-6 max-w-6xl px-4">
-        <SectionHeader
+      <section className="mx-auto mt-14 max-w-[1440px] px-4 md:px-8">
+        <HomeSectionHeader
           title={pick(locale, "Family stories", "最新亲子分享")}
-          subtitle={pick(locale, "Fresh places families are checking", "最近被家庭关注的地点")}
+          subtitle={pick(locale, "Fresh family reviews from real visitors", "来自真实家庭的最新体验")}
           href="/submit-spot"
           locale={locale}
         />
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {latestReviews.length > 0 ? (
-            latestReviews.map((review) => {
+            latestReviews.slice(0, 3).map((review) => {
               const item = destinationsById.get(review.destinationId);
               if (!item) return null;
 
               return (
-                <Link key={review.id} href={`/destinations/${item.id}#reviews`} className="interactive-card rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-100 transition hover:-translate-y-1 hover:shadow-md">
+                <Link key={review.id} href={`/destinations/${item.id}#reviews`} className="group flex min-h-[260px] flex-col rounded-[24px] border border-[#E5E7EB] bg-white p-5 shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(15,23,42,0.12)]">
                   <div className="flex items-start gap-3">
                     <ReviewAvatar review={review} locale={locale} />
                     <div className="min-w-0 flex-1">
@@ -449,31 +350,20 @@ export default async function HomePage() {
                     </div>
                   </div>
                   <h3 className="mt-3 line-clamp-1 text-base font-black text-slate-950">{destinationName(item, locale)}</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">{shortText(review.content, 80)}</p>
-                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3">
-                    <div className="flex flex-wrap gap-2 text-xs text-slate-600">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-amber-700">
-                        ⭐ {review.rating.toFixed(1)}
-                      </span>
-                      <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-rose-700">
-                        <Heart className="h-3.5 w-3.5 fill-current" />
-                        {item.favoriteCount ?? 0}
-                      </span>
-                      <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2.5 py-1 text-sky-700">
-                        <Eye className="h-3.5 w-3.5" />
-                        {item.viewCount ?? 0}
-                      </span>
-                    </div>
-                    <span className="inline-flex items-center gap-1 text-sm font-bold text-emerald-700">
+                  <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">{shortText(review.content, 80)}</p>
+                  <div className="mt-auto flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
+                      ⭐ {review.rating.toFixed(1)}
+                    </span>
+                    <span className="text-sm font-bold text-emerald-700 group-hover:text-emerald-800">
                       {pick(locale, "View review", "查看评价")}
-                      <ChevronRight className="h-4 w-4" />
                     </span>
                   </div>
                 </Link>
               );
             })
           ) : (
-            <div className="rounded-3xl bg-white p-5 text-sm text-slate-600 shadow-sm ring-1 ring-slate-100 md:col-span-2">
+            <div className="rounded-[24px] border border-[#E5E7EB] bg-white p-5 text-sm text-slate-600 shadow-[0_14px_34px_rgba(15,23,42,0.08)] md:col-span-2 lg:col-span-3">
               {pick(locale, "No family stories yet. Reviews submitted by users will appear here.", "暂无真实亲子分享。用户提交评价后，会显示在这里。")}
             </div>
           )}
