@@ -29,8 +29,6 @@ const scenes = [
   { key: "picnic", label: "Picnic", labelZh: "野餐", icon: Sandwich, color: "bg-pink-100 text-pink-700" }
 ] as const;
 
-const cityOptions = ["武汉", "上海", "杭州", "成都"] as const;
-
 const cityNames: Record<string, string> = {
   武汉: "Wuhan",
   上海: "Shanghai",
@@ -40,6 +38,46 @@ const cityNames: Record<string, string> = {
   广州: "Guangzhou",
   深圳: "Shenzhen"
 };
+
+const knownCityNames = [
+  "武汉",
+  "黄冈",
+  "咸宁",
+  "鄂州",
+  "孝感",
+  "仙桃",
+  "潜江",
+  "天门",
+  "宜昌",
+  "荆州",
+  "上海",
+  "杭州",
+  "成都",
+  "北京",
+  "广州",
+  "深圳"
+];
+
+function cityOptionName(item: DestinationItem) {
+  const raw = [item.cityZh, item.city].find((value) => value?.trim())?.trim() ?? "";
+  const matched = knownCityNames.find((city) => raw.includes(city));
+  return matched ?? raw;
+}
+
+function getHomeCityOptions(items: DestinationItem[], homeCity: string) {
+  const options = new Set<string>([DEFAULT_HOME_CITY, homeCity]);
+
+  items.forEach((item) => {
+    const city = cityOptionName(item);
+    if (city) options.add(city);
+  });
+
+  return Array.from(options).sort((a, b) => {
+    if (a === DEFAULT_HOME_CITY) return -1;
+    if (b === DEFAULT_HOME_CITY) return 1;
+    return a.localeCompare(b, "zh-CN");
+  });
+}
 
 type WeekendProfile = {
   text: string;
@@ -203,6 +241,7 @@ export default async function HomePage() {
   const [locale, profile, rawDestinations] = await Promise.all([getLocale(), getMyProfile(), getAllDestinations()]);
   const zh = locale === "zh";
   const homeCity = profile?.homeCity?.trim() || DEFAULT_HOME_CITY;
+  const cityOptions = getHomeCityOptions(rawDestinations, homeCity);
   const preferredScenarios = profile?.preferredScenarios ?? [];
   const city = displayCity(homeCity, locale);
   const weekendWeather = getWeekendWeather(homeCity, preferredScenarios, locale);
