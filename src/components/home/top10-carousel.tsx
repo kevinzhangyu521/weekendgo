@@ -6,11 +6,7 @@ import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, MapPin, Star } from "lucide-react";
 import { AmapNavigationButton } from "@/components/plans/amap-navigation-button";
 import { DEFAULT_DESTINATION_IMAGE, getDestinationImage } from "@/features/destinations/images";
-import {
-  destinationDescription,
-  destinationFamilyHighlight,
-  destinationName
-} from "@/features/destinations/presenter";
+import { destinationName } from "@/features/destinations/presenter";
 import type { DestinationItem, Scenario } from "@/features/destinations/types";
 import type { Locale } from "@/lib/i18n/config";
 
@@ -115,13 +111,30 @@ function shortReason(item: DestinationItem, locale: Locale) {
     if (matched) return matched[1];
   }
 
-  const source = destinationFamilyHighlight(item, locale) || destinationDescription(item, locale);
-  return trimText(source, locale === "zh" ? 36 : 88);
+  const defaultReasons: Record<Scenario, { en: string; zh: string }> = {
+    camping: { en: "An easier first camping trip for families.", zh: "第一次带孩子来武汉，我最推荐这里。" },
+    creek: { en: "A refreshing water-play pick for warm days.", zh: "夏季玩水体验很好。" },
+    hiking: { en: "A light outdoor walk for family weekends.", zh: "适合周末轻松徒步和放风。" },
+    picnic: { en: "An easy city escape for picnic and cycling.", zh: "市区内最轻松的骑行路线。" }
+  };
+  return trimText(pick(locale, defaultReasons[item.scenario].en, defaultReasons[item.scenario].zh), locale === "zh" ? 36 : 88);
 }
 
 function ratingText(item: DestinationItem, locale: Locale) {
-  if (typeof item.rating === "number" && item.rating > 0) return item.rating.toFixed(1);
-  return pick(locale, "No rating", "暂无评价");
+  if (typeof item.reviewCount === "number" && item.reviewCount > 0 && typeof item.rating === "number" && item.rating > 0) {
+    return pick(locale, `${item.rating.toFixed(1)} (${item.reviewCount} reviews)`, `${item.rating.toFixed(1)}（${item.reviewCount}条评价）`);
+  }
+  return pick(locale, "No reviews yet", "暂无评价");
+}
+
+function tagClassName(tag: string) {
+  if (["玩水", "溯溪", "露营", "野餐", "骑行", "徒步"].includes(tag)) {
+    return "bg-emerald-50 text-emerald-700";
+  }
+  if (["遛娃", "亲子"].includes(tag)) {
+    return "bg-sky-50 text-sky-700";
+  }
+  return "bg-orange-50 text-orange-700";
 }
 
 function RecommendationCard({
@@ -152,7 +165,7 @@ function RecommendationCard({
       onKeyDown={(event) => {
         if (event.key === "Enter") router.push(detailHref);
       }}
-      className="interactive-card flex h-full shrink-0 snap-start basis-[88%] cursor-pointer flex-col overflow-hidden rounded-[22px] border border-slate-100 bg-white shadow-[0_10px_24px_rgba(15,23,42,0.06)] sm:basis-[calc(50%_-_8px)] lg:basis-[calc(33.333%_-_11px)]"
+      className="group flex h-full shrink-0 snap-start basis-[88%] cursor-pointer flex-col overflow-hidden rounded-[22px] border border-slate-100 bg-white shadow-[0_10px_24px_rgba(15,23,42,0.06)] transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-[0_18px_38px_rgba(15,23,42,0.12)] sm:basis-[calc(50%_-_8px)] lg:basis-[calc(33.333%_-_11px)]"
     >
       <Link
         href={detailHref}
@@ -172,7 +185,7 @@ function RecommendationCard({
             img.dataset.fallbackApplied = "true";
             img.src = DEFAULT_DESTINATION_IMAGE;
           }}
-          className="interactive-image h-full w-full object-cover"
+          className="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03]"
         />
         <div className="absolute left-4 top-4">
           <span className="rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm">
@@ -182,30 +195,28 @@ function RecommendationCard({
       </Link>
 
       <div className="flex flex-1 flex-col px-[22px] py-5">
-        <div className="space-y-2.5">
+        <div className="space-y-3">
           <Link
             href={detailHref}
             onClick={(event) => event.stopPropagation()}
-            className="interactive-text-link line-clamp-1 text-xl font-black text-slate-950"
+            className="interactive-text-link line-clamp-2 text-[22px] font-bold leading-tight text-slate-950 md:text-[30px]"
           >
             {name}
           </Link>
 
-          <p className="flex items-center gap-1.5 text-sm font-medium text-slate-500">
+          <p className="flex items-center gap-1.5 text-[15px] font-medium text-[#64748B]">
             <MapPin className="h-4 w-4 shrink-0 text-emerald-700" />
             <span className="line-clamp-1">{distanceLine(item, homeCity, locale)}</span>
           </p>
 
-          <p className="line-clamp-2 min-h-10 text-sm leading-5 text-slate-700">{shortReason(item, locale)}</p>
+          <p className="line-clamp-2 min-h-[52px] text-base leading-[1.6] text-[#4B5563]">{shortReason(item, locale)}</p>
         </div>
 
-        <div className="mt-4 flex min-h-8 flex-wrap gap-1.5">
+        <div className="mt-4 flex min-h-8 flex-wrap gap-2">
           {tags.map((tag, index) => (
             <span
               key={`${item.id}-${tag}-${index}`}
-              className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                index % 2 === 0 ? "bg-emerald-50 text-emerald-700" : "bg-sky-50 text-sky-700"
-              }`}
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold ${tagClassName(tag)}`}
             >
               {tag}
             </span>
@@ -216,7 +227,7 @@ function RecommendationCard({
           <Link
             href={`${detailHref}#reviews`}
             onClick={(event) => event.stopPropagation()}
-            className="interactive-text-link mb-4 inline-flex items-center gap-1 text-sm font-semibold text-slate-700"
+            className="interactive-text-link mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700"
             aria-label={pick(locale, "View reviews", "查看评价")}
           >
             <Star className="h-4 w-4 fill-current text-amber-500" />
@@ -228,7 +239,7 @@ function RecommendationCard({
             <Link
               href={detailHref}
               onClick={(event) => event.stopPropagation()}
-              className="interactive-button inline-flex h-[46px] items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 hover:bg-slate-50"
+              className="inline-flex h-[52px] items-center justify-center rounded-2xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 shadow-sm transition-all duration-300 ease-out hover:border-emerald-200 hover:bg-gradient-to-r hover:from-white hover:to-emerald-50 hover:text-emerald-700 hover:shadow-md active:scale-[0.98]"
             >
               {pick(locale, "Details", "查看详情")}
             </Link>
@@ -236,7 +247,7 @@ function RecommendationCard({
               <AmapNavigationButton
                 destination={item}
                 label={navigationLabel}
-                className="h-[46px] w-full rounded-xl px-3 text-sm font-bold"
+                className="h-[52px] w-full rounded-2xl px-3 text-sm font-bold shadow-sm transition-all duration-300 ease-out hover:bg-emerald-700 hover:shadow-md active:scale-[0.98]"
                 isSignedIn={isSignedIn}
                 loginHref={`/login?next=${encodeURIComponent(detailHref)}`}
                 signedOutLabel={navigationLabel}
@@ -261,14 +272,14 @@ export function Top10Carousel({ locale, homeCity, rankings, isSignedIn = false }
   }
 
   return (
-    <section id="top10" className="mx-auto mt-5 max-w-6xl scroll-mt-20 px-4">
+    <section id="top10" className="mx-auto mt-5 max-w-7xl scroll-mt-20 px-4">
       <div className="mb-4 flex items-end justify-between gap-3">
         <div>
-          <h2 className="text-xl font-black text-slate-950">
-            {pick(locale, `Top family places near ${homeCity}`, `本周${homeCity}TOP10推荐地点`)}
+          <h2 className="text-[26px] font-black text-slate-950 md:text-[34px]">
+            {pick(locale, "Where to go this weekend?", "这个周末去哪？")}
           </h2>
-          <p className="mt-1 text-sm text-slate-500">
-            {pick(locale, "Swipe to discover places worth opening this weekend.", "首页先种草，完整信息放在详情页。")}
+          <p className="mt-2 text-base text-slate-500">
+            {pick(locale, `Weekly picks for families near ${homeCity}.`, `我们为${homeCity}家庭精选了本周最值得去的目的地。`)}
           </p>
         </div>
         <div className="hidden shrink-0 gap-2 md:flex">
