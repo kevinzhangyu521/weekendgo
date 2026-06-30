@@ -275,18 +275,18 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-screen bg-slate-50 pb-10">
-      <section className="bg-white pb-3 pt-3 shadow-sm">
+      <section className="bg-white py-8 shadow-sm md:py-10">
         <div className="qmd-container">
           <div>
-            <h1 className="mt-0.5 text-2xl font-black leading-tight text-slate-950 md:text-3xl">
+            <h1 className="text-4xl font-black leading-tight tracking-[-0.03em] text-slate-950 md:text-5xl">
               {pick(locale, `Where to take kids near ${city}`, `${homeCity}本周去哪遛娃`)}
             </h1>
-            <Link href={`/weather?city=${encodeURIComponent(homeCity)}`} className="interactive-text-link mt-1 inline-flex text-sm font-medium text-slate-600">
+            <Link href={`/weather?city=${encodeURIComponent(homeCity)}`} className="interactive-text-link mt-3 inline-flex text-base font-medium text-slate-600">
               {pick(locale, `Live weather: ${weekendWeather.weather} · Play: ${weekendWeather.advice}`, `实时天气：${weekendWeather.weather} · 推荐玩法：${weekendWeather.advice}`)}
             </Link>
           </div>
 
-          <form action="/destinations" className="mt-3 grid gap-2 md:grid-cols-[1fr_160px_auto]">
+          <form action="/destinations" className="mt-7 grid gap-3 md:grid-cols-[1fr_160px_auto]">
             <div className="flex min-w-0 items-center gap-2 rounded-full bg-slate-100 px-3 py-2.5">
               <Search className="h-4 w-4 shrink-0 text-slate-400" />
               <input name="q" type="search" placeholder={pick(locale, "Search East Lake, creek, camping...", "搜索东湖、溯溪、露营地...")} className="min-w-0 flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400" />
@@ -303,7 +303,7 @@ export default async function HomePage() {
             </button>
           </form>
 
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-5 flex flex-wrap gap-2">
             {scenes.map((item) => (
               <Link
                 key={item.key}
@@ -316,7 +316,7 @@ export default async function HomePage() {
             ))}
           </div>
 
-          <div className="mt-3 grid grid-cols-3 gap-2">
+          <div className="mt-5 grid grid-cols-3 gap-2">
             <Link href="#top10" className="interactive-button rounded-2xl bg-rose-50 px-3 py-2 text-center text-xs font-black text-rose-700">
               {pick(locale, "Top 10", "本周TOP10")}
             </Link>
