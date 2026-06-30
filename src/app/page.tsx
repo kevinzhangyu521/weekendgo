@@ -374,7 +374,7 @@ export default async function HomePage() {
               if (!item) return null;
 
               return (
-                <Link key={review.id} href={`/destinations/${item.id}#reviews`} className="qmd-place-card group flex min-h-[260px] flex-col p-5">
+                <Link key={review.id} href={`/destinations/${item.id}#reviews`} className="qmd-place-card group flex min-h-[360px] flex-col p-5">
                   <div className="flex items-start gap-3">
                     <ReviewAvatar review={review} locale={locale} />
                     <div className="min-w-0 flex-1">

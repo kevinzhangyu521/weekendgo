@@ -187,7 +187,7 @@ export function HomeSectionHeader({
       </div>
       {action ??
         (href ? (
-          <Link href={href} className="inline-flex shrink-0 items-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-emerald-700 transition hover:border-emerald-200 hover:bg-emerald-50">
+          <Link href={href} className="inline-flex h-11 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white px-5 text-sm font-bold text-emerald-700 shadow-sm transition hover:border-emerald-200 hover:bg-emerald-50">
             {pick(locale, "More", "更多")}
           </Link>
         ) : null)}
