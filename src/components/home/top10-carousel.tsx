@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 import { MapPin, Star } from "lucide-react";
 import { AmapNavigationButton } from "@/components/plans/amap-navigation-button";
 import { DEFAULT_DESTINATION_IMAGE, getDestinationImage } from "@/features/destinations/images";
-import { destinationName } from "@/features/destinations/presenter";
+import { destinationName, destinationRegion } from "@/features/destinations/presenter";
 import type { DestinationItem, Scenario } from "@/features/destinations/types";
 import type { Locale } from "@/lib/i18n/config";
 
@@ -25,6 +25,8 @@ type CardProps = {
   homeCity: string;
   isSignedIn: boolean;
   badgeLabel?: string;
+  inspiration?: boolean;
+  showRating?: boolean;
 };
 
 const homeContainerClass = "qmd-container";
@@ -78,6 +80,20 @@ function distanceLine(item: DestinationItem, homeCity: string, locale: Locale) {
     locale,
     `About ${formatKm(item.distanceKm)} km from ${homeCity} · ${driveTime}`,
     `距${homeCity}约${formatKm(item.distanceKm)}公里 · ${driveTime}`
+  );
+}
+
+function inspirationDistanceLine(item: DestinationItem, homeCity: string, locale: Locale) {
+  const region = destinationRegion(item, locale);
+  if (!item.distanceKm || item.distanceKm <= 0) {
+    return pick(locale, `${region || homeCity} · Check navigation`, `${region || homeCity}周边 · 车程以导航为准`);
+  }
+
+  const driveTime = item.driveTime || estimateDriveTime(item.distanceKm, locale);
+  return pick(
+    locale,
+    `${region || homeCity} · about ${formatKm(item.distanceKm)} km · ${driveTime}`,
+    `${region || homeCity} · 距${homeCity}约${formatKm(item.distanceKm)}公里 · ${driveTime}`
   );
 }
 
@@ -178,13 +194,14 @@ export function HomeSectionHeader({
   );
 }
 
-export function HomeDestinationCard({ item, locale, homeCity, isSignedIn, badgeLabel }: CardProps) {
+export function HomeDestinationCard({ item, locale, homeCity, isSignedIn, badgeLabel, inspiration = false, showRating = true }: CardProps) {
   const router = useRouter();
   const image = getDestinationImage(item);
   const name = destinationName(item, locale);
   const detailHref = `/destinations/${item.id}`;
   const navigationLabel = pick(locale, "Navigate", "立即导航");
   const tags = playTags(item, locale);
+  const cardDistanceLine = inspiration ? inspirationDistanceLine(item, homeCity, locale) : distanceLine(item, homeCity, locale);
 
   return (
     <article
@@ -196,7 +213,7 @@ export function HomeDestinationCard({ item, locale, homeCity, isSignedIn, badgeL
       }}
       className="qmd-place-card group flex h-full cursor-pointer flex-col"
     >
-      <Link href={detailHref} onClick={(event) => event.stopPropagation()} className="relative block aspect-[4/3] w-full overflow-hidden rounded-t-[24px] bg-slate-100">
+      <Link href={detailHref} onClick={(event) => event.stopPropagation()} className={`relative block aspect-[4/3] w-full overflow-hidden bg-slate-100 ${inspiration ? "rounded-t-[28px]" : "rounded-t-[24px]"}`}>
         <img
           src={image.src}
           alt={name}
@@ -212,24 +229,24 @@ export function HomeDestinationCard({ item, locale, homeCity, isSignedIn, badgeL
           className="qmd-place-card__image h-full transition-transform duration-300 ease-out group-hover:scale-[1.03]"
         />
         <div className="absolute left-4 top-4">
-          <span className="rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm">
+          <span className={inspiration ? "rounded-full bg-white/90 px-3 py-1.5 text-xs font-black text-emerald-700 shadow-sm backdrop-blur" : "rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm"}>
             {recommendationBadge(item, locale, badgeLabel)}
           </span>
         </div>
       </Link>
 
       <div className="qmd-place-card__body flex flex-1 flex-col">
-        <div className="space-y-3">
-          <Link href={detailHref} onClick={(event) => event.stopPropagation()} className="line-clamp-2 text-[22px] font-bold leading-tight text-slate-950 md:text-[30px]">
+        <div className={inspiration ? "space-y-3.5" : "space-y-3"}>
+          <Link href={detailHref} onClick={(event) => event.stopPropagation()} className={inspiration ? "line-clamp-2 text-[22px] font-black leading-tight tracking-[-0.02em] text-slate-950 md:text-2xl" : "line-clamp-2 text-[22px] font-bold leading-tight text-slate-950 md:text-[30px]"}>
             {name}
           </Link>
 
-          <p className="flex items-center gap-1.5 text-[15px] font-medium text-[#64748B]">
-            <MapPin className="h-4 w-4 shrink-0 text-emerald-700" />
-            <span className="line-clamp-1">{distanceLine(item, homeCity, locale)}</span>
+          <p className={inspiration ? "flex items-center gap-1.5 text-[14px] font-semibold text-[#64748B]" : "flex items-center gap-1.5 text-[15px] font-medium text-[#64748B]"}>
+            <MapPin className={`h-4 w-4 shrink-0 ${inspiration ? "text-emerald-600" : "text-emerald-700"}`} />
+            <span className="line-clamp-1">{cardDistanceLine}</span>
           </p>
 
-          <p className="line-clamp-2 min-h-[52px] text-base leading-[1.6] text-[#4B5563]">{shortReason(item, locale)}</p>
+          <p className={inspiration ? "line-clamp-2 min-h-[50px] text-[15px] leading-[1.65] text-[#4B5563]" : "line-clamp-2 min-h-[52px] text-base leading-[1.6] text-[#4B5563]"}>{shortReason(item, locale)}</p>
         </div>
 
         <div className="mt-4 flex min-h-8 flex-wrap gap-2">
@@ -241,10 +258,12 @@ export function HomeDestinationCard({ item, locale, homeCity, isSignedIn, badgeL
         </div>
 
         <div className="mt-auto border-t border-slate-100 pt-4">
-          <Link href={`${detailHref}#reviews`} onClick={(event) => event.stopPropagation()} className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 hover:text-emerald-700">
-            <Star className="h-4 w-4 fill-current text-amber-500" />
-            <span>{ratingText(item, locale)}</span>
-          </Link>
+          {showRating ? (
+            <Link href={`${detailHref}#reviews`} onClick={(event) => event.stopPropagation()} className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 hover:text-emerald-700">
+              <Star className="h-4 w-4 fill-current text-amber-500" />
+              <span>{ratingText(item, locale)}</span>
+            </Link>
+          ) : null}
 
           <div className="qmd-card-actions">
             <Link
@@ -278,7 +297,7 @@ export function Top10Carousel({ locale, homeCity, rankings, isSignedIn = false }
     <section id="top10" className={`${homeContainerClass} qmd-section scroll-mt-20`}>
       <HomeSectionHeader
         title={pick(locale, "Where to go this weekend?", "这个周末去哪？")}
-        subtitle={pick(locale, `Weekly picks for families near ${homeCity}.`, `我们为${homeCity}家庭精选了本周最值得去的目的地。`)}
+        subtitle={pick(locale, "Family-friendly camping and water-play picks for this week.", "精选适合本周出发的亲子、露营、玩水目的地。")}
         locale={locale}
       />
 
@@ -291,6 +310,8 @@ export function Top10Carousel({ locale, homeCity, rankings, isSignedIn = false }
             homeCity={homeCity}
             isSignedIn={isSignedIn}
             badgeLabel={index === 0 ? pick(locale, "Hot this week", "本周热门") : undefined}
+            inspiration
+            showRating={false}
           />
         ))}
       </div>
