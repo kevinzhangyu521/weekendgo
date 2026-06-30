@@ -22,6 +22,10 @@ function isGenericOrUnverifiedImage(url: string) {
 export function getDestinationImage(item: DestinationItem) {
   const text = normalizedText(item);
 
+  if (!isGenericOrUnverifiedImage(item.image)) {
+    return { src: item.image, pending: false };
+  }
+
   if (VERIFIED_REAL_IMAGES[item.id]) {
     return { src: VERIFIED_REAL_IMAGES[item.id], pending: false };
   }
@@ -32,10 +36,6 @@ export function getDestinationImage(item: DestinationItem) {
 
   if (text.includes("east lake") || item.id.includes("east-lake")) {
     return { src: VERIFIED_REAL_IMAGES["wuhan-picnic-east-lake-greenway"], pending: false };
-  }
-
-  if (!isGenericOrUnverifiedImage(item.image)) {
-    return { src: item.image, pending: false };
   }
 
   return { src: DEFAULT_DESTINATION_IMAGE, pending: true };

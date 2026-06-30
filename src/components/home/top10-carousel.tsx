@@ -27,6 +27,7 @@ type CardProps = {
   badgeLabel?: string;
   inspiration?: boolean;
   showRating?: boolean;
+  imagePriority?: boolean;
 };
 
 const homeContainerClass = "qmd-container";
@@ -194,7 +195,7 @@ export function HomeSectionHeader({
   );
 }
 
-export function HomeDestinationCard({ item, locale, homeCity, isSignedIn, badgeLabel, inspiration = false, showRating = true }: CardProps) {
+export function HomeDestinationCard({ item, locale, homeCity, isSignedIn, badgeLabel, inspiration = false, showRating = true, imagePriority = false }: CardProps) {
   const router = useRouter();
   const image = getDestinationImage(item);
   const name = destinationName(item, locale);
@@ -217,7 +218,8 @@ export function HomeDestinationCard({ item, locale, homeCity, isSignedIn, badgeL
         <img
           src={image.src}
           alt={name}
-          loading="lazy"
+          loading={imagePriority ? "eager" : "lazy"}
+          fetchPriority={imagePriority ? "high" : "auto"}
           decoding="async"
           referrerPolicy="no-referrer"
           onError={(event) => {
@@ -312,6 +314,7 @@ export function Top10Carousel({ locale, homeCity, rankings, isSignedIn = false }
             badgeLabel={index === 0 ? pick(locale, "Hot this week", "本周热门") : undefined}
             inspiration
             showRating={false}
+            imagePriority={index < 3}
           />
         ))}
       </div>

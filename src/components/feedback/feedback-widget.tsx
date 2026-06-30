@@ -100,7 +100,7 @@ export function FeedbackWidget() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="interactive-button fixed bottom-5 right-4 z-50 inline-flex h-12 items-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white shadow-xl shadow-slate-900/20 hover:bg-slate-800 md:bottom-8 md:right-6"
+        className="interactive-button fixed bottom-20 right-4 z-50 inline-flex h-12 items-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white shadow-xl shadow-slate-900/20 hover:bg-slate-800 md:bottom-8 md:right-6"
         aria-label="提交反馈"
       >
         <Lightbulb className="h-4 w-4 text-amber-300" />
