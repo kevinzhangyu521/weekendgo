@@ -1,4 +1,5 @@
 import { CheckCircle2, Pencil, XCircle } from "lucide-react";
+import { DestinationImage } from "@/components/destinations/destination-image";
 import { approveSubmission, rejectSubmission, requestChangesSubmission } from "./actions";
 import { getPendingSubmissions } from "@/features/submissions/repository";
 import { toChineseRegionName } from "@/lib/geo/region-names";
@@ -82,7 +83,9 @@ export default async function AdminSubmissionsPage() {
                     {item.address ? <p className="mt-1 text-sm text-slate-600">{"\u5730\u5740\uff1a"}{item.address}</p> : null}
                   </div>
                   {item.imageUrl ? (
-                    <div className="h-24 w-32 rounded-lg bg-cover bg-center" style={{ backgroundImage: `url('${item.imageUrl}')` }} />
+                    <div className="h-24 w-32 overflow-hidden rounded-lg bg-slate-100">
+                      <DestinationImage src={item.imageUrl} alt={item.nameZh || item.name} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                    </div>
                   ) : null}
                 </div>
 

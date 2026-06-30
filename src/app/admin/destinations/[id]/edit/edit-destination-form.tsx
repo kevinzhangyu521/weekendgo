@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { DestinationImage } from "@/components/destinations/destination-image";
 import type { AdminDestination } from "@/features/admin/destinations";
 import { toChineseRegionName } from "@/lib/geo/region-names";
 import { createClient } from "@/lib/supabase/client";
@@ -236,7 +237,11 @@ export function EditDestinationForm({ item }: { item: AdminDestination }) {
 
       <section className="space-y-3 border-t border-slate-100 pt-5">
         <h2 className="text-base font-bold text-slate-900">{"\u56fe\u7247\u4e0e\u63cf\u8ff0"}</h2>
-        {item.image ? <div className="h-40 rounded-lg bg-cover bg-center" style={{ backgroundImage: `url('${item.image}')` }} /> : null}
+        {item.image ? (
+          <div className="h-40 overflow-hidden rounded-lg bg-slate-100">
+            <DestinationImage src={item.image} alt={item.nameZh || item.name} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+          </div>
+        ) : null}
         <label className={labelClass}>
           {"\u66f4\u6362\u56fe\u7247"}
           <input name="image_file" type="file" accept="image/*" className={inputClass} />

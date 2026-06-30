@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { Eye, EyeOff, Pencil } from "lucide-react";
+import { DestinationImage } from "@/components/destinations/destination-image";
 import type { AdminDestination } from "@/features/admin/destinations";
 import { getDestinationImage } from "@/features/destinations/images";
 import { destinationScenario } from "@/features/destinations/presenter";
@@ -157,7 +158,8 @@ export function AdminDestinationsClient() {
                   const image = getDestinationImage(item);
                   return (
                     <article key={item.id} className="grid gap-3 p-4 md:grid-cols-[96px_1fr_auto] md:items-center">
-                      <div className="relative h-20 overflow-hidden rounded-lg bg-slate-100 bg-cover bg-center" style={{ backgroundImage: `url('${image.src}')` }}>
+                      <div className="relative h-20 overflow-hidden rounded-lg bg-slate-100">
+                        <DestinationImage src={image.src} alt={item.nameZh || item.name} loading="lazy" decoding="async" className="h-full w-full object-cover" />
                         {image.pending ? <span className="absolute left-1 top-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">{"\u5f85\u8865\u5145"}</span> : null}
                       </div>
                       <div>

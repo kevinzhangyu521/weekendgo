@@ -1,7 +1,7 @@
 import type { DestinationItem } from "./types";
 
 export const DEFAULT_DESTINATION_IMAGE =
-  "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1400&q=80";
+  "/placeholders/destination-default.svg";
 
 const VERIFIED_REAL_IMAGES: Record<string, string> = {
   "wuhan-camping-mulan-grassland":
@@ -22,10 +22,6 @@ function isGenericOrUnverifiedImage(url: string) {
 export function getDestinationImage(item: DestinationItem) {
   const text = normalizedText(item);
 
-  if (!isGenericOrUnverifiedImage(item.image)) {
-    return { src: item.image, pending: false };
-  }
-
   if (VERIFIED_REAL_IMAGES[item.id]) {
     return { src: VERIFIED_REAL_IMAGES[item.id], pending: false };
   }
@@ -36,6 +32,10 @@ export function getDestinationImage(item: DestinationItem) {
 
   if (text.includes("east lake") || item.id.includes("east-lake")) {
     return { src: VERIFIED_REAL_IMAGES["wuhan-picnic-east-lake-greenway"], pending: false };
+  }
+
+  if (!isGenericOrUnverifiedImage(item.image)) {
+    return { src: item.image, pending: false };
   }
 
   return { src: DEFAULT_DESTINATION_IMAGE, pending: true };

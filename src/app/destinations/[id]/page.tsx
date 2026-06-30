@@ -4,6 +4,7 @@ import { AlertTriangle, Backpack, Bath, Car, ChevronLeft, Clock, MapPinned, Shie
 import { FavoriteButton } from "@/components/favorites/favorite-button";
 import { DestinationFeedbackButton } from "@/components/feedback/destination-feedback-button";
 import { AuthActionHint } from "@/components/auth/auth-action-hint";
+import { DestinationImage } from "@/components/destinations/destination-image";
 import { AddToPlanButton } from "@/components/plans/add-to-plan-button";
 import { AmapNavigationButton } from "@/components/plans/amap-navigation-button";
 import { ReviewForm } from "@/components/reviews/review-form";
@@ -120,7 +121,7 @@ export default async function DestinationDetailPage({
 
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           <div className="relative h-64 overflow-hidden bg-slate-100 md:h-96">
-            <img
+            <DestinationImage
               src={heroImage.src}
               alt={destinationName(destination, locale)}
               fetchPriority="high"
@@ -351,7 +352,7 @@ export default async function DestinationDetailPage({
                   className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
                 >
                   <div className="relative h-28 overflow-hidden bg-slate-100">
-                    <img
+                    <DestinationImage
                       src={image.src}
                       alt={destinationName(item, locale)}
                       loading="lazy"

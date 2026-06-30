@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Bath, Car, Heart, Star } from "lucide-react";
+import { DestinationImage } from "@/components/destinations/destination-image";
 import { getDestinationImage, hasUsableDestinationImage } from "@/features/destinations/images";
 import { destinationName, destinationRegion, destinationScenario } from "@/features/destinations/presenter";
 import type { DestinationItem } from "@/features/destinations/types";
@@ -107,7 +108,7 @@ export function FavoritesClient({ locale }: { locale: Locale }) {
               return (
                 <Link key={item.id} href={`/destinations/${item.id}`} className="interactive-card group flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                   <div className="relative h-44 overflow-hidden bg-slate-100">
-                    <img src={image.src} alt={destinationName(item, locale)} loading="lazy" decoding="async" className="interactive-image h-full w-full object-cover" />
+                    <DestinationImage src={image.src} alt={destinationName(item, locale)} loading="lazy" decoding="async" className="interactive-image h-full w-full object-cover" />
                   </div>
                   <div className="flex flex-1 flex-col space-y-3 p-4">
                     <div className="flex items-center justify-between">

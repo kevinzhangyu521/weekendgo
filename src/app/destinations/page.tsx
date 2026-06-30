@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AlertTriangle, Bath, Car, MapPin, SlidersHorizontal, Star } from "lucide-react";
+import { DestinationImage } from "@/components/destinations/destination-image";
 import { FavoriteButton } from "@/components/favorites/favorite-button";
 import { AmapNavigationButton } from "@/components/plans/amap-navigation-button";
 import { filterDestinations, parseFilters } from "@/features/destinations/filter";
@@ -147,7 +148,7 @@ export default async function DestinationsPage({
               <article key={item.id} className="interactive-card group flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                 <Link href={`/destinations/${item.id}`} className="block h-44 overflow-hidden bg-slate-100">
                   <div className="relative h-full w-full">
-                    <img
+                    <DestinationImage
                       src={image.src}
                       alt={destinationName(item, locale)}
                       loading="lazy"
