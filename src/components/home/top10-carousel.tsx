@@ -214,7 +214,7 @@ export function HomeDestinationCard({ item, locale, homeCity, isSignedIn, badgeL
       }}
       className="qmd-place-card group flex h-full cursor-pointer flex-col"
     >
-      <Link href={detailHref} onClick={(event) => event.stopPropagation()} className={`relative block aspect-[4/3] w-full overflow-hidden bg-slate-100 ${inspiration ? "rounded-t-[28px]" : "rounded-t-[24px]"}`}>
+      <Link href={detailHref} onClick={(event) => event.stopPropagation()} className="relative block aspect-[4/3] w-full overflow-hidden bg-slate-100">
         <img
           src={image.src}
           alt={name}
@@ -228,7 +228,7 @@ export function HomeDestinationCard({ item, locale, homeCity, isSignedIn, badgeL
             img.dataset.fallbackApplied = "true";
             img.src = DEFAULT_DESTINATION_IMAGE;
           }}
-          className="qmd-place-card__image h-full transition-transform duration-300 ease-out group-hover:scale-[1.03]"
+          className="qmd-place-card__image block h-full transition-transform duration-300 ease-out group-hover:scale-[1.03]"
         />
         <div className="absolute left-4 top-4">
           <span className={inspiration ? "rounded-full bg-white/90 px-3 py-1.5 text-xs font-black text-emerald-700 shadow-sm backdrop-blur" : "rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm"}>
