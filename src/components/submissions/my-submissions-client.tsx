@@ -211,7 +211,7 @@ export function MySubmissionsClient() {
 
   return (
     <main className="min-h-screen bg-slate-50">
-      <section className="mx-auto max-w-4xl px-4 py-6 md:px-6">
+      <section className="qmd-container py-6">
         <h1 className="text-2xl font-bold text-slate-900">{"\u6211\u7684\u6295\u7a3f"}</h1>
         <p className="mt-2 text-sm text-slate-600">{"\u67e5\u770b\u4f60\u63d0\u4ea4\u7684\u5730\u70b9\u548c\u5ba1\u6838\u8fdb\u5ea6\u3002"}</p>
 

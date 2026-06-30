@@ -110,7 +110,7 @@ export function ProfileClient() {
 
   return (
     <main className="min-h-screen bg-slate-50">
-      <section className="mx-auto max-w-3xl px-4 py-6 md:px-6">
+      <section className="qmd-container py-6">
         <h1 className="text-2xl font-bold text-slate-900">{"\u6211\u7684\u8d44\u6599"}</h1>
         <p className="mt-2 text-sm text-slate-600">{"\u8fd9\u4e9b\u4fe1\u606f\u5c06\u7528\u4e8e\u540e\u7eed\u63a8\u8350\u66f4\u9002\u5408\u4f60\u5bb6\u5ead\u7684\u5468\u672b\u6237\u5916\u5730\u70b9\u3002"}</p>
 

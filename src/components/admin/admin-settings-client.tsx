@@ -63,7 +63,7 @@ export function AdminSettingsClient() {
 
   return (
     <main className="min-h-screen bg-slate-50">
-      <section className="mx-auto max-w-3xl px-4 py-10 md:px-6">
+      <section className="qmd-container py-10">
         <h1 className="text-2xl font-bold text-slate-900">{"\u7ba1\u7406\u5458\u8bbe\u7f6e"}</h1>
         <p className="mt-2 text-sm leading-6 text-slate-600">{"\u7528\u4e8e\u67e5\u770b\u5f53\u524d\u8d26\u53f7\u7684\u7ba1\u7406\u5458\u72b6\u6001\u3002"}</p>
 

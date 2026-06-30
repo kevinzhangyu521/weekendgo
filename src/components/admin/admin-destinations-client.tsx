@@ -127,7 +127,7 @@ export function AdminDestinationsClient() {
 
   return (
     <main className="min-h-screen bg-slate-50">
-      <section className="mx-auto max-w-6xl px-4 py-6 md:px-6">
+      <section className="qmd-container py-6">
         <h1 className="text-2xl font-bold text-slate-900">{"\u76ee\u7684\u5730\u7ba1\u7406"}</h1>
         <p className="mt-2 text-sm text-slate-600">{"\u7ba1\u7406\u5168\u7ad9\u5df2\u53d1\u5e03\u7684\u76ee\u7684\u5730\u8d44\u6599\u3002"}</p>
 

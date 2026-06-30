@@ -27,7 +27,7 @@ type CardProps = {
   badgeLabel?: string;
 };
 
-const homeContainerClass = "mx-auto max-w-[1440px] px-4 md:px-8";
+const homeContainerClass = "qmd-container";
 const homeGridClass = "grid gap-6 md:grid-cols-2 lg:grid-cols-3";
 
 const scenarioBadge: Record<Scenario, { en: string; zh: string }> = {

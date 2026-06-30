@@ -161,7 +161,7 @@ export function CollectionWorkbenchClient() {
 
   return (
     <main className="min-h-screen bg-slate-50">
-      <section className="mx-auto max-w-6xl px-4 py-6 md:px-6">
+      <section className="qmd-container py-6">
         <h1 className="text-2xl font-bold text-slate-900">{"地点采集后台"}</h1>
         <p className="mt-2 text-sm text-slate-600">{"手动录入抖音/小红书/视频平台线索，只保存来源链接和人工填写内容，不自动爬取、不盗用视频和图片。"}</p>
 

@@ -38,6 +38,25 @@ video {
   max-width: 100%;
 }
 
+.qmd-container {
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding-inline: 16px;
+}
+
+@media (min-width: 768px) {
+  .qmd-container {
+    padding-inline: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .qmd-container {
+    padding-inline: 32px;
+  }
+}
+
 :where(a[href], button:not(:disabled), [role="button"], summary) {
   cursor: pointer;
 }

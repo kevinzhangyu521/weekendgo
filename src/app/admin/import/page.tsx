@@ -86,7 +86,7 @@ export default function AdminImportPage() {
 
   return (
     <main className="min-h-screen bg-slate-50">
-      <section className="mx-auto max-w-3xl px-4 py-8">
+      <section className="qmd-container py-8">
         <h1 className="text-2xl font-bold text-slate-900">{"CSV \u6279\u91cf\u5bfc\u5165"}</h1>
         <p className="mt-1 text-sm text-slate-600">{"\u4e0a\u4f20 spots\u3001facilities \u548c photos CSV \u6587\u4ef6\uff0c\u5148\u6821\u9a8c\u540e\u5bfc\u5165\u3002"}</p>
 

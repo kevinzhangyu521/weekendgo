@@ -276,7 +276,7 @@ export default async function HomePage() {
   return (
     <main className="min-h-screen bg-slate-50 pb-10">
       <section className="bg-white pb-3 pt-3 shadow-sm">
-        <div className="mx-auto max-w-[1440px] px-4 md:px-8">
+        <div className="qmd-container">
           <div>
             <h1 className="mt-0.5 text-2xl font-black leading-tight text-slate-950 md:text-3xl">
               {pick(locale, `Where to take kids near ${city}`, `${homeCity}本周去哪遛娃`)}
@@ -332,7 +332,7 @@ export default async function HomePage() {
 
       <Top10Carousel locale={locale} homeCity={homeCity} rankings={topRankings} isSignedIn={Boolean(profile)} />
 
-      <section className="mx-auto mt-14 max-w-[1440px] px-4 md:px-8">
+      <section className="qmd-container mt-14">
         <HomeSectionHeader
           title={pick(locale, "Weather picks", "根据天气推荐")}
           subtitle={pick(locale, `${weekendWeather.weather}. ${weekendWeather.advice}.`, `今天${homeCity}${weekendWeather.weather}，${weekendWeather.advice}。`)}
@@ -346,7 +346,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section id="nearby" className="mx-auto mt-14 max-w-[1440px] scroll-mt-20 px-4 md:px-8">
+      <section id="nearby" className="qmd-container mt-14 scroll-mt-20">
         <HomeSectionHeader
           title={pick(locale, "Near me", "离我最近去哪")}
           subtitle={pick(locale, `Calculated from ${city}`, `按常住城市「${homeCity}」计算距离`)}
@@ -360,7 +360,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto mt-14 max-w-[1440px] px-4 md:px-8">
+      <section className="qmd-container mt-14">
         <HomeSectionHeader
           title={pick(locale, "Family stories", "最新亲子分享")}
           subtitle={pick(locale, "Fresh family reviews from real visitors", "来自真实家庭的最新体验")}

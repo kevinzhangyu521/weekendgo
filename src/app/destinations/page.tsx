@@ -63,7 +63,7 @@ export default async function DestinationsPage({
 
   return (
     <main className="min-h-screen bg-slate-50">
-      <section className="mx-auto max-w-6xl px-4 py-6 md:px-6">
+      <section className="qmd-container py-6">
         <div className="mb-5">
           <h1 className="text-2xl font-bold text-slate-900">{pick(locale, "Family-Friendly Weekend Picks", "\u4eb2\u5b50\u5468\u672b\u63a8\u8350")}</h1>
         </div>

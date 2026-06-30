@@ -25,7 +25,7 @@ export default async function MapPage({
 
   return (
     <main className="min-h-screen bg-slate-50">
-      <section className="mx-auto max-w-7xl px-4 py-6 md:px-6">
+      <section className="qmd-container py-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="inline-flex items-center gap-2 text-2xl font-bold text-slate-900">

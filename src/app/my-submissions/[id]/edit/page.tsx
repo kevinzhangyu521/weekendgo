@@ -25,7 +25,7 @@ export default async function EditSubmissionPage({
 
   return (
     <main className="min-h-screen bg-slate-50">
-      <section className="mx-auto max-w-3xl px-4 py-6 md:px-6">
+      <section className="qmd-container py-6">
         <Link href="/my-submissions" className="text-sm text-emerald-700 hover:underline">
           {"\u8fd4\u56de\u6211\u7684\u6295\u7a3f"}
         </Link>

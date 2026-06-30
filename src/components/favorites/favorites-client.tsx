@@ -74,7 +74,7 @@ export function FavoritesClient({ locale }: { locale: Locale }) {
 
   return (
     <main className="min-h-screen bg-slate-50">
-      <section className="mx-auto max-w-6xl px-4 py-6 md:px-6">
+      <section className="qmd-container py-6">
         <div className="mb-5">
           <h1 className="inline-flex items-center gap-2 text-2xl font-bold text-slate-900">
             <Heart className="h-6 w-6 text-rose-600" />

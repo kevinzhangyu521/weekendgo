@@ -79,7 +79,7 @@ export function PlanDetailClient({ id, locale }: Props) {
 
   return (
     <main className="min-h-screen bg-slate-50">
-      <section className="mx-auto max-w-6xl px-4 py-6 md:px-6">
+      <section className="qmd-container py-6">
         <Link href="/plans" className="mb-4 inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900">
           <ChevronLeft className="h-4 w-4" />
           {pick(locale, "Back to plans", "\u8fd4\u56de\u8ba1\u5212")}

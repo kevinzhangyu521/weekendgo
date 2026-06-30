@@ -112,7 +112,7 @@ export default async function DestinationDetailPage({
   return (
     <main className="min-h-screen bg-slate-50 pb-28 md:pb-12">
       <DestinationViewTracker destinationId={destination.id} />
-      <section className="mx-auto max-w-6xl px-4 py-6 md:px-6">
+      <section className="qmd-container py-6">
         <Link href="/destinations" className="interactive-text-link mb-4 inline-flex items-center gap-1 text-sm text-slate-600">
           <ChevronLeft className="h-4 w-4" />
           {pick(locale, "Back to destinations", "\u8fd4\u56de\u76ee\u7684\u5730\u5217\u8868")}
@@ -373,7 +373,7 @@ export default async function DestinationDetailPage({
       </section>
 
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 px-4 py-3 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur md:hidden">
-        <div className="mx-auto flex max-w-6xl items-center gap-2">
+        <div className="qmd-container flex items-center gap-2">
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold text-slate-900">{destinationName(destination, locale)}</p>
             <p className="text-xs text-slate-500">{formatDistance(destination.distanceKm, locale)}</p>

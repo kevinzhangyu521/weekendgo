@@ -112,7 +112,7 @@ export function NotificationsClient() {
 
   return (
     <main className="min-h-screen bg-slate-50">
-      <section className="mx-auto max-w-4xl px-4 py-6 md:px-6">
+      <section className="qmd-container py-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 className="inline-flex items-center gap-2 text-2xl font-bold text-slate-900">
