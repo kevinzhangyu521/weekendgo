@@ -332,49 +332,49 @@ export default async function HomePage() {
 
       <Top10Carousel locale={locale} homeCity={homeCity} rankings={topRankings} isSignedIn={Boolean(profile)} />
 
-      <section className="qmd-container mt-14">
+      <section className="qmd-container qmd-section">
         <HomeSectionHeader
           title={pick(locale, "Weather picks", "根据天气推荐")}
           subtitle={pick(locale, `${weekendWeather.weather}. ${weekendWeather.advice}.`, `今天${homeCity}${weekendWeather.weather}，${weekendWeather.advice}。`)}
           href={`/weather?city=${encodeURIComponent(homeCity)}`}
           locale={locale}
         />
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="qmd-grid-3">
           {weatherDestinations.slice(0, 3).map((item) => (
             <HomeDestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} isSignedIn={Boolean(profile)} badgeLabel={pick(locale, "Weather pick", "天气推荐")} />
           ))}
         </div>
       </section>
 
-      <section id="nearby" className="qmd-container mt-14 scroll-mt-20">
+      <section id="nearby" className="qmd-container qmd-section scroll-mt-20">
         <HomeSectionHeader
           title={pick(locale, "Near me", "离我最近去哪")}
           subtitle={pick(locale, `Calculated from ${city}`, `按常住城市「${homeCity}」计算距离`)}
           href={destinationListHref({ city: homeCity, scenario: "all", difficulty: "all", maxDistance: 50, needParking: false, needToilet: false })}
           locale={locale}
         />
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="qmd-grid-3">
           {nearbyDestinations.slice(0, 3).map((item) => (
             <HomeDestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} isSignedIn={Boolean(profile)} badgeLabel={pick(locale, "Nearby pick", "附近推荐")} />
           ))}
         </div>
       </section>
 
-      <section className="qmd-container mt-14">
+      <section className="qmd-container qmd-section">
         <HomeSectionHeader
           title={pick(locale, "Family stories", "最新亲子分享")}
           subtitle={pick(locale, "Fresh family reviews from real visitors", "来自真实家庭的最新体验")}
           href="/submit-spot"
           locale={locale}
         />
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="qmd-grid-3">
           {latestReviews.length > 0 ? (
             latestReviews.slice(0, 3).map((review) => {
               const item = destinationsById.get(review.destinationId);
               if (!item) return null;
 
               return (
-                <Link key={review.id} href={`/destinations/${item.id}#reviews`} className="group flex min-h-[260px] flex-col rounded-[24px] border border-[#E5E7EB] bg-white p-5 shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(15,23,42,0.12)]">
+                <Link key={review.id} href={`/destinations/${item.id}#reviews`} className="qmd-place-card group flex min-h-[260px] flex-col p-5">
                   <div className="flex items-start gap-3">
                     <ReviewAvatar review={review} locale={locale} />
                     <div className="min-w-0 flex-1">
@@ -402,7 +402,7 @@ export default async function HomePage() {
               );
             })
           ) : (
-            <div className="rounded-[24px] border border-[#E5E7EB] bg-white p-5 text-sm text-slate-600 shadow-[0_14px_34px_rgba(15,23,42,0.08)] md:col-span-2 lg:col-span-3">
+            <div className="qmd-place-card p-5 text-sm text-slate-600 md:col-span-2 lg:col-span-3">
               {pick(locale, "No family stories yet. Reviews submitted by users will appear here.", "暂无真实亲子分享。用户提交评价后，会显示在这里。")}
             </div>
           )}

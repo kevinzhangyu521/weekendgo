@@ -28,7 +28,7 @@ type CardProps = {
 };
 
 const homeContainerClass = "qmd-container";
-const homeGridClass = "grid gap-6 md:grid-cols-2 lg:grid-cols-3";
+const homeGridClass = "qmd-grid-3";
 
 const scenarioBadge: Record<Scenario, { en: string; zh: string }> = {
   camping: { en: "Camping pick", zh: "露营推荐" },
@@ -141,12 +141,12 @@ function ratingText(item: DestinationItem, locale: Locale) {
 
 function tagClassName(tag: string) {
   if (["玩水", "溯溪", "露营", "野餐", "骑行", "徒步"].includes(tag)) {
-    return "bg-emerald-50 text-emerald-700";
+    return "qmd-tag--play";
   }
   if (["遛娃", "亲子"].includes(tag)) {
-    return "bg-sky-50 text-sky-700";
+    return "qmd-tag--season";
   }
-  return "bg-orange-50 text-orange-700";
+  return "qmd-tag--people";
 }
 
 export function HomeSectionHeader({
@@ -163,10 +163,10 @@ export function HomeSectionHeader({
   locale: Locale;
 }) {
   return (
-    <div className="mb-6 flex items-end justify-between gap-4">
+    <div className="qmd-section-header">
       <div>
-        <h2 className="text-[26px] font-black text-slate-950 md:text-[34px]">{title}</h2>
-        {subtitle ? <p className="mt-2 text-base text-slate-500">{subtitle}</p> : null}
+        <h2 className="qmd-section-title">{title}</h2>
+        {subtitle ? <p className="qmd-section-subtitle">{subtitle}</p> : null}
       </div>
       {action ??
         (href ? (
@@ -194,7 +194,7 @@ export function HomeDestinationCard({ item, locale, homeCity, isSignedIn, badgeL
       onKeyDown={(event) => {
         if (event.key === "Enter") router.push(detailHref);
       }}
-      className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-[24px] border border-[#E5E7EB] bg-white shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(15,23,42,0.12)]"
+      className="qmd-place-card group flex h-full cursor-pointer flex-col"
     >
       <Link href={detailHref} onClick={(event) => event.stopPropagation()} className="relative block aspect-[4/3] w-full overflow-hidden rounded-t-[24px] bg-slate-100">
         <img
@@ -209,7 +209,7 @@ export function HomeDestinationCard({ item, locale, homeCity, isSignedIn, badgeL
             img.dataset.fallbackApplied = "true";
             img.src = DEFAULT_DESTINATION_IMAGE;
           }}
-          className="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03]"
+          className="qmd-place-card__image h-full transition-transform duration-300 ease-out group-hover:scale-[1.03]"
         />
         <div className="absolute left-4 top-4">
           <span className="rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm">
@@ -218,7 +218,7 @@ export function HomeDestinationCard({ item, locale, homeCity, isSignedIn, badgeL
         </div>
       </Link>
 
-      <div className="flex flex-1 flex-col px-[22px] py-5">
+      <div className="qmd-place-card__body flex flex-1 flex-col">
         <div className="space-y-3">
           <Link href={detailHref} onClick={(event) => event.stopPropagation()} className="line-clamp-2 text-[22px] font-bold leading-tight text-slate-950 md:text-[30px]">
             {name}
@@ -234,7 +234,7 @@ export function HomeDestinationCard({ item, locale, homeCity, isSignedIn, badgeL
 
         <div className="mt-4 flex min-h-8 flex-wrap gap-2">
           {tags.map((tag, index) => (
-            <span key={`${item.id}-${tag}-${index}`} className={`rounded-full px-3 py-1.5 text-xs font-semibold ${tagClassName(tag)}`}>
+            <span key={`${item.id}-${tag}-${index}`} className={`qmd-tag ${tagClassName(tag)}`}>
               {tag}
             </span>
           ))}
@@ -246,11 +246,11 @@ export function HomeDestinationCard({ item, locale, homeCity, isSignedIn, badgeL
             <span>{ratingText(item, locale)}</span>
           </Link>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="qmd-card-actions">
             <Link
               href={detailHref}
               onClick={(event) => event.stopPropagation()}
-              className="inline-flex h-[52px] items-center justify-center rounded-2xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 shadow-sm transition-all duration-300 ease-out hover:border-emerald-200 hover:bg-gradient-to-r hover:from-white hover:to-emerald-50 hover:text-emerald-700 hover:shadow-md active:scale-[0.98]"
+              className="qmd-btn-secondary px-3 text-sm shadow-sm transition-all duration-300 ease-out hover:border-emerald-200 hover:bg-gradient-to-r hover:from-white hover:to-emerald-50 hover:text-emerald-700 hover:shadow-md active:scale-[0.98]"
             >
               {pick(locale, "Details", "查看详情")}
             </Link>
@@ -258,7 +258,7 @@ export function HomeDestinationCard({ item, locale, homeCity, isSignedIn, badgeL
               <AmapNavigationButton
                 destination={item}
                 label={navigationLabel}
-                className="h-[52px] w-full rounded-2xl px-3 text-sm font-bold shadow-sm transition-all duration-300 ease-out hover:bg-emerald-700 hover:shadow-md active:scale-[0.98]"
+                className="qmd-btn-primary w-full px-3 text-sm shadow-sm transition-all duration-300 ease-out hover:bg-emerald-700 hover:shadow-md active:scale-[0.98]"
                 isSignedIn={isSignedIn}
                 loginHref={`/login?next=${encodeURIComponent(detailHref)}`}
                 signedOutLabel={navigationLabel}
@@ -275,7 +275,7 @@ export function Top10Carousel({ locale, homeCity, rankings, isSignedIn = false }
   const items = (rankings.overall ?? []).slice(0, 6);
 
   return (
-    <section id="top10" className={`${homeContainerClass} mt-14 scroll-mt-20`}>
+    <section id="top10" className={`${homeContainerClass} qmd-section scroll-mt-20`}>
       <HomeSectionHeader
         title={pick(locale, "Where to go this weekend?", "这个周末去哪？")}
         subtitle={pick(locale, `Weekly picks for families near ${homeCity}.`, `我们为${homeCity}家庭精选了本周最值得去的目的地。`)}
