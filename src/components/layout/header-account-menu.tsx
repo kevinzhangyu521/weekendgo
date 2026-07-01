@@ -19,6 +19,11 @@ type ProfileResponse = {
   } | null;
 };
 
+type ProfileUpdatedEvent = CustomEvent<{
+  nickname?: string | null;
+  avatarUrl?: string | null;
+}>;
+
 const menuItems: Record<Locale, Array<{ href: string; label: string }>> = {
   zh: [
     { href: "/profile", label: "我的主页" },
@@ -58,6 +63,18 @@ export function HeaderAccountMenu({ locale, initialEmail }: Props) {
 
     document.addEventListener("mousedown", closeOnOutsideClick);
     return () => document.removeEventListener("mousedown", closeOnOutsideClick);
+  }, []);
+
+  useEffect(() => {
+    function updateProfile(event: Event) {
+      const detail = (event as ProfileUpdatedEvent).detail;
+      if (!detail) return;
+      if ("nickname" in detail) setNickname(detail.nickname ?? null);
+      if ("avatarUrl" in detail) setAvatarUrl(detail.avatarUrl ?? null);
+    }
+
+    window.addEventListener("qimeide:profile-updated", updateProfile);
+    return () => window.removeEventListener("qimeide:profile-updated", updateProfile);
   }, []);
 
   useEffect(() => {

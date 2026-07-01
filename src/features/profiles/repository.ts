@@ -6,6 +6,7 @@ type ProfileRow = {
   user_id: string;
   nickname: string | null;
   avatar_url: string | null;
+  bio: string | null;
   home_city: string | null;
   kid_age: number | null;
   preferred_scenarios: Scenario[] | null;
@@ -22,7 +23,7 @@ export async function getMyProfile(): Promise<UserProfile | null> {
   const { supabase, user } = await getCurrentAuth();
   if (!user) return null;
 
-  const { data } = await supabase.from("user_profiles").select("user_id,nickname,avatar_url,home_city,kid_age,preferred_scenarios,receive_notifications").eq("user_id", user.id).maybeSingle();
+  const { data } = await supabase.from("user_profiles").select("user_id,nickname,avatar_url,bio,home_city,kid_age,preferred_scenarios,receive_notifications").eq("user_id", user.id).maybeSingle();
   const row = data as ProfileRow | null;
 
   return {
@@ -30,6 +31,7 @@ export async function getMyProfile(): Promise<UserProfile | null> {
     email: user.email ?? "",
     nickname: row?.nickname ?? "",
     avatarUrl: row?.avatar_url ?? null,
+    bio: row?.bio ?? "",
     homeCity: row?.home_city ?? "",
     kidAge: row?.kid_age ?? null,
     preferredScenarios: row?.preferred_scenarios ?? [],
@@ -43,6 +45,8 @@ export async function saveMyProfile(formData: FormData) {
   if (!user) return { ok: false, message: "\u8bf7\u5148\u767b\u5f55\u3002" };
 
   const nickname = String(formData.get("nickname") ?? "").trim();
+  const avatarUrl = String(formData.get("avatar_url") ?? "").trim();
+  const bio = String(formData.get("bio") ?? "").trim();
   const homeCity = String(formData.get("home_city") ?? "").trim();
   const kidAgeRaw = String(formData.get("kid_age") ?? "").trim();
   const kidAge = kidAgeRaw ? Number(kidAgeRaw) : null;
@@ -61,6 +65,8 @@ export async function saveMyProfile(formData: FormData) {
     {
       user_id: user.id,
       nickname,
+      avatar_url: avatarUrl || null,
+      bio: bio || null,
       home_city: homeCity || null,
       kid_age: kidAge,
       preferred_scenarios: preferredScenarios,

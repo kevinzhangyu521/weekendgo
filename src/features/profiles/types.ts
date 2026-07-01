@@ -5,6 +5,7 @@ export type UserProfile = {
   email: string;
   nickname: string;
   avatarUrl: string | null;
+  bio: string;
   homeCity: string;
   kidAge: number | null;
   preferredScenarios: Scenario[];

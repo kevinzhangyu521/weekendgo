@@ -7,6 +7,7 @@ type ProfileRow = {
   user_id: string;
   nickname: string | null;
   avatar_url: string | null;
+  bio: string | null;
   home_city: string | null;
   kid_age: number | null;
   preferred_scenarios: Scenario[] | null;
@@ -31,7 +32,7 @@ export async function GET(request: Request) {
 
   const { data } = await supabase
     .from("user_profiles")
-    .select("user_id,nickname,avatar_url,home_city,kid_age,preferred_scenarios,receive_notifications")
+    .select("user_id,nickname,avatar_url,bio,home_city,kid_age,preferred_scenarios,receive_notifications")
     .eq("user_id", user.id)
     .maybeSingle();
   const row = data as ProfileRow | null;
@@ -41,6 +42,7 @@ export async function GET(request: Request) {
     email: user.email ?? "",
     nickname: row?.nickname ?? "",
     avatarUrl: row?.avatar_url ?? null,
+    bio: row?.bio ?? "",
     homeCity: row?.home_city ?? "",
     kidAge: row?.kid_age ?? null,
     preferredScenarios: row?.preferred_scenarios ?? [],
@@ -58,6 +60,8 @@ export async function PUT(request: Request) {
 
   const body = (await request.json()) as {
     nickname?: string;
+    avatarUrl?: string | null;
+    bio?: string;
     homeCity?: string;
     kidAge?: number | null;
     preferredScenarios?: string[];
@@ -78,6 +82,8 @@ export async function PUT(request: Request) {
     {
       user_id: user.id,
       nickname,
+      avatar_url: body.avatarUrl?.trim() || null,
+      bio: body.bio?.trim() || null,
       home_city: body.homeCity?.trim() || null,
       kid_age: kidAge,
       preferred_scenarios: normalizeScenarios(body.preferredScenarios),

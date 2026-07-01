@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import type { Scenario } from "@/features/destinations/types";
 import type { UserProfile } from "@/features/profiles/types";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
@@ -37,6 +37,63 @@ export function ProfileClient() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (avatarPreview?.startsWith("blob:")) URL.revokeObjectURL(avatarPreview);
+    };
+  }, [avatarPreview]);
+
+  function handleAvatarChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] ?? null;
+    setError("");
+
+    if (!file) {
+      setAvatarFile(null);
+      setAvatarPreview(profile?.avatarUrl ?? null);
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      setError("请上传图片格式的头像。");
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      setError("头像图片不能超过 2MB。");
+      event.target.value = "";
+      return;
+    }
+
+    if (avatarPreview?.startsWith("blob:")) URL.revokeObjectURL(avatarPreview);
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  }
+
+  async function uploadAvatar(file: File) {
+    const supabase = createClient();
+    const {
+      data: { session }
+    } = await supabase.auth.getSession();
+
+    if (!session?.user?.id) throw new Error("登录状态已失效，请重新登录。");
+
+    const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const filePath = `${session.user.id}/${Date.now()}.${extension}`;
+    const { error: uploadError } = await supabase.storage.from("avatars").upload(filePath, file, {
+      cacheControl: "3600",
+      contentType: file.type,
+      upsert: true
+    });
+
+    if (uploadError) throw new Error("头像上传失败，请稍后再试。");
+
+    const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
+    return data.publicUrl;
+  }
 
   useEffect(() => {
     let mounted = true;
@@ -53,7 +110,10 @@ export function ProfileClient() {
         const response = await fetch("/api/profile/me", { headers: await authHeaders(), credentials: "include", cache: "no-store" });
         const result = (await response.json()) as ProfileResponse;
         if (!response.ok || !result.ok || !result.profile) throw new Error(result.message ?? "\u8bfb\u53d6\u8d44\u6599\u5931\u8d25\u3002");
-        if (mounted) setProfile(result.profile);
+        if (mounted) {
+          setProfile(result.profile);
+          setAvatarPreview(result.profile.avatarUrl);
+        }
       } catch (err) {
         if (mounted) setError(err instanceof Error ? err.message : "\u8bfb\u53d6\u8d44\u6599\u5931\u8d25\u3002");
       } finally {
@@ -82,15 +142,22 @@ export function ProfileClient() {
     }
 
     const kidAgeRaw = String(form.get("kid_age") ?? "").trim();
-    const payload = {
-      nickname,
-      homeCity: String(form.get("home_city") ?? ""),
-      kidAge: kidAgeRaw ? Number(kidAgeRaw) : null,
-      preferredScenarios: form.getAll("preferred_scenarios").map(String),
-      receiveNotifications: form.get("receive_notifications") === "on"
-    };
 
     try {
+      const avatarUrl = avatarFile ? await uploadAvatar(avatarFile) : profile?.avatarUrl ?? null;
+      const preferredScenarios = form
+        .getAll("preferred_scenarios")
+        .map(String)
+        .filter((value): value is Scenario => scenarios.some((item) => item.value === value));
+      const payload = {
+        nickname,
+        avatarUrl,
+        bio: String(form.get("bio") ?? ""),
+        homeCity: String(form.get("home_city") ?? ""),
+        kidAge: kidAgeRaw ? Number(kidAgeRaw) : null,
+        preferredScenarios,
+        receiveNotifications: form.get("receive_notifications") === "on"
+      };
       const response = await fetch("/api/profile/me", {
         method: "PUT",
         headers: await authHeaders(),
@@ -101,6 +168,11 @@ export function ProfileClient() {
       const result = (await response.json()) as ProfileResponse;
       if (!response.ok || !result.ok) throw new Error(result.message ?? "\u4fdd\u5b58\u5931\u8d25\u3002");
       setMessage(result.message ?? "\u8d44\u6599\u5df2\u4fdd\u5b58\u3002");
+      const nextProfile = profile ? { ...profile, ...payload } : null;
+      setProfile(nextProfile);
+      setAvatarFile(null);
+      setAvatarPreview(avatarUrl);
+      window.dispatchEvent(new CustomEvent("qimeide:profile-updated", { detail: { nickname, avatarUrl } }));
     } catch (err) {
       setError(err instanceof Error ? err.message : "\u4fdd\u5b58\u5931\u8d25\u3002");
     } finally {
@@ -131,6 +203,18 @@ export function ProfileClient() {
               {"\u4fee\u6539\u5bc6\u7801"}
             </Link>
             <form onSubmit={handleSubmit} className="mt-5 space-y-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="flex flex-col gap-4 rounded-xl bg-slate-50 p-4 sm:flex-row sm:items-center">
+                <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-emerald-600 text-2xl font-black text-white">
+                  {avatarPreview ? <img src={avatarPreview} alt="头像预览" className="h-full w-full object-cover" /> : (profile.nickname || profile.email || "?").slice(0, 1).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <label className="block text-sm font-bold text-slate-900">
+                    {"头像"}
+                    <input name="avatar" type="file" accept="image/*" onChange={handleAvatarChange} className="mt-2 block w-full text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-emerald-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" />
+                  </label>
+                  <p className="mt-2 text-xs text-slate-500">{"支持 JPG、PNG、WebP，图片不超过 2MB。"}</p>
+                </div>
+              </div>
               <label className="block text-sm font-bold text-slate-900">
                 {"\u767b\u5f55\u90ae\u7bb1"}
                 <input value={profile.email} disabled className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500" />
@@ -146,6 +230,10 @@ export function ProfileClient() {
                   <input name="home_city" defaultValue={profile.homeCity} placeholder={"\u4f8b\u5982\uff1a\u6b66\u6c49"} className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
                 </label>
               </div>
+              <label className="block text-sm font-bold text-slate-900">
+                {"个人简介"}
+                <textarea name="bio" defaultValue={profile.bio} rows={3} placeholder={"例如：喜欢周末带孩子骑行、野餐和找溪水玩。"} className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+              </label>
               <label className="block text-sm font-bold text-slate-900">
                 {"\u5b69\u5b50\u5e74\u9f84"}
                 <input name="kid_age" type="number" min="0" max="18" defaultValue={profile.kidAge ?? ""} placeholder={"\u4f8b\u5982\uff1a5"} className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />

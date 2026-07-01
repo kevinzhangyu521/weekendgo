@@ -25,6 +25,7 @@ export function ProfileForm({ profile }: { profile: UserProfile }) {
 
   return (
     <form action={formAction} className="mt-5 space-y-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <input type="hidden" name="avatar_url" value={profile.avatarUrl ?? ""} />
       <div>
         <label className="block text-sm font-bold text-slate-900">
           {"\u767b\u5f55\u90ae\u7bb1"}
@@ -43,6 +44,11 @@ export function ProfileForm({ profile }: { profile: UserProfile }) {
           <input name="home_city" defaultValue={profile.homeCity} placeholder={"\u4f8b\u5982\uff1a\u676d\u5dde"} className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
         </label>
       </div>
+
+      <label className="block text-sm font-bold text-slate-900">
+        {"个人简介"}
+        <textarea name="bio" defaultValue={profile.bio} rows={3} placeholder={"例如：喜欢周末带孩子骑行、野餐和找溪水玩。"} className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+      </label>
 
       <label className="block text-sm font-bold text-slate-900">
         {"\u5b69\u5b50\u5e74\u9f84"}
