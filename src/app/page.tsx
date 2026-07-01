@@ -1,17 +1,13 @@
 import Link from "next/link";
 import {
   Baby,
-  Footprints,
-  Flame,
-  MapPin,
   Search,
-  Sandwich,
-  SunMedium,
   Tent,
   TreePine,
   Waves
 } from "lucide-react";
-import { HomeDestinationCard, HomeSectionHeader, Top10Carousel } from "@/components/home/top10-carousel";
+import { DestinationCard } from "@/components/home/destination-card";
+import { HomeSectionHeader } from "@/components/home/top10-carousel";
 import { hasUsableDestinationImage } from "@/features/destinations/images";
 import { getDestinationStats } from "@/features/destinations/stats";
 import {
@@ -29,9 +25,7 @@ import { getLocale, pick } from "@/lib/i18n/server";
 
 const scenes = [
   { key: "camping", label: "Camping", labelZh: "露营", icon: Tent, color: "bg-amber-100 text-amber-700" },
-  { key: "creek", label: "Creek", labelZh: "溯溪", icon: Waves, color: "bg-sky-100 text-sky-700" },
-  { key: "hiking", label: "Hiking", labelZh: "徒步", icon: Footprints, color: "bg-orange-100 text-orange-700" },
-  { key: "picnic", label: "Picnic", labelZh: "野餐", icon: Sandwich, color: "bg-pink-100 text-pink-700" }
+  { key: "creek", label: "Water", labelZh: "玩水", icon: Waves, color: "bg-sky-100 text-sky-700" }
 ] as const;
 
 const cityNames: Record<string, string> = {
@@ -250,7 +244,6 @@ export default async function HomePage() {
   const preferredScenarios = profile?.preferredScenarios ?? [];
   const city = displayCity(homeCity, locale);
   const weekendWeather = getWeekendWeather(homeCity, preferredScenarios, locale);
-  const heroWeatherProfile = weatherByCity[homeCity] ?? weatherByCity[DEFAULT_HOME_CITY] ?? weatherByCity.武汉;
   const heroPlayLinks = [
     ...scenes.map((item) => ({
       key: item.key,
@@ -285,12 +278,7 @@ export default async function HomePage() {
     shareCount: destinationStats.get(item.id)?.shareCount ?? 0
   }));
   const topDestinations = getTopDestinations(destinationsWithReviews, homeCity);
-  const topRankings = {
-    overall: topDestinations,
-    creek: getScenarioTopDestinations(destinationsWithReviews, homeCity, "creek"),
-    camping: getScenarioTopDestinations(destinationsWithReviews, homeCity, "camping"),
-    youngKids: getYoungKidTopDestinations(destinationsWithReviews, homeCity)
-  };
+  const todayPicks = topDestinations.slice(0, 3);
   const weatherDestinations = destinationsWithReviews
     .filter((item) => item.scenario === weekendWeather.scenario)
     .sort((a, b) => worthScore(b) - worthScore(a))
@@ -301,114 +289,71 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-screen bg-slate-50 pb-10">
-      <section className="bg-white py-10 shadow-sm md:py-12">
-        <div className="qmd-container">
-          <div className="max-w-4xl">
+      <section className="bg-white">
+        <div className="qmd-container flex h-[320px] flex-col justify-center">
+          <div className="max-w-3xl">
             <h1 className="text-4xl font-black leading-tight tracking-[-0.03em] text-slate-950 md:text-[56px]">
               {pick(locale, `Where to take kids near ${city}`, `${homeCity}本周去哪遛娃`)}
             </h1>
             <p className="mt-4 text-lg leading-8 text-slate-500 md:text-xl">
-              {pick(locale, "Find real family-friendly places for camping, creek play and picnics.", "发现适合亲子、露营、溯溪、野餐的真实目的地。")}
+              {pick(locale, "Find real family-friendly places for camping, water play, parks and family weekends.", "发现适合亲子、露营、玩水、公园的真实目的地。")}
             </p>
           </div>
 
-          <Link href={`/weather?city=${encodeURIComponent(homeCity)}`} className="interactive-card mt-8 grid min-h-24 gap-4 rounded-[20px] border border-emerald-100 bg-emerald-50/90 p-5 transition hover:border-emerald-200 hover:bg-emerald-50 md:grid-cols-[auto_1fr] md:items-center">
-            <div className="flex items-center gap-4">
-              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-emerald-600 shadow-sm">
-                <SunMedium className="h-6 w-6" />
-              </span>
-              <div>
-                <p className="text-sm font-bold text-emerald-700">{pick(locale, "Good day to go out", "今天适合出门")}</p>
-                <p className="mt-1 text-2xl font-black text-slate-950">{homeCity} · {weekendWeather.weather}</p>
-              </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 md:justify-end">
-              <span className="rounded-full bg-white px-3 py-1.5 text-sm font-bold text-slate-700">{heroWeatherProfile.temp}°C</span>
-              <span className="rounded-full bg-white px-3 py-1.5 text-sm font-bold text-emerald-700">{pick(locale, "Recommended", "推荐")}：{weekendWeather.advice}</span>
-            </div>
-          </Link>
-
-          <form action="/destinations" className="mt-8 grid gap-3 md:grid-cols-[1fr_160px_auto]">
-            <div className="flex h-[60px] min-w-0 items-center gap-3 rounded-full bg-slate-100 px-6">
+          <form action="/destinations" className="mt-7 grid gap-3 md:grid-cols-[1fr_160px_auto]">
+            <div className="flex h-[56px] min-w-0 items-center gap-3 rounded-full bg-slate-100 px-5">
               <Search className="h-5 w-5 shrink-0 text-slate-400" />
-              <input name="q" type="search" placeholder={pick(locale, "Where today? Search camping, creeks, parks...", "今天想去哪玩？搜索露营地、溪流、公园……")} className="min-w-0 flex-1 bg-transparent text-base text-slate-900 outline-none placeholder:text-slate-400" />
+              <input name="q" type="search" placeholder={pick(locale, "Search camping, water, parks...", "搜索露营、玩水、公园……")} className="min-w-0 flex-1 bg-transparent text-base text-slate-900 outline-none placeholder:text-slate-400" />
             </div>
-            <select name="city" defaultValue={homeCity} className="h-[60px] rounded-full bg-slate-100 px-5 text-base font-semibold text-slate-700 outline-none ring-0">
+            <select name="city" defaultValue={homeCity} className="h-[56px] rounded-full bg-slate-100 px-5 text-base font-semibold text-slate-700 outline-none ring-0">
               {cityOptions.map((option) => (
                 <option key={option} value={option}>
                   {option}
                 </option>
               ))}
             </select>
-            <button type="submit" className="interactive-button h-[60px] rounded-full bg-emerald-600 px-7 text-base font-bold text-white shadow-sm hover:bg-emerald-700">
+            <button type="submit" className="interactive-button h-[56px] rounded-full bg-emerald-600 px-7 text-base font-bold text-white shadow-sm hover:bg-emerald-700">
               {pick(locale, "Search", "搜索")}
             </button>
           </form>
 
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-5 flex flex-wrap gap-3">
             {heroPlayLinks.map((item) => (
               <Link
                 key={item.key}
                 href={item.href}
-                className="interactive-button inline-flex h-11 items-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-500 hover:bg-emerald-600 hover:text-white hover:shadow-md"
+                className="interactive-button inline-flex h-10 items-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 shadow-sm hover:border-emerald-500 hover:bg-emerald-600 hover:text-white"
               >
                 <item.icon className="h-4 w-4" />
                 {item.label}
               </Link>
             ))}
           </div>
+        </div>
+      </section>
 
-          <div className="mt-7 grid gap-3 md:grid-cols-3">
-            <Link href="#top10" className="interactive-button flex h-14 items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 text-center text-sm font-black text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-md">
-              <Flame className="h-4 w-4" />
-              {pick(locale, "Hot this week", "本周热门")}
-            </Link>
-            <Link href="#nearby" className="interactive-button flex h-14 items-center justify-center gap-2 rounded-2xl bg-white px-4 text-center text-sm font-black text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:text-emerald-700 hover:shadow-md">
-              <MapPin className="h-4 w-4" />
-              {pick(locale, "Nearest", "离我最近")}
-            </Link>
-            <Link href={destinationListHref({ city: homeCity, scenario: "all", difficulty: "easy", maxDistance: 80, needParking: true, needToilet: true })} className="interactive-button flex h-14 items-center justify-center gap-2 rounded-2xl bg-white px-4 text-center text-sm font-black text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:text-emerald-700 hover:shadow-md">
-              <Baby className="h-4 w-4" />
-              {pick(locale, "Young kids", "低龄宝宝")}
-            </Link>
+      <section id="today-picks" className="qmd-container qmd-section scroll-mt-20">
+        <HomeSectionHeader
+          title={pick(locale, "Today's Picks", "今日精选")}
+          subtitle={pick(locale, "Start with three places worth opening first.", "先看今天最值得打开的三个目的地。")}
+          locale={locale}
+        />
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.9fr)_minmax(320px,1fr)]">
+          {todayPicks[0] ? (
+            <DestinationCard item={todayPicks[0]} locale={locale} homeCity={homeCity} isSignedIn={Boolean(profile)} badgeLabel={pick(locale, "Today's pick", "今日精选")} inspiration showRating={false} imagePriority />
+          ) : null}
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-1">
+            {todayPicks.slice(1, 3).map((item, index) => (
+              <DestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} isSignedIn={Boolean(profile)} badgeLabel={index === 0 ? pick(locale, "Family pick", "亲子精选") : pick(locale, "Weekend pick", "周末精选")} inspiration showRating={false} imagePriority={index < 1} />
+            ))}
           </div>
         </div>
       </section>
 
-      <Top10Carousel locale={locale} homeCity={homeCity} rankings={topRankings} isSignedIn={Boolean(profile)} />
-
       <section className="qmd-container qmd-section">
         <HomeSectionHeader
-          title={pick(locale, "Weather picks", "根据天气推荐")}
-          subtitle={pick(locale, `${weekendWeather.weather}. ${weekendWeather.advice}.`, `今天${homeCity}${weekendWeather.weather}，${weekendWeather.advice}。`)}
-          href={`/weather?city=${encodeURIComponent(homeCity)}`}
-          locale={locale}
-        />
-        <div className="qmd-grid-3">
-          {weatherDestinations.slice(0, 3).map((item) => (
-            <HomeDestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} isSignedIn={Boolean(profile)} badgeLabel={pick(locale, "Weather pick", "天气推荐")} />
-          ))}
-        </div>
-      </section>
-
-      <section id="nearby" className="qmd-container qmd-section scroll-mt-20">
-        <HomeSectionHeader
-          title={pick(locale, "Near me", "离我最近去哪")}
-          subtitle={pick(locale, `Calculated from ${city}`, `按常住城市「${homeCity}」计算距离`)}
-          href={destinationListHref({ city: homeCity, scenario: "all", difficulty: "all", maxDistance: 50, needParking: false, needToilet: false })}
-          locale={locale}
-        />
-        <div className="qmd-grid-3">
-          {nearbyDestinations.slice(0, 3).map((item) => (
-            <HomeDestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} isSignedIn={Boolean(profile)} badgeLabel={pick(locale, "Nearby pick", "附近推荐")} />
-          ))}
-        </div>
-      </section>
-
-      <section className="qmd-container qmd-section">
-        <HomeSectionHeader
-          title={pick(locale, "Family stories", "最新亲子分享")}
-          subtitle={pick(locale, "Fresh family reviews from real visitors", "来自真实家庭的最新体验")}
+          title={pick(locale, "Family Stories", "本周家庭故事")}
+          subtitle={pick(locale, "Fresh family reviews from real visitors.", "来自真实家庭的最新体验。")}
           href="/submit-spot"
           locale={locale}
         />
@@ -453,6 +398,41 @@ export default async function HomePage() {
           )}
         </div>
       </section>
+
+      <section className="qmd-container qmd-section">
+        <HomeSectionHeader
+          title={pick(locale, "Today's Recommendation", "今天适合")}
+          subtitle={pick(locale, `${weekendWeather.weather}. ${weekendWeather.advice}.`, `今天${homeCity}${weekendWeather.weather}，${weekendWeather.advice}。`)}
+          href={`/weather?city=${encodeURIComponent(homeCity)}`}
+          locale={locale}
+        />
+        <div className="qmd-grid-3">
+          {weatherDestinations.slice(0, 3).map((item) => (
+            <DestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} isSignedIn={Boolean(profile)} badgeLabel={pick(locale, "Weather pick", "天气推荐")} />
+          ))}
+        </div>
+      </section>
+
+      <section id="nearby" className="qmd-container qmd-section scroll-mt-20">
+        <HomeSectionHeader
+          title={pick(locale, "15 Minutes Away", "15分钟就能到")}
+          subtitle={pick(locale, `Calculated from ${city}.`, `按常住城市「${homeCity}」计算距离。`)}
+          href={destinationListHref({ city: homeCity, scenario: "all", difficulty: "all", maxDistance: 50, needParking: false, needToilet: false })}
+          locale={locale}
+        />
+        <div className="qmd-grid-3">
+          {nearbyDestinations.slice(0, 3).map((item) => (
+            <DestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} isSignedIn={Boolean(profile)} badgeLabel={pick(locale, "Nearby pick", "附近推荐")} />
+          ))}
+        </div>
+      </section>
+
+      <footer className="qmd-container mt-20 border-t border-slate-200 py-8 text-sm text-slate-500">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <p>{pick(locale, "Qimeide helps families find weekend outdoor places.", "栖美地帮亲子家庭发现周末户外目的地。")}</p>
+          <p>{pick(locale, "Camping · Water play · Parks · Family trips", "露营 · 玩水 · 公园 · 亲子出游")}</p>
+        </div>
+      </footer>
     </main>
   );
 }
