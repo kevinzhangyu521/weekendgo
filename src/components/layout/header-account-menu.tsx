@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
+import { isAdminRole, normalizeUserRole, type UserRole } from "@/lib/auth/roles";
 import type { Locale } from "@/lib/i18n/config";
 
 type Props = {
@@ -17,12 +18,14 @@ type ProfileResponse = {
   profile?: {
     nickname?: string | null;
     avatarUrl?: string | null;
+    role?: UserRole | string | null;
   } | null;
 };
 
 type ProfileUpdatedEvent = CustomEvent<{
   nickname?: string | null;
   avatarUrl?: string | null;
+  role?: UserRole | string | null;
 }>;
 
 const userMenuItems = [
@@ -58,8 +61,10 @@ export function HeaderAccountMenu({ locale, initialEmail, isAdmin }: Props) {
   const [signingOut, setSigningOut] = useState(false);
   const [nickname, setNickname] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [profileRole, setProfileRole] = useState<UserRole>(isAdmin ? "admin" : "user");
   const menuRef = useRef<HTMLDivElement | null>(null);
-  const menuItems = isAdmin ? adminMenuItems : userMenuItems;
+  const effectiveIsAdmin = isAdminRole(profileRole);
+  const menuItems = effectiveIsAdmin ? adminMenuItems : userMenuItems;
 
   useEffect(() => {
     function closeOnOutsideClick(event: MouseEvent) {
@@ -76,6 +81,7 @@ export function HeaderAccountMenu({ locale, initialEmail, isAdmin }: Props) {
       if (!detail) return;
       if ("nickname" in detail) setNickname(detail.nickname ?? null);
       if ("avatarUrl" in detail) setAvatarUrl(detail.avatarUrl ?? null);
+      if ("role" in detail) setProfileRole(normalizeUserRole(detail.role));
     }
 
     window.addEventListener("qimeide:profile-updated", updateProfile);
@@ -89,6 +95,7 @@ export function HeaderAccountMenu({ locale, initialEmail, isAdmin }: Props) {
       if (!isSignedIn || currentUser.isLoading) {
         setNickname(null);
         setAvatarUrl(null);
+        setProfileRole("user");
         return;
       }
 
@@ -107,12 +114,16 @@ export function HeaderAccountMenu({ locale, initialEmail, isAdmin }: Props) {
         });
         const result = (await response.json()) as ProfileResponse;
         if (!mounted || !result.ok || !result.profile) return;
+        const nextRole = normalizeUserRole(result.profile.role);
+        console.log("current profile role:", nextRole);
         setNickname(result.profile.nickname ?? null);
         setAvatarUrl(result.profile.avatarUrl ?? null);
+        setProfileRole(nextRole);
       } catch {
         if (!mounted) return;
         setNickname(null);
         setAvatarUrl(null);
+        setProfileRole(isAdmin ? "admin" : "user");
       }
     }
 
@@ -121,7 +132,7 @@ export function HeaderAccountMenu({ locale, initialEmail, isAdmin }: Props) {
     return () => {
       mounted = false;
     };
-  }, [currentUser.isLoading, isSignedIn]);
+  }, [currentUser.isLoading, isSignedIn, isAdmin]);
 
   async function handleSignOut() {
     setSigningOut(true);
@@ -154,7 +165,7 @@ export function HeaderAccountMenu({ locale, initialEmail, isAdmin }: Props) {
         <div className="absolute right-0 top-12 z-50 w-60 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl">
           <div className="border-b border-slate-100 px-3 py-2">
             <p className="truncate text-sm font-bold text-slate-900">{nickname || email}</p>
-            <p className="mt-1 text-xs font-semibold text-emerald-700">{isAdmin ? "\u7ba1\u7406\u5458" : "\u666e\u901a\u7528\u6237"}</p>
+            <p className="mt-1 text-xs font-semibold text-emerald-700">{effectiveIsAdmin ? "\u7ba1\u7406\u5458" : "\u666e\u901a\u7528\u6237"}</p>
             {nickname ? <p className="truncate text-xs text-slate-500">{email}</p> : null}
           </div>
           <div className="py-2">
