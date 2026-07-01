@@ -232,28 +232,28 @@ export default async function HomePage() {
   return (
     <main className="min-h-screen bg-slate-50 pb-10">
       <section className="bg-white">
-        <div className="qmd-container flex h-[320px] flex-col justify-center">
+        <div className="qmd-container flex min-h-[230px] flex-col justify-center py-6 md:min-h-[250px]">
           <div className="max-w-3xl">
-            <h1 className="text-4xl font-black leading-tight tracking-[-0.03em] text-slate-950 md:text-[56px]">
+            <h1 className="text-3xl font-black leading-tight tracking-[-0.03em] text-slate-950 md:text-5xl">
               {pick(locale, `${city} · Where to go this weekend?`, `${homeCity} · 这个周末去哪？`)}
             </h1>
-            <p className="mt-4 text-lg leading-8 text-slate-500 md:text-xl">
+            <p className="mt-3 text-base leading-7 text-slate-500 md:text-lg">
               {pick(locale, "Help families decide where to go this weekend.", "帮家庭轻松决定这个周末去哪。")}
             </p>
           </div>
 
-          <form action="/destinations" className="mt-7 grid gap-3 md:grid-cols-[1fr_auto]">
+          <form action="/destinations" className="mt-5 grid gap-3 md:grid-cols-[1fr_auto]">
             <input type="hidden" name="city" value={homeCity} />
-            <div className="flex h-[56px] min-w-0 items-center gap-3 rounded-full bg-slate-100 px-5">
+            <div className="flex h-12 min-w-0 items-center gap-3 rounded-full bg-slate-100 px-5">
               <Search className="h-5 w-5 shrink-0 text-slate-400" />
               <input name="q" type="search" placeholder={pick(locale, "Search camping, water, parks...", "搜索露营、玩水、公园……")} className="min-w-0 flex-1 bg-transparent text-base text-slate-900 outline-none placeholder:text-slate-400" />
             </div>
-            <button type="submit" className="interactive-button h-[56px] rounded-full bg-emerald-600 px-7 text-base font-bold text-white shadow-sm hover:bg-emerald-700">
+            <button type="submit" className="interactive-button h-12 rounded-full bg-emerald-600 px-7 text-base font-bold text-white shadow-sm hover:bg-emerald-700">
               {pick(locale, "Search", "搜索")}
             </button>
           </form>
 
-          <div className="mt-5 flex flex-wrap gap-3">
+          <div className="mt-4 flex flex-wrap gap-3">
             {heroPlayLinks.map((item) => (
               <Link
                 key={item.key}
@@ -268,7 +268,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section id="today-picks" className="qmd-container qmd-section scroll-mt-20">
+      <section id="today-picks" className="qmd-container mt-6 scroll-mt-20 md:mt-8">
         <HomeSectionHeader
           title={pick(locale, "Today's Picks", "今日精选")}
           subtitle={pick(locale, "Start with three places worth opening first.", "先看今天最值得打开的三个目的地。")}
@@ -276,7 +276,7 @@ export default async function HomePage() {
         />
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1.9fr)_minmax(320px,1fr)]">
           {todayPicks[0] ? (
-            <DestinationCard item={todayPicks[0]} locale={locale} homeCity={homeCity} badgeLabel={pick(locale, "Today's pick", "今日精选")} imagePriority isSignedIn={Boolean(profile)} />
+            <DestinationCard item={todayPicks[0]} locale={locale} homeCity={homeCity} badgeLabel={pick(locale, "Today's pick", "今日精选")} imagePriority isSignedIn={Boolean(profile)} featured />
           ) : null}
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-1">
             {todayPicks.slice(1, 3).map((item, index) => (
@@ -293,14 +293,14 @@ export default async function HomePage() {
           href="/submit-spot"
           locale={locale}
         />
-        <div className="qmd-grid-3">
+        <div className="scrollbar-none flex gap-5 overflow-x-auto pb-2">
           {latestReviews.length > 0 ? (
             latestReviews.slice(0, 3).map((review) => {
               const item = destinationsById.get(review.destinationId);
               if (!item) return null;
 
               return (
-                <Link key={review.id} href={`/destinations/${item.id}#reviews`} className="qmd-place-card group flex min-h-[360px] flex-col p-5">
+                <Link key={review.id} href={`/destinations/${item.id}#reviews`} className="qmd-place-card group flex min-h-[300px] w-[320px] shrink-0 flex-col p-5 md:w-[380px]">
                   <div className="flex items-start gap-3">
                     <ReviewAvatar review={review} locale={locale} />
                     <div className="min-w-0 flex-1">
@@ -328,7 +328,7 @@ export default async function HomePage() {
               );
             })
           ) : (
-            <div className="qmd-place-card p-5 text-sm text-slate-600 md:col-span-2 lg:col-span-3">
+            <div className="qmd-place-card w-[320px] shrink-0 p-5 text-sm text-slate-600 md:w-[380px]">
               {pick(locale, "No family stories yet. Reviews submitted by users will appear here.", "暂无真实亲子分享。用户提交评价后，会显示在这里。")}
             </div>
           )}
@@ -342,10 +342,14 @@ export default async function HomePage() {
           href={`/weather?city=${encodeURIComponent(homeCity)}`}
           locale={locale}
         />
-        <div className="qmd-grid-3">
+        <div className="rounded-3xl border border-emerald-100 bg-emerald-50/70 p-4">
+          <div className="scrollbar-none flex gap-5 overflow-x-auto pb-1">
           {weatherDestinations.slice(0, 3).map((item) => (
-            <DestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} badgeLabel={pick(locale, "Weather pick", "天气推荐")} isSignedIn={Boolean(profile)} />
+            <div key={item.id} className="w-[300px] shrink-0 md:w-[360px]">
+              <DestinationCard item={item} locale={locale} homeCity={homeCity} badgeLabel={pick(locale, "Weather pick", "天气推荐")} isSignedIn={Boolean(profile)} />
+            </div>
           ))}
+          </div>
         </div>
       </section>
 
@@ -356,10 +360,17 @@ export default async function HomePage() {
           href={destinationListHref({ city: homeCity, scenario: "all", difficulty: "all", maxDistance: 50, needParking: false, needToilet: false })}
           locale={locale}
         />
-        <div className="qmd-grid-3">
-          {nearbyDestinations.slice(0, 3).map((item) => (
-            <DestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} badgeLabel={pick(locale, "Nearby pick", "附近推荐")} isSignedIn={Boolean(profile)} />
-          ))}
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.4fr)]">
+          <div className="min-h-[260px] rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex h-full min-h-[220px] items-center justify-center rounded-2xl bg-emerald-50 text-sm font-bold text-emerald-700">
+              {pick(locale, "Nearby map area", "附近地图区域")}
+            </div>
+          </div>
+          <div className="grid gap-5 md:grid-cols-2">
+            {nearbyDestinations.slice(0, 4).map((item) => (
+              <DestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} badgeLabel={pick(locale, "Nearby pick", "附近推荐")} isSignedIn={Boolean(profile)} />
+            ))}
+          </div>
         </div>
       </section>
 

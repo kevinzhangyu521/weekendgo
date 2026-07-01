@@ -12,6 +12,7 @@ type Props = {
   badgeLabel?: string;
   imagePriority?: boolean;
   isSignedIn?: boolean;
+  featured?: boolean;
 };
 
 const scenarioTags: Record<Scenario, { en: string[]; zh: string[] }> = {
@@ -53,7 +54,7 @@ function cardTags(item: DestinationItem, locale: Locale) {
   return (locale === "zh" ? scenarioTags[item.scenario].zh : scenarioTags[item.scenario].en).slice(0, 2);
 }
 
-export function DestinationCard({ item, locale, homeCity, badgeLabel, imagePriority = false, isSignedIn = false }: Props) {
+export function DestinationCard({ item, locale, homeCity, badgeLabel, imagePriority = false, isSignedIn = false, featured = false }: Props) {
   const image = getDestinationImage(item);
   const name = destinationName(item, locale);
   const region = destinationRegion(item, locale) || homeCity;
@@ -62,7 +63,7 @@ export function DestinationCard({ item, locale, homeCity, badgeLabel, imagePrior
   return (
     <article className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
       <Link href={detailHref} className="block">
-        <div className="relative aspect-[4/3] bg-slate-100">
+        <div className={`relative bg-slate-100 ${featured ? "aspect-[5/4]" : "aspect-[4/3]"}`}>
           <img
             src={image.src}
             alt={name}
@@ -93,13 +94,13 @@ export function DestinationCard({ item, locale, homeCity, badgeLabel, imagePrior
           ))}
         </div>
         <div className="mt-5 grid grid-cols-2 gap-3">
-          <Link href={detailHref} className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700">
+          <Link href={detailHref} className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600">
             {pick(locale, "Details", "查看详情")}
           </Link>
           <AmapNavigationButton
             destination={item}
             label={pick(locale, "Navigate", "立即导航")}
-            className="h-11 w-full rounded-full bg-emerald-600 px-4 text-sm font-bold text-white"
+            className="h-10 w-full rounded-full bg-emerald-600 px-4 text-sm font-bold text-white"
             isSignedIn={isSignedIn}
             loginHref={`/login?next=${encodeURIComponent(detailHref)}`}
             signedOutLabel={pick(locale, "Navigate", "立即导航")}
