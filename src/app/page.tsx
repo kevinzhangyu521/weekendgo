@@ -165,10 +165,10 @@ export default async function HomePage() {
         <div className="qmd-container flex min-h-[180px] flex-col justify-center py-4 md:min-h-[200px]">
           <div className="max-w-3xl">
             <h1 className="text-3xl font-black leading-tight tracking-[-0.03em] text-slate-950 md:text-5xl">
-              {pick(locale, `${city} · Where to go this weekend?`, `${homeCity} · 这个周末去哪？`)}
+              {pick(locale, `${homeCity} · Where to go this weekend?`, `${homeCity} \u00b7 \u8fd9\u4e2a\u5468\u672b\u53bb\u54ea\uff1f`)}
             </h1>
             <p className="mt-3 text-base leading-7 text-slate-500 md:text-lg">
-              {pick(locale, "Help families decide where to go this weekend.", "帮家庭轻松决定这个周末去哪。")}
+              {pick(locale, "Help families decide where to go this weekend.", "\u5e2e\u5bb6\u5ead\u8f7b\u677e\u51b3\u5b9a\u8fd9\u4e2a\u5468\u672b\u53bb\u54ea\u3002")}
             </p>
           </div>
 
