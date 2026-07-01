@@ -24,8 +24,8 @@ import type { Locale } from "@/lib/i18n/config";
 import { getLocale, pick } from "@/lib/i18n/server";
 
 const scenes = [
-  { key: "camping", label: "Camping", labelZh: "露营", icon: Tent, color: "bg-amber-100 text-amber-700" },
-  { key: "creek", label: "Water", labelZh: "玩水", icon: Waves, color: "bg-sky-100 text-sky-700" }
+  { key: "camping", label: "Camping", labelZh: "露营", icon: Tent },
+  { key: "creek", label: "Water", labelZh: "玩水", icon: Waves }
 ] as const;
 
 const cityNames: Record<string, string> = {
@@ -37,46 +37,6 @@ const cityNames: Record<string, string> = {
   广州: "Guangzhou",
   深圳: "Shenzhen"
 };
-
-const knownCityNames = [
-  "武汉",
-  "黄冈",
-  "咸宁",
-  "鄂州",
-  "孝感",
-  "仙桃",
-  "潜江",
-  "天门",
-  "宜昌",
-  "荆州",
-  "上海",
-  "杭州",
-  "成都",
-  "北京",
-  "广州",
-  "深圳"
-];
-
-function cityOptionName(item: DestinationItem) {
-  const raw = [item.cityZh, item.city].find((value) => value?.trim())?.trim() ?? "";
-  const matched = knownCityNames.find((city) => raw.includes(city));
-  return matched ?? raw;
-}
-
-function getHomeCityOptions(items: DestinationItem[], homeCity: string) {
-  const options = new Set<string>([DEFAULT_HOME_CITY, homeCity]);
-
-  items.forEach((item) => {
-    const city = cityOptionName(item);
-    if (city) options.add(city);
-  });
-
-  return Array.from(options).sort((a, b) => {
-    if (a === DEFAULT_HOME_CITY) return -1;
-    if (b === DEFAULT_HOME_CITY) return 1;
-    return a.localeCompare(b, "zh-CN");
-  });
-}
 
 type WeekendProfile = {
   text: string;
@@ -213,23 +173,6 @@ function getTopDestinations(items: DestinationItem[], homeCity: string) {
   return [...nearby, ...rest].slice(0, 10);
 }
 
-function getScenarioTopDestinations(items: DestinationItem[], homeCity: string, scenario: Scenario) {
-  const scenarioItems = items.filter((item) => item.scenario === scenario);
-  return scenarioItems.length > 0 ? getTopDestinations(scenarioItems, homeCity) : getTopDestinations(items, homeCity);
-}
-
-function getYoungKidTopDestinations(items: DestinationItem[], homeCity: string) {
-  const nearby = items.filter((item) => isNearHomeCity(item, homeCity));
-  const source = nearby.length > 0 ? nearby : items;
-  return [...source]
-    .sort((a, b) => {
-      const ageGap = a.minKidAge - b.minKidAge;
-      if (ageGap !== 0) return ageGap;
-      return worthScore(b) - worthScore(a);
-    })
-    .slice(0, 10);
-}
-
 function destinationListHref(params: Record<string, string | number | boolean>) {
   const searchParams = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => searchParams.set(key, String(value)));
@@ -240,7 +183,6 @@ export default async function HomePage() {
   const [locale, profile, rawDestinations] = await Promise.all([getLocale(), getMyProfile(), getAllDestinations()]);
   const zh = locale === "zh";
   const homeCity = profile?.homeCity?.trim() || DEFAULT_HOME_CITY;
-  const cityOptions = getHomeCityOptions(rawDestinations, homeCity);
   const preferredScenarios = profile?.preferredScenarios ?? [];
   const city = displayCity(homeCity, locale);
   const weekendWeather = getWeekendWeather(homeCity, preferredScenarios, locale);
@@ -259,7 +201,7 @@ export default async function HomePage() {
     },
     {
       key: "young-kids",
-      label: pick(locale, "Young kids", "低龄宝宝"),
+      label: pick(locale, "Family", "亲子"),
       icon: Baby,
       href: destinationListHref({ city: homeCity, scenario: "all", difficulty: "easy", maxDistance: 80, needParking: true, needToilet: true })
     }
@@ -293,25 +235,19 @@ export default async function HomePage() {
         <div className="qmd-container flex h-[320px] flex-col justify-center">
           <div className="max-w-3xl">
             <h1 className="text-4xl font-black leading-tight tracking-[-0.03em] text-slate-950 md:text-[56px]">
-              {pick(locale, `Where to take kids near ${city}`, `${homeCity}本周去哪遛娃`)}
+              {pick(locale, `${city} · Where to go this weekend?`, `${homeCity} · 这个周末去哪？`)}
             </h1>
             <p className="mt-4 text-lg leading-8 text-slate-500 md:text-xl">
-              {pick(locale, "Find real family-friendly places for camping, water play, parks and family weekends.", "发现适合亲子、露营、玩水、公园的真实目的地。")}
+              {pick(locale, "Help families decide where to go this weekend.", "帮家庭轻松决定这个周末去哪。")}
             </p>
           </div>
 
-          <form action="/destinations" className="mt-7 grid gap-3 md:grid-cols-[1fr_160px_auto]">
+          <form action="/destinations" className="mt-7 grid gap-3 md:grid-cols-[1fr_auto]">
+            <input type="hidden" name="city" value={homeCity} />
             <div className="flex h-[56px] min-w-0 items-center gap-3 rounded-full bg-slate-100 px-5">
               <Search className="h-5 w-5 shrink-0 text-slate-400" />
               <input name="q" type="search" placeholder={pick(locale, "Search camping, water, parks...", "搜索露营、玩水、公园……")} className="min-w-0 flex-1 bg-transparent text-base text-slate-900 outline-none placeholder:text-slate-400" />
             </div>
-            <select name="city" defaultValue={homeCity} className="h-[56px] rounded-full bg-slate-100 px-5 text-base font-semibold text-slate-700 outline-none ring-0">
-              {cityOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
             <button type="submit" className="interactive-button h-[56px] rounded-full bg-emerald-600 px-7 text-base font-bold text-white shadow-sm hover:bg-emerald-700">
               {pick(locale, "Search", "搜索")}
             </button>
@@ -340,11 +276,11 @@ export default async function HomePage() {
         />
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1.9fr)_minmax(320px,1fr)]">
           {todayPicks[0] ? (
-            <DestinationCard item={todayPicks[0]} locale={locale} homeCity={homeCity} isSignedIn={Boolean(profile)} badgeLabel={pick(locale, "Today's pick", "今日精选")} inspiration showRating={false} imagePriority />
+            <DestinationCard item={todayPicks[0]} locale={locale} homeCity={homeCity} badgeLabel={pick(locale, "Today's pick", "今日精选")} imagePriority />
           ) : null}
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-1">
             {todayPicks.slice(1, 3).map((item, index) => (
-              <DestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} isSignedIn={Boolean(profile)} badgeLabel={index === 0 ? pick(locale, "Family pick", "亲子精选") : pick(locale, "Weekend pick", "周末精选")} inspiration showRating={false} imagePriority={index < 1} />
+              <DestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} badgeLabel={index === 0 ? pick(locale, "Family pick", "亲子精选") : pick(locale, "Weekend pick", "周末精选")} imagePriority={index < 1} />
             ))}
           </div>
         </div>
@@ -408,7 +344,7 @@ export default async function HomePage() {
         />
         <div className="qmd-grid-3">
           {weatherDestinations.slice(0, 3).map((item) => (
-            <DestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} isSignedIn={Boolean(profile)} badgeLabel={pick(locale, "Weather pick", "天气推荐")} />
+            <DestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} badgeLabel={pick(locale, "Weather pick", "天气推荐")} />
           ))}
         </div>
       </section>
@@ -422,7 +358,7 @@ export default async function HomePage() {
         />
         <div className="qmd-grid-3">
           {nearbyDestinations.slice(0, 3).map((item) => (
-            <DestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} isSignedIn={Boolean(profile)} badgeLabel={pick(locale, "Nearby pick", "附近推荐")} />
+            <DestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} badgeLabel={pick(locale, "Nearby pick", "附近推荐")} />
           ))}
         </div>
       </section>
