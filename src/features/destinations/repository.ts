@@ -74,7 +74,7 @@ const baseDestinationSelectFields =
   "id,name,name_zh,province,province_zh,city,city_zh,latitude,longitude,scenario,distance_km,difficulty,safety,rating,has_parking,has_toilet,min_kid_age,ticket_price,image,description,description_zh,is_active";
 
 const publicDestinationSelectFields =
-  `${baseDestinationSelectFields},featured,created_at,updated_at`;
+  `${baseDestinationSelectFields},created_at,updated_at`;
 
 const destinationSelectFields = baseDestinationSelectFields;
 
@@ -126,6 +126,57 @@ export async function getAllDestinations(): Promise<DestinationItem[]> {
 
 export async function getPublishedDestinations(): Promise<DestinationItem[]> {
   return (await getCachedPublicDestinations()) ?? [];
+}
+
+type HomeRecommendationRow = {
+  destination_id: string | null;
+  section_type: "today_pick" | "more_explore" | string;
+  sort_order: number | null;
+};
+
+export async function getHomeRecommendedDestinations(sectionType: "today_pick" | "more_explore"): Promise<DestinationItem[]> {
+  if (!hasSupabaseEnv()) return [];
+
+  try {
+    const supabase = createPublicClient();
+    const now = new Date().toISOString();
+    const { data, error } = await supabase
+      .from("home_recommendations")
+      .select("destination_id,section_type,sort_order")
+      .eq("section_type", sectionType)
+      .eq("is_active", true)
+      .or(`start_at.is.null,start_at.lte.${now}`)
+      .or(`end_at.is.null,end_at.gte.${now}`)
+      .order("sort_order", { ascending: true })
+      .limit(sectionType === "today_pick" ? 1 : 24);
+
+    if (error || !data || data.length === 0) return [];
+
+    const ids = (data as HomeRecommendationRow[])
+      .map((row) => row.destination_id)
+      .filter((id): id is string => typeof id === "string" && id.length > 0);
+
+    if (ids.length === 0) return [];
+
+    const { data: destinations, error: destinationError } = await supabase
+      .from("destinations")
+      .select(publicDestinationSelectFields)
+      .eq("is_active", true)
+      .in("id", ids);
+
+    if (destinationError || !destinations) return [];
+
+    const byId = new Map(
+      (destinations as DestinationRow[])
+        .map(normalizeRow)
+        .filter((item): item is DestinationItem => item !== null)
+        .map((item) => [item.id, item])
+    );
+
+    return ids.map((id) => byId.get(id)).filter((item): item is DestinationItem => Boolean(item));
+  } catch {
+    return [];
+  }
 }
 
 export async function getFilteredDestinations(filters: DestinationFilters): Promise<DestinationItem[]> {

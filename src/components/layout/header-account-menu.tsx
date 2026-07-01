@@ -9,6 +9,7 @@ import type { Locale } from "@/lib/i18n/config";
 type Props = {
   locale: Locale;
   initialEmail: string | null;
+  isAdmin: boolean;
 };
 
 type ProfileResponse = {
@@ -24,29 +25,30 @@ type ProfileUpdatedEvent = CustomEvent<{
   avatarUrl?: string | null;
 }>;
 
-const menuItems: Record<Locale, Array<{ href: string; label: string }>> = {
-  zh: [
-    { href: "/profile", label: "我的主页" },
-    { href: "/favorites", label: "我的收藏" },
-    { href: "/my-submissions", label: "我的投稿" },
-    { href: "/plans", label: "我的计划" },
-    { href: "/profile", label: "账号设置" }
-  ],
-  en: [
-    { href: "/profile", label: "My home" },
-    { href: "/favorites", label: "Favorites" },
-    { href: "/my-submissions", label: "Submissions" },
-    { href: "/plans", label: "Plans" },
-    { href: "/profile", label: "Account settings" }
-  ]
-};
+const userMenuItems = [
+  { href: "/favorites", label: "\u6211\u7684\u6536\u85cf" },
+  { href: "/plans", label: "\u6211\u7684\u8ba1\u5212" },
+  { href: "/my-submissions", label: "\u6211\u7684\u6295\u7a3f" },
+  { href: "/my-feedback", label: "\u6211\u7684\u53cd\u9988" },
+  { href: "/notifications", label: "\u6211\u7684\u6d88\u606f" },
+  { href: "/profile", label: "\u8d26\u53f7\u8bbe\u7f6e" }
+];
+
+const adminMenuItems = [
+  { href: "/admin/destinations", label: "\u7ba1\u7406\u6240\u6709\u76ee\u7684\u5730" },
+  { href: "/admin/submissions", label: "\u7ba1\u7406\u6295\u7a3f" },
+  { href: "/admin/feedback", label: "\u7ba1\u7406\u53cd\u9988" },
+  { href: "/admin/home-recommendations", label: "\u9996\u9875\u63a8\u8350\u7ba1\u7406" },
+  { href: "/admin/settings", label: "\u7528\u6237\u7ba1\u7406" },
+  { href: "/notifications", label: "\u7cfb\u7edf\u901a\u77e5" }
+];
 
 function initialFrom(name: string | null | undefined, email: string | null) {
   const source = name?.trim() || email?.trim() || "?";
   return source.slice(0, 1).toUpperCase();
 }
 
-export function HeaderAccountMenu({ locale, initialEmail }: Props) {
+export function HeaderAccountMenu({ locale, initialEmail, isAdmin }: Props) {
   const currentUser = useCurrentUser();
   const email = currentUser.isLoading ? initialEmail : currentUser.email;
   const isSignedIn = Boolean(email);
@@ -55,6 +57,7 @@ export function HeaderAccountMenu({ locale, initialEmail }: Props) {
   const [nickname, setNickname] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const menuItems = isAdmin ? adminMenuItems : userMenuItems;
 
   useEffect(() => {
     function closeOnOutsideClick(event: MouseEvent) {
@@ -129,7 +132,7 @@ export function HeaderAccountMenu({ locale, initialEmail }: Props) {
   if (!isSignedIn) {
     return (
       <Link href="/login" className="interactive-button inline-flex h-10 items-center justify-center rounded-full bg-emerald-600 px-5 text-sm font-bold text-white hover:bg-emerald-700">
-        {locale === "zh" ? "登录" : "Log in"}
+        {locale === "zh" ? "\u767b\u5f55" : "Log in"}
       </Link>
     );
   }
@@ -140,19 +143,20 @@ export function HeaderAccountMenu({ locale, initialEmail }: Props) {
         type="button"
         onClick={() => setMenuOpen((value) => !value)}
         className="interactive-button flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-emerald-600 text-sm font-black text-white hover:bg-emerald-700"
-        aria-label={locale === "zh" ? "打开账号菜单" : "Open account menu"}
+        aria-label={locale === "zh" ? "\u6253\u5f00\u8d26\u53f7\u83dc\u5355" : "Open account menu"}
       >
         {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" /> : initialFrom(nickname, email)}
       </button>
 
       {menuOpen ? (
-        <div className="absolute right-0 top-12 z-50 w-56 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl">
+        <div className="absolute right-0 top-12 z-50 w-60 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl">
           <div className="border-b border-slate-100 px-3 py-2">
             <p className="truncate text-sm font-bold text-slate-900">{nickname || email}</p>
+            <p className="mt-1 text-xs font-semibold text-emerald-700">{isAdmin ? "\u7ba1\u7406\u5458" : "\u666e\u901a\u7528\u6237"}</p>
             {nickname ? <p className="truncate text-xs text-slate-500">{email}</p> : null}
           </div>
           <div className="py-2">
-            {menuItems[locale].map((item) => (
+            {menuItems.map((item) => (
               <Link
                 key={`${item.href}-${item.label}`}
                 href={item.href}
@@ -169,7 +173,7 @@ export function HeaderAccountMenu({ locale, initialEmail }: Props) {
             className="block w-full rounded-xl border-t border-slate-100 px-3 py-2 text-left text-sm font-medium text-rose-600 hover:bg-rose-50"
             disabled={signingOut}
           >
-            {signingOut ? (locale === "zh" ? "退出中..." : "Signing out...") : locale === "zh" ? "退出登录" : "Sign out"}
+            {signingOut ? (locale === "zh" ? "\u9000\u51fa\u4e2d..." : "Signing out...") : locale === "zh" ? "\u9000\u51fa\u767b\u5f55" : "Sign out"}
           </button>
         </div>
       ) : null}

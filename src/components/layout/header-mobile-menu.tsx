@@ -11,9 +11,9 @@ type Props = {
 
 const links: Record<Locale, Array<{ href: string; label: string }>> = {
   zh: [
-    { href: "/destinations", label: "发现" },
-    { href: "/map", label: "地图" },
-    { href: "/submit-spot", label: "投稿" }
+    { href: "/destinations", label: "\u53d1\u73b0" },
+    { href: "/map", label: "\u5730\u56fe" },
+    { href: "/submit-spot", label: "\u6295\u7a3f" }
   ],
   en: [
     { href: "/destinations", label: "Discover" },
@@ -41,7 +41,7 @@ export function HeaderMobileMenu({ locale }: Props) {
         type="button"
         onClick={() => setOpen((value) => !value)}
         className="interactive-button inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700"
-        aria-label={locale === "zh" ? "打开导航菜单" : "Open navigation menu"}
+        aria-label={locale === "zh" ? "\u6253\u5f00\u5bfc\u822a\u83dc\u5355" : "Open navigation menu"}
         aria-expanded={open}
       >
         {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}

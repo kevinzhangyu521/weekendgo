@@ -12,8 +12,6 @@ type Props = {
 };
 
 export function AuthNav({ locale, email, isAdmin }: Props) {
-  void isAdmin;
-
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
       <div className="qmd-container flex h-[72px] items-center justify-between gap-6">
@@ -21,20 +19,20 @@ export function AuthNav({ locale, email, isAdmin }: Props) {
           <BrandLogo />
           <nav className="hidden min-w-0 items-center gap-6 whitespace-nowrap text-slate-700 md:flex">
             <Link href="/destinations" className="interactive-nav-link shrink-0">
-              {pick(locale, "Discover", "发现")}
+              {pick(locale, "Discover", "\u53d1\u73b0")}
             </Link>
             <Link href="/map" className="interactive-nav-link shrink-0">
-              {pick(locale, "Map", "地图")}
+              {pick(locale, "Map", "\u5730\u56fe")}
             </Link>
             <Link href="/submit-spot" className="interactive-nav-link shrink-0">
-              {pick(locale, "Submit", "投稿")}
+              {pick(locale, "Submit", "\u6295\u7a3f")}
             </Link>
           </nav>
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
           <HeaderMobileMenu locale={locale} />
-          <HeaderAccountMenu locale={locale} initialEmail={email} />
+          <HeaderAccountMenu locale={locale} initialEmail={email} isAdmin={isAdmin} />
         </div>
       </div>
     </header>

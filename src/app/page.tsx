@@ -3,7 +3,7 @@ import { Baby, Search, Tent, TreePine, Waves } from "lucide-react";
 import { DestinationCard } from "@/components/home/destination-card";
 import { HomeSectionHeader } from "@/components/home/top10-carousel";
 import { hasUsableDestinationImage } from "@/features/destinations/images";
-import { getPublishedDestinations } from "@/features/destinations/repository";
+import { getHomeRecommendedDestinations, getPublishedDestinations } from "@/features/destinations/repository";
 import type { DestinationItem } from "@/features/destinations/types";
 import { getMyProfile } from "@/features/profiles/repository";
 import { DEFAULT_HOME_CITY, withDistanceFromCity } from "@/lib/geo/distance";
@@ -63,7 +63,13 @@ function uniqueById(items: DestinationItem[]) {
 }
 
 export default async function HomePage() {
-  const [locale, profile, rawDestinations] = await Promise.all([getLocale(), getMyProfile(), getPublishedDestinations()]);
+  const [locale, profile, rawDestinations, todayRecommended, moreRecommended] = await Promise.all([
+    getLocale(),
+    getMyProfile(),
+    getPublishedDestinations(),
+    getHomeRecommendedDestinations("today_pick"),
+    getHomeRecommendedDestinations("more_explore")
+  ]);
   const zh = locale === "zh";
   const homeCity = profile?.homeCity?.trim() || DEFAULT_HOME_CITY;
   const heroPlayLinks = scenes.map((item) => ({
@@ -77,14 +83,19 @@ export default async function HomePage() {
   }));
 
   const allDestinations = withDistanceFromCity(rawDestinations, homeCity).filter((item) => hasUsableDestinationImage(item) && Boolean((item.descriptionZh || item.description).trim()));
-  const featuredDestination = sortByPublishedTime(allDestinations.filter((item) => item.featured === true))[0] ?? null;
+  const recommendedToday = withDistanceFromCity(todayRecommended, homeCity).filter((item) => hasUsableDestinationImage(item) && Boolean((item.descriptionZh || item.description).trim()));
+  const recommendedExplore = withDistanceFromCity(moreRecommended, homeCity).filter((item) => hasUsableDestinationImage(item) && Boolean((item.descriptionZh || item.description).trim()));
+  const featuredDestination = recommendedToday[0] ?? null;
   const featuredIds = new Set(featuredDestination ? [featuredDestination.id] : []);
   const nearbyDestinations = allDestinations
     .filter((item) => !featuredIds.has(item.id))
     .sort((a, b) => a.distanceKm - b.distanceKm)
     .slice(0, 3);
   const shownIds = new Set([...featuredIds, ...nearbyDestinations.map((item) => item.id)]);
-  const explorationDestinations = uniqueById(sortByPublishedTime(allDestinations.filter((item) => !shownIds.has(item.id)))).slice(0, 12);
+  const explorationDestinations =
+    recommendedExplore.length > 0
+      ? uniqueById(recommendedExplore).slice(0, 12)
+      : uniqueById(sortByPublishedTime(allDestinations.filter((item) => !shownIds.has(item.id)))).slice(0, 12);
 
   return (
     <main className="min-h-screen bg-slate-50 pb-10">
@@ -128,7 +139,7 @@ export default async function HomePage() {
       <section id="today-pick" className="qmd-container mt-6 scroll-mt-20 md:mt-8">
         <HomeSectionHeader
           title={pick(locale, "Today\u2019s Recommendation", "\u4eca\u65e5\u63a8\u8350")}
-          subtitle={pick(locale, "One editor-marked destination from the database.", "\u8bfb\u53d6\u540e\u53f0\u6807\u8bb0\u7684\u4e3b\u63a8\u76ee\u7684\u5730\u3002")}
+          subtitle={pick(locale, "Selected in admin home recommendations.", "\u8bfb\u53d6\u540e\u53f0\u9996\u9875\u63a8\u8350\u914d\u7f6e\u3002")}
           locale={locale}
         />
         {featuredDestination ? (
