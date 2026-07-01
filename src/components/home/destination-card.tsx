@@ -8,6 +8,7 @@ type Props = {
   item: DestinationItem;
   locale: Locale;
   homeCity: string;
+  metaLine?: string;
   imagePriority?: boolean;
   featured?: boolean;
 };
@@ -27,12 +28,12 @@ function cardTags(item: DestinationItem, locale: Locale) {
   return (item.tags ?? []).map((tag) => tag.trim()).filter(Boolean).slice(0, 2);
 }
 
-export function DestinationCard({ item, locale, homeCity, imagePriority = false, featured = false }: Props) {
+export function DestinationCard({ item, locale, homeCity, metaLine, imagePriority = false, featured = false }: Props) {
   void featured;
 
   const image = getDestinationImage(item);
   const name = destinationName(item, locale);
-  const region = destinationRegion(item, locale) || homeCity;
+  const region = metaLine || destinationRegion(item, locale) || homeCity;
   const detailHref = `/destinations/${item.id}`;
   const reason = shortReason(item, locale);
   const tags = cardTags(item, locale);

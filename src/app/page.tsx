@@ -106,12 +106,21 @@ function EmptyState({ children }: { children: string }) {
   );
 }
 
+function formatKm(distanceKm: number) {
+  return Number.isInteger(distanceKm) ? `${distanceKm}` : distanceKm.toFixed(1);
+}
+
+function nearbyDistanceLine(item: DestinationItem, locale: Locale) {
+  if (!item.distanceKm || item.distanceKm <= 0) return undefined;
+
+  return pick(locale, `About ${formatKm(item.distanceKm)} km away`, `📍 距离约 ${formatKm(item.distanceKm)} km`);
+}
+
 export default async function HomePage() {
   const [locale, profile, rawDestinations] = await Promise.all([getLocale(), getMyProfile(), getPublishedDestinations()]);
   const zh = locale === "zh";
   const homeCity = profile?.homeCity?.trim() || DEFAULT_HOME_CITY;
   const preferredScenarios = profile?.preferredScenarios ?? [];
-  const city = homeCity;
   const heroPlayLinks = [
     ...scenes.map((item) => ({
       key: item.key,
@@ -277,15 +286,15 @@ export default async function HomePage() {
 
       <section id="nearby" className="qmd-container qmd-section scroll-mt-20">
         <HomeSectionHeader
-          title={pick(locale, "15 Minutes Away", "15分钟就能到")}
-          subtitle={pick(locale, `Calculated from ${city}.`, `按常住城市「${homeCity}」计算距离。`)}
+          title={pick(locale, "Nearby Recommendations", "📍 附近推荐")}
+          subtitle={pick(locale, "Recommended from your current location when available.", "根据你的当前位置智能推荐")}
           href={destinationListHref({ city: homeCity, scenario: "all", difficulty: "all", maxDistance: 50, needParking: false, needToilet: false })}
           locale={locale}
         />
         {nearbyDestinations.length > 0 ? (
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
             {nearbyDestinations.slice(0, 4).map((item) => (
-              <DestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} />
+              <DestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} metaLine={nearbyDistanceLine(item, locale)} />
             ))}
           </div>
         ) : (
