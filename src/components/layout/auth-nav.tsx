@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BrandLogo } from "@/components/brand/brand-logo";
 import { pick } from "@/lib/i18n/server";
 import type { Locale } from "@/lib/i18n/config";
+import { HeaderAccountMenu } from "./header-account-menu";
 
 type Props = {
   locale: Locale;
@@ -11,7 +12,6 @@ type Props = {
 
 export function AuthNav({ locale, email, isAdmin }: Props) {
   void isAdmin;
-  const avatarLabel = email?.trim().slice(0, 1).toUpperCase();
 
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
@@ -31,15 +31,7 @@ export function AuthNav({ locale, email, isAdmin }: Props) {
           </nav>
         </div>
 
-        {email ? (
-          <Link href="/profile" aria-label={pick(locale, "Profile", "资料")} className="interactive-button flex h-10 w-10 items-center justify-center rounded-full bg-emerald-600 text-sm font-black text-white hover:bg-emerald-700">
-            {avatarLabel}
-          </Link>
-        ) : (
-          <Link href="/login" className="interactive-button inline-flex h-10 items-center justify-center rounded-full bg-emerald-600 px-5 text-sm font-bold text-white hover:bg-emerald-700">
-            {pick(locale, "Log in", "登录")}
-          </Link>
-        )}
+        <HeaderAccountMenu locale={locale} initialEmail={email} />
       </div>
     </header>
   );
