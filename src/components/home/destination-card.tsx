@@ -76,7 +76,7 @@ export function DestinationCard({ item, locale, homeCity, metaLine, imagePriorit
         ) : null}
         <div className="mt-auto grid grid-cols-2 gap-3 pt-5">
           <Link href={detailHref} className="col-span-2 inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600">
-            {pick(locale, "Details", "查看详情")}
+            {pick(locale, "Details", "\u67e5\u770b\u8be6\u60c5")}
           </Link>
         </div>
       </div>
