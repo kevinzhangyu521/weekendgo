@@ -101,6 +101,10 @@ export async function getAllDestinations(): Promise<DestinationItem[]> {
   return destinationMockData;
 }
 
+export async function getPublishedDestinations(): Promise<DestinationItem[]> {
+  return (await getCachedPublicDestinations()) ?? [];
+}
+
 export async function getFilteredDestinations(filters: DestinationFilters): Promise<DestinationItem[]> {
   return filterDestinations(await getAllDestinations(), filters);
 }

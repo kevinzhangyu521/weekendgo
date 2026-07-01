@@ -9,15 +9,13 @@ import {
 import { DestinationCard } from "@/components/home/destination-card";
 import { HomeSectionHeader } from "@/components/home/top10-carousel";
 import { hasUsableDestinationImage } from "@/features/destinations/images";
-import { getDestinationStats } from "@/features/destinations/stats";
 import {
-  destinationName,
-  destinationScenario
+  destinationName
 } from "@/features/destinations/presenter";
-import { getAllDestinations } from "@/features/destinations/repository";
+import { getPublishedDestinations } from "@/features/destinations/repository";
 import type { DestinationItem, Scenario } from "@/features/destinations/types";
 import { getMyProfile } from "@/features/profiles/repository";
-import { getLatestDestinationReviews, getReviewCountsForDestinations } from "@/features/reviews/repository";
+import { getLatestDestinationReviews } from "@/features/reviews/repository";
 import type { DestinationReview } from "@/features/reviews/types";
 import { DEFAULT_HOME_CITY, withDistanceFromCity } from "@/lib/geo/distance";
 import type { Locale } from "@/lib/i18n/config";
@@ -28,88 +26,9 @@ const scenes = [
   { key: "creek", label: "Water", labelZh: "玩水", icon: Waves }
 ] as const;
 
-const cityNames: Record<string, string> = {
-  武汉: "Wuhan",
-  上海: "Shanghai",
-  北京: "Beijing",
-  杭州: "Hangzhou",
-  成都: "Chengdu",
-  广州: "Guangzhou",
-  深圳: "Shenzhen"
-};
-
-type WeekendProfile = {
-  text: string;
-  textEn: string;
-  temp: number;
-  wind: number;
-  advice: string;
-  adviceEn: string;
-  scenario: Scenario;
-};
-
-const weatherByCity: Record<string, WeekendProfile> = {
-  武汉: {
-    text: "多云间晴",
-    textEn: "Partly sunny",
-    temp: 28,
-    wind: 2,
-    advice: "适合野餐和轻徒步",
-    adviceEn: "Good for picnic and light hiking",
-    scenario: "picnic"
-  },
-  上海: {
-    text: "阴到多云",
-    textEn: "Cloudy",
-    temp: 26,
-    wind: 3,
-    advice: "适合公园野餐和短途徒步",
-    adviceEn: "Good for parks and short walks",
-    scenario: "picnic"
-  },
-  杭州: {
-    text: "晴到多云",
-    textEn: "Sunny to cloudy",
-    temp: 27,
-    wind: 2,
-    advice: "适合徒步和溪流周边游",
-    adviceEn: "Good for hiking and creek trips",
-    scenario: "creek"
-  }
-};
-
-function displayCity(city: string, locale: Locale) {
-  return pick(locale, cityNames[city] ?? city, city);
-}
-
-function getWeekendWeather(city: string, preferredScenarios: Scenario[], locale: Locale) {
-  const profile = weatherByCity[city] ?? weatherByCity[DEFAULT_HOME_CITY] ?? weatherByCity.武汉;
-  const scenario = preferredScenarios[0] ?? profile.scenario;
-
-  return {
-    scenario,
-    weather: pick(locale, `${profile.textEn} ${profile.temp}C`, `${profile.text} ${profile.temp}°C`),
-    wind: pick(locale, `Wind level ${profile.wind}`, `风力 ${profile.wind}级`),
-    advice:
-      preferredScenarios.length > 0
-        ? pick(locale, "Matched with your saved preferences", "已根据你的偏好场景匹配")
-        : pick(locale, profile.adviceEn, profile.advice)
-  };
-}
-
 function shortText(text: string, maxLength = 80) {
   const normalized = text.replace(/\s+/g, " ").trim();
   return normalized.length > maxLength ? `${normalized.slice(0, maxLength)}...` : normalized;
-}
-
-function shareTag(item: DestinationItem, locale: Locale) {
-  const labels: Record<Scenario, { en: string; zh: string }> = {
-    camping: { en: "Camping experience", zh: "露营体验" },
-    creek: { en: "Creek guide", zh: "溯溪攻略" },
-    hiking: { en: "Family-tested trail", zh: "亲子实测" },
-    picnic: { en: "Mom's pick", zh: "宝妈分享" }
-  };
-  return pick(locale, labels[item.scenario].en, labels[item.scenario].zh);
 }
 
 function formatShareTime(value: string, locale: Locale) {
@@ -179,13 +98,20 @@ function destinationListHref(params: Record<string, string | number | boolean>) 
   return `/destinations?${searchParams.toString()}`;
 }
 
+function EmptyState({ children }: { children: string }) {
+  return (
+    <div className="qmd-place-card flex min-h-[180px] items-center justify-center p-6 text-center text-sm font-semibold text-slate-500">
+      {children}
+    </div>
+  );
+}
+
 export default async function HomePage() {
-  const [locale, profile, rawDestinations] = await Promise.all([getLocale(), getMyProfile(), getAllDestinations()]);
+  const [locale, profile, rawDestinations] = await Promise.all([getLocale(), getMyProfile(), getPublishedDestinations()]);
   const zh = locale === "zh";
   const homeCity = profile?.homeCity?.trim() || DEFAULT_HOME_CITY;
   const preferredScenarios = profile?.preferredScenarios ?? [];
-  const city = displayCity(homeCity, locale);
-  const weekendWeather = getWeekendWeather(homeCity, preferredScenarios, locale);
+  const city = homeCity;
   const heroPlayLinks = [
     ...scenes.map((item) => ({
       key: item.key,
@@ -206,33 +132,23 @@ export default async function HomePage() {
       href: destinationListHref({ city: homeCity, scenario: "all", difficulty: "easy", maxDistance: 80, needParking: true, needToilet: true })
     }
   ];
-  const allDestinations = withDistanceFromCity(rawDestinations, homeCity).filter(hasUsableDestinationImage);
+  const allDestinations = withDistanceFromCity(rawDestinations, homeCity).filter((item) => hasUsableDestinationImage(item) && Boolean((item.descriptionZh || item.description).trim()));
   const destinationIds = allDestinations.map((item) => item.id);
-  const [reviewCounts, destinationStats] = await Promise.all([
-    getReviewCountsForDestinations(destinationIds),
-    getDestinationStats(destinationIds)
-  ]);
-  const destinationsWithReviews = allDestinations.map((item) => ({
-    ...item,
-    reviewCount: reviewCounts.get(item.id) ?? 0,
-    favoriteCount: destinationStats.get(item.id)?.favoriteCount ?? 0,
-    viewCount: destinationStats.get(item.id)?.viewCount ?? 0,
-    shareCount: destinationStats.get(item.id)?.shareCount ?? 0
-  }));
-  const topDestinations = getTopDestinations(destinationsWithReviews, homeCity);
+  const topDestinations = getTopDestinations(allDestinations, homeCity);
   const todayPicks = topDestinations.slice(0, 3);
   const todayPickIds = new Set(todayPicks.map((item) => item.id));
-  const weatherDestinations = destinationsWithReviews
-    .filter((item) => item.scenario === weekendWeather.scenario && !todayPickIds.has(item.id))
+  const weatherScenario = preferredScenarios[0] ?? topDestinations.find((item) => !todayPickIds.has(item.id))?.scenario;
+  const weatherDestinations = allDestinations
+    .filter((item) => item.scenario === weatherScenario && !todayPickIds.has(item.id))
     .sort((a, b) => worthScore(b) - worthScore(a))
     .slice(0, 3);
   const usedDestinationIds = new Set([...todayPicks, ...weatherDestinations].map((item) => item.id));
-  const nearbyDestinations = destinationsWithReviews
+  const nearbyDestinations = allDestinations
     .filter((item) => !usedDestinationIds.has(item.id))
     .sort((a, b) => a.distanceKm - b.distanceKm)
     .slice(0, 4);
   const latestReviews = await getLatestDestinationReviews(destinationIds, 4);
-  const destinationsById = new Map(destinationsWithReviews.map((item) => [item.id, item]));
+  const destinationsById = new Map(allDestinations.map((item) => [item.id, item]));
 
   return (
     <main className="min-h-screen bg-slate-50 pb-10">
@@ -279,16 +195,20 @@ export default async function HomePage() {
           subtitle={pick(locale, "Start with three places worth opening first.", "先看今天最值得打开的三个目的地。")}
           locale={locale}
         />
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.9fr)_minmax(320px,1fr)]">
-          {todayPicks[0] ? (
-            <DestinationCard item={todayPicks[0]} locale={locale} homeCity={homeCity} badgeLabel={pick(locale, "Today's pick", "今日精选")} imagePriority featured />
-          ) : null}
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-1">
-            {todayPicks.slice(1, 3).map((item, index) => (
-              <DestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} badgeLabel={index === 0 ? pick(locale, "Family pick", "亲子精选") : pick(locale, "Weekend pick", "周末精选")} imagePriority={index < 1} />
-            ))}
+        {todayPicks.length > 0 ? (
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1.9fr)_minmax(320px,1fr)]">
+            {todayPicks[0] ? (
+              <DestinationCard item={todayPicks[0]} locale={locale} homeCity={homeCity} imagePriority featured />
+            ) : null}
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-1">
+              {todayPicks.slice(1, 3).map((item, index) => (
+                <DestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} imagePriority={index < 1} />
+              ))}
+            </div>
           </div>
-        </div>
+        ) : (
+          <EmptyState>{pick(locale, "No recommendations yet", "暂无推荐内容")}</EmptyState>
+        )}
       </section>
 
       <section className="qmd-container qmd-section">
@@ -313,18 +233,11 @@ export default async function HomePage() {
                         <p className="font-bold text-slate-950">{review.userName || pick(locale, "Nickname not set", "未设置昵称")}</p>
                         <span className="text-xs text-slate-400">{formatShareTime(review.createdAt, locale)}</span>
                       </div>
-                      <div className="mt-1 flex flex-wrap gap-1.5">
-                        <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">{shareTag(item, locale)}</span>
-                        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">{destinationScenario(item, locale)}</span>
-                      </div>
                     </div>
                   </div>
                   <h3 className="mt-3 line-clamp-1 text-base font-black text-slate-950">{destinationName(item, locale)}</h3>
                   <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">{shortText(review.content, 80)}</p>
-                  <div className="mt-auto flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
-                      ⭐ {review.rating.toFixed(1)}
-                    </span>
+                  <div className="mt-auto flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
                     <span className="text-sm font-bold text-emerald-700 group-hover:text-emerald-800">
                       {pick(locale, "View review", "查看评价")}
                     </span>
@@ -334,7 +247,7 @@ export default async function HomePage() {
             })
           ) : (
             <div className="qmd-place-card w-[320px] shrink-0 p-5 text-sm text-slate-600 md:w-[380px]">
-              {pick(locale, "No family stories yet. Reviews submitted by users will appear here.", "暂无真实亲子分享。用户提交评价后，会显示在这里。")}
+              {pick(locale, "No family stories yet", "还没有家庭故事")}
             </div>
           )}
         </div>
@@ -343,19 +256,23 @@ export default async function HomePage() {
       <section className="qmd-container qmd-section">
         <HomeSectionHeader
           title={pick(locale, "Today's Recommendation", "今天适合")}
-          subtitle={pick(locale, `${weekendWeather.weather}. ${weekendWeather.advice}.`, `今天${homeCity}${weekendWeather.weather}，${weekendWeather.advice}。`)}
+          subtitle={pick(locale, "Based on published destinations and your saved preferences.", "根据已发布目的地和你的偏好推荐。")}
           href={`/weather?city=${encodeURIComponent(homeCity)}`}
           locale={locale}
         />
-        <div className="rounded-3xl border border-emerald-100 bg-emerald-50/70 p-4">
+        {weatherDestinations.length > 0 ? (
+          <div className="rounded-3xl border border-emerald-100 bg-emerald-50/70 p-4">
           <div className="scrollbar-none flex gap-5 overflow-x-auto pb-1">
           {weatherDestinations.slice(0, 3).map((item) => (
             <div key={item.id} className="w-[300px] shrink-0 md:w-[360px]">
-              <DestinationCard item={item} locale={locale} homeCity={homeCity} badgeLabel={pick(locale, "Weather pick", "天气推荐")} />
+              <DestinationCard item={item} locale={locale} homeCity={homeCity} />
             </div>
           ))}
           </div>
-        </div>
+          </div>
+        ) : (
+          <EmptyState>{pick(locale, "No recommendations yet", "暂无推荐内容")}</EmptyState>
+        )}
       </section>
 
       <section id="nearby" className="qmd-container qmd-section scroll-mt-20">
@@ -365,18 +282,15 @@ export default async function HomePage() {
           href={destinationListHref({ city: homeCity, scenario: "all", difficulty: "all", maxDistance: 50, needParking: false, needToilet: false })}
           locale={locale}
         />
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.4fr)]">
-          <div className="min-h-[260px] rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="flex h-full min-h-[220px] items-center justify-center rounded-2xl bg-emerald-50 text-sm font-bold text-emerald-700">
-              {pick(locale, "Nearby map area", "附近地图区域")}
-            </div>
-          </div>
-          <div className="grid gap-5 md:grid-cols-2">
+        {nearbyDestinations.length > 0 ? (
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
             {nearbyDestinations.slice(0, 4).map((item) => (
-              <DestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} badgeLabel={pick(locale, "Nearby pick", "附近推荐")} />
+              <DestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} />
             ))}
           </div>
-        </div>
+        ) : (
+          <EmptyState>{pick(locale, "No nearby recommendations yet", "暂无附近推荐")}</EmptyState>
+        )}
       </section>
 
       <footer className="qmd-container mt-24 border-t border-slate-200 py-24 text-sm text-slate-500">
