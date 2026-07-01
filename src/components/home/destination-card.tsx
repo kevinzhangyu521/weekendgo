@@ -53,15 +53,17 @@ function cardTags(item: DestinationItem, locale: Locale) {
 }
 
 export function DestinationCard({ item, locale, homeCity, badgeLabel, imagePriority = false, featured = false }: Props) {
+  void featured;
+
   const image = getDestinationImage(item);
   const name = destinationName(item, locale);
   const region = destinationRegion(item, locale) || homeCity;
   const detailHref = `/destinations/${item.id}`;
 
   return (
-    <article className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+    <article className="qmd-place-card flex h-full min-h-[430px] flex-col">
       <Link href={detailHref} className="block">
-        <div className={`relative bg-slate-100 ${featured ? "aspect-[5/4]" : "aspect-[4/3]"}`}>
+        <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
           <img
             src={image.src}
             alt={name}
@@ -69,7 +71,7 @@ export function DestinationCard({ item, locale, homeCity, badgeLabel, imagePrior
             fetchPriority={imagePriority ? "high" : "auto"}
             decoding="async"
             referrerPolicy="no-referrer"
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover brightness-[1.03] saturate-[1.04]"
           />
           {badgeLabel ? (
             <span className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-emerald-700 shadow-sm">
@@ -78,12 +80,12 @@ export function DestinationCard({ item, locale, homeCity, badgeLabel, imagePrior
           ) : null}
         </div>
       </Link>
-      <div className="p-5">
+      <div className="flex flex-1 flex-col p-5">
         <Link href={detailHref} className="block">
-          <h3 className="line-clamp-1 text-xl font-bold text-slate-950">{name}</h3>
+          <h3 className="line-clamp-1 min-h-7 text-xl font-bold text-slate-950">{name}</h3>
         </Link>
-        <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">{shortReason(item, locale)}</p>
-        <p className="mt-3 text-sm font-medium text-slate-500">{region}</p>
+        <p className="mt-2 line-clamp-2 min-h-12 text-sm leading-6 text-slate-600">{shortReason(item, locale)}</p>
+        <p className="mt-3 line-clamp-1 min-h-5 text-sm font-medium text-slate-500">{region}</p>
         <div className="mt-4 flex flex-wrap gap-2">
           {cardTags(item, locale).map((tag) => (
             <span key={tag} className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
@@ -91,7 +93,7 @@ export function DestinationCard({ item, locale, homeCity, badgeLabel, imagePrior
             </span>
           ))}
         </div>
-        <div className="mt-5 grid grid-cols-2 gap-3">
+        <div className="mt-auto grid grid-cols-2 gap-3 pt-5">
           <Link href={detailHref} className="col-span-2 inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600">
             {pick(locale, "Details", "查看详情")}
           </Link>

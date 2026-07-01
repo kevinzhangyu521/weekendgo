@@ -237,7 +237,7 @@ export default async function HomePage() {
   return (
     <main className="min-h-screen bg-slate-50 pb-10">
       <section className="bg-white">
-        <div className="qmd-container flex min-h-[230px] flex-col justify-center py-6 md:min-h-[250px]">
+        <div className="qmd-container flex min-h-[180px] flex-col justify-center py-4 md:min-h-[200px]">
           <div className="max-w-3xl">
             <h1 className="text-3xl font-black leading-tight tracking-[-0.03em] text-slate-950 md:text-5xl">
               {pick(locale, `${city} · Where to go this weekend?`, `${homeCity} · 这个周末去哪？`)}
@@ -379,7 +379,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <footer className="qmd-container mt-20 border-t border-slate-200 py-8 text-sm text-slate-500">
+      <footer className="qmd-container mt-24 border-t border-slate-200 py-24 text-sm text-slate-500">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <p>{pick(locale, "Qimeide helps families find weekend outdoor places.", "栖美地帮亲子家庭发现周末户外目的地。")}</p>
           <p>{pick(locale, "Camping · Water play · Parks · Family trips", "露营 · 玩水 · 公园 · 亲子出游")}</p>
