@@ -37,6 +37,9 @@ export type DestinationItem = {
   viewCount?: number | null;
   shareCount?: number | null;
   badgeText?: string | null;
+  featured?: boolean | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
 };
 
 export type DestinationFilters = {

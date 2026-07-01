@@ -28,6 +28,10 @@ type DestinationRow = {
   description: string | null;
   description_zh: string | null;
   is_active: boolean | null;
+  featured?: boolean | null;
+  is_featured?: boolean | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 };
 
 function hasSupabaseEnv() {
@@ -59,12 +63,20 @@ function normalizeRow(row: DestinationRow): DestinationItem | null {
     image: row.image ?? "",
     description: row.description ?? "",
     descriptionZh: row.description_zh,
-    isActive: row.is_active ?? true
+    isActive: row.is_active ?? true,
+    featured: row.featured ?? row.is_featured ?? false,
+    createdAt: row.created_at ?? row.updated_at ?? null,
+    updatedAt: row.updated_at ?? null
   };
 }
 
-const destinationSelectFields =
+const baseDestinationSelectFields =
   "id,name,name_zh,province,province_zh,city,city_zh,latitude,longitude,scenario,distance_km,difficulty,safety,rating,has_parking,has_toilet,min_kid_age,ticket_price,image,description,description_zh,is_active";
+
+const publicDestinationSelectFields =
+  `${baseDestinationSelectFields},featured,created_at,updated_at`;
+
+const destinationSelectFields = baseDestinationSelectFields;
 
 async function fetchPublicSupabaseDestinations(): Promise<DestinationItem[] | null> {
   if (!hasSupabaseEnv()) return null;
@@ -73,12 +85,23 @@ async function fetchPublicSupabaseDestinations(): Promise<DestinationItem[] | nu
     const supabase = createPublicClient();
     const { data, error } = await supabase
       .from("destinations")
-      .select(destinationSelectFields)
+      .select(publicDestinationSelectFields)
       .eq("is_active", true)
-      .order("rating", { ascending: false })
+      .order("created_at", { ascending: false })
       .limit(120);
 
-    if (error || !data) return null;
+    if (error || !data) {
+      const fallback = await supabase
+        .from("destinations")
+        .select(baseDestinationSelectFields)
+        .eq("is_active", true)
+        .order("rating", { ascending: false })
+        .limit(120);
+
+      if (fallback.error || !fallback.data) return null;
+
+      return (fallback.data as DestinationRow[]).map(normalizeRow).filter((item): item is DestinationItem => item !== null);
+    }
 
     return (data as DestinationRow[]).map(normalizeRow).filter((item): item is DestinationItem => item !== null);
   } catch {
@@ -88,7 +111,7 @@ async function fetchPublicSupabaseDestinations(): Promise<DestinationItem[] | nu
 
 const getCachedPublicDestinations = unstable_cache(
   async () => fetchPublicSupabaseDestinations(),
-  ["public-destinations-v1"],
+  ["public-destinations-v2"],
   {
     revalidate: 300,
     tags: ["destinations"]
