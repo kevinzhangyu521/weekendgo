@@ -1,4 +1,5 @@
 import { getCurrentAuth } from "@/lib/auth/current-user";
+import { normalizeUserRole } from "@/lib/auth/roles";
 import type { Scenario } from "@/features/destinations/types";
 import type { UserProfile } from "./types";
 
@@ -11,6 +12,7 @@ type ProfileRow = {
   kid_age: number | null;
   preferred_scenarios: Scenario[] | null;
   receive_notifications: boolean | null;
+  role: string | null;
 };
 
 const validScenarios = new Set<Scenario>(["camping", "creek", "hiking", "picnic"]);
@@ -34,7 +36,7 @@ export async function getMyProfile(): Promise<UserProfile | null> {
   const { supabase, user } = await getCurrentAuth();
   if (!user) return null;
 
-  const { data } = await supabase.from("user_profiles").select("user_id,nickname,avatar_url,bio,home_city,kid_age,preferred_scenarios,receive_notifications").eq("user_id", user.id).maybeSingle();
+  const { data } = await supabase.from("user_profiles").select("user_id,nickname,avatar_url,bio,home_city,kid_age,preferred_scenarios,receive_notifications,role").eq("user_id", user.id).maybeSingle();
   const row = data as ProfileRow | null;
 
   return {
@@ -46,7 +48,8 @@ export async function getMyProfile(): Promise<UserProfile | null> {
     homeCity: row?.home_city ?? "",
     kidAge: row?.kid_age ?? null,
     preferredScenarios: row?.preferred_scenarios ?? [],
-    receiveNotifications: row?.receive_notifications ?? true
+    receiveNotifications: row?.receive_notifications ?? true,
+    role: normalizeUserRole(row?.role)
   };
 }
 

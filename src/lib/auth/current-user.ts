@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { QIMEIDE_ACCESS_TOKEN_COOKIE } from "@/lib/auth/server-session-cookies";
 import { createAuthenticatedPublicClient } from "@/lib/supabase/public";
 import { createClient } from "@/lib/supabase/server";
+import { getUserRole, isAdminRole, type UserRole } from "./roles";
 
 export type CurrentAuth = {
   supabase: Awaited<ReturnType<typeof createClient>>;
@@ -42,8 +43,8 @@ export async function getCurrentUser() {
 
 export async function getCurrentAuthWithAdmin() {
   const { supabase, user } = await getCurrentAuth();
-  if (!user) return { supabase, user: null, isAdmin: false };
+  if (!user) return { supabase, user: null, role: "user" as UserRole, isAdmin: false };
 
-  const { data } = await supabase.from("admin_users").select("user_id").eq("user_id", user.id).maybeSingle();
-  return { supabase, user, isAdmin: Boolean(data) };
+  const role = await getUserRole(supabase, user.id);
+  return { supabase, user, role, isAdmin: isAdminRole(role) };
 }

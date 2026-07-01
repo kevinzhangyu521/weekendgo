@@ -75,8 +75,7 @@ function normalize(row: DestinationRow): AdminDestination | null {
 async function requireBrowserAdmin(request: Request) {
   const auth = await getRequestAuth(request);
   if (!auth.user) return { ...auth, isAdmin: false };
-  const { data } = await auth.supabase.from("admin_users").select("user_id").eq("user_id", auth.user.id).maybeSingle();
-  return { ...auth, isAdmin: Boolean(data) };
+  return auth;
 }
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {

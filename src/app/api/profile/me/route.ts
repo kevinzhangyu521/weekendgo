@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { Scenario } from "@/features/destinations/types";
 import type { UserProfile } from "@/features/profiles/types";
 import { getRequestAuth } from "@/lib/auth/request-auth";
+import { normalizeUserRole } from "@/lib/auth/roles";
 
 type ProfileRow = {
   user_id: string;
@@ -12,6 +13,7 @@ type ProfileRow = {
   kid_age: number | null;
   preferred_scenarios: Scenario[] | null;
   receive_notifications: boolean | null;
+  role: string | null;
 };
 
 const validScenarios = new Set<Scenario>(["camping", "creek", "hiking", "picnic"]);
@@ -43,7 +45,7 @@ export async function GET(request: Request) {
 
   const { data, error } = await supabase
     .from("user_profiles")
-    .select("user_id,nickname,avatar_url,bio,home_city,kid_age,preferred_scenarios,receive_notifications")
+    .select("user_id,nickname,avatar_url,bio,home_city,kid_age,preferred_scenarios,receive_notifications,role")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -69,14 +71,15 @@ export async function GET(request: Request) {
     homeCity: row?.home_city ?? "",
     kidAge: row?.kid_age ?? null,
     preferredScenarios: row?.preferred_scenarios ?? [],
-    receiveNotifications: row?.receive_notifications ?? true
+    receiveNotifications: row?.receive_notifications ?? true,
+    role: normalizeUserRole(row?.role)
   };
 
   return NextResponse.json({ ok: true, profile, authSource });
 }
 
 export async function PUT(request: Request) {
-  const { supabase, user, authSource } = await getRequestAuth(request);
+  const { supabase, user, authSource, role } = await getRequestAuth(request);
   if (!user) {
     return NextResponse.json({ ok: false, authSource, message: "\u8bf7\u5148\u767b\u5f55\u3002" }, { status: 401 });
   }
@@ -136,7 +139,8 @@ export async function PUT(request: Request) {
     homeCity: body.homeCity?.trim() ?? "",
     kidAge,
     preferredScenarios: normalizeScenarios(body.preferredScenarios),
-    receiveNotifications: Boolean(body.receiveNotifications)
+    receiveNotifications: Boolean(body.receiveNotifications),
+    role
   };
 
   return NextResponse.json({ ok: true, message: "\u8d44\u6599\u5df2\u4fdd\u5b58\u3002", profile, authSource });

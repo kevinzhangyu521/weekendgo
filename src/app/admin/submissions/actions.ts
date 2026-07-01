@@ -1,22 +1,14 @@
 "use server";
 
 import { revalidatePath, revalidateTag } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
-
-async function isAdminUser(supabase: Awaited<ReturnType<typeof createClient>>, userId: string) {
-  const { data } = await supabase.from("admin_users").select("user_id").eq("user_id", userId).maybeSingle();
-  return Boolean(data);
-}
+import { getCurrentAuthWithAdmin } from "@/lib/auth/current-user";
 
 export async function approveSubmission(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   if (!id) return;
 
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
-  if (!user || !(await isAdminUser(supabase, user.id))) return;
+  const { supabase, user, isAdmin } = await getCurrentAuthWithAdmin();
+  if (!user || !isAdmin) return;
 
   const { data: submission, error } = await supabase
     .from("spot_submissions")
@@ -104,11 +96,8 @@ export async function requestChangesSubmission(formData: FormData) {
     "\u8bf7\u8865\u5145\u66f4\u5b8c\u6574\u7684\u5730\u70b9\u4fe1\u606f\u3001\u73b0\u573a\u56fe\u7247\u6216\u5b89\u5168\u63d0\u793a\u540e\u518d\u6b21\u63d0\u4ea4\u3002";
   if (!id) return;
 
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
-  if (!user || !(await isAdminUser(supabase, user.id))) return;
+  const { supabase, user, isAdmin } = await getCurrentAuthWithAdmin();
+  if (!user || !isAdmin) return;
 
   const { data: submission } = await supabase
     .from("spot_submissions")
@@ -154,11 +143,8 @@ export async function rejectSubmission(formData: FormData) {
     "\u672a\u901a\u8fc7\u5ba1\u6838\uff0c\u5efa\u8bae\u8865\u5145\u66f4\u6e05\u6670\u7684\u5730\u70b9\u4fe1\u606f\u3001\u5b89\u5168\u63d0\u793a\u6216\u73b0\u573a\u56fe\u7247\u540e\u518d\u6b21\u63d0\u4ea4\u3002";
   if (!id) return;
 
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
-  if (!user || !(await isAdminUser(supabase, user.id))) return;
+  const { supabase, user, isAdmin } = await getCurrentAuthWithAdmin();
+  if (!user || !isAdmin) return;
 
   const { data: submission } = await supabase
     .from("spot_submissions")

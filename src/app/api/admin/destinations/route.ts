@@ -70,14 +70,13 @@ function normalize(row: DestinationRow): AdminDestination | null {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q")?.trim() ?? "";
-  const { supabase, user, authSource } = await getRequestAuth(request);
+  const { supabase, user, authSource, isAdmin } = await getRequestAuth(request);
 
   if (!user) {
     return NextResponse.json({ ok: false, destinations: [], isAdmin: false, authSource, message: "\u8bf7\u5148\u767b\u5f55\u3002" }, { status: 401 });
   }
 
-  const { data: admin } = await supabase.from("admin_users").select("user_id").eq("user_id", user.id).maybeSingle();
-  if (!admin) {
+  if (!isAdmin) {
     return NextResponse.json({ ok: false, destinations: [], isAdmin: false, authSource, message: "\u4f60\u6ca1\u6709\u7ba1\u7406\u5458\u6743\u9650\u3002" }, { status: 403 });
   }
 

@@ -25,9 +25,7 @@ type DestinationRow = {
 async function requireAdmin(request: Request) {
   const auth = await getRequestAuth(request);
   if (!auth.user) return { ...auth, isAdmin: false };
-
-  const { data } = await auth.supabase.from("admin_users").select("user_id").eq("user_id", auth.user.id).maybeSingle();
-  return { ...auth, isAdmin: Boolean(data) };
+  return auth;
 }
 
 function normalizeRecommendation(row: RecommendationRow, destination?: DestinationRow | null) {

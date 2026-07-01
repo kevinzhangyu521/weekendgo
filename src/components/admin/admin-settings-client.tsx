@@ -4,10 +4,12 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
+import { ClaimAdminForm } from "@/app/admin/settings/claim-admin-form";
 
 type AdminMeResponse = {
   ok?: boolean;
   isAdmin?: boolean;
+  role?: string;
   email?: string | null;
 };
 
@@ -91,7 +93,8 @@ export function AdminSettingsClient() {
             <div>
               <p className="font-semibold text-amber-800">{"\u5f53\u524d\u8d26\u53f7\u8fd8\u4e0d\u662f\u7ba1\u7406\u5458"}</p>
               <p className="mt-2 text-sm text-slate-600">{email ?? currentUser.email}</p>
-              <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">{"\u5982\u679c\u4f60\u786e\u8ba4\u8fd9\u662f\u7ba1\u7406\u5458\u8d26\u53f7\uff0c\u8bf7\u68c0\u67e5 Supabase admin_users \u8868\u91cc\u662f\u5426\u6709\u8fd9\u4e2a\u8d26\u53f7\u7684 user_id\u3002"}</p>
+              <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">{"\u7ba1\u7406\u5458\u6743\u9650\u73b0\u5728\u4ee5 user_profiles.role \u4e3a\u51c6\u3002\u5982\u679c\u7cfb\u7edf\u8fd8\u6ca1\u6709\u7ba1\u7406\u5458\uff0c\u53ef\u4ee5\u5728\u672c\u9875\u521d\u59cb\u5316\u7b2c\u4e00\u4e2a\u7ba1\u7406\u5458\u3002"}</p>
+              <ClaimAdminForm />
             </div>
           )}
         </div>
