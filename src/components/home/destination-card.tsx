@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { AmapNavigationButton } from "@/components/plans/amap-navigation-button";
 import { getDestinationImage } from "@/features/destinations/images";
 import { destinationName, destinationRegion } from "@/features/destinations/presenter";
 import type { DestinationItem, Scenario } from "@/features/destinations/types";
@@ -11,7 +10,6 @@ type Props = {
   homeCity: string;
   badgeLabel?: string;
   imagePriority?: boolean;
-  isSignedIn?: boolean;
   featured?: boolean;
 };
 
@@ -54,7 +52,7 @@ function cardTags(item: DestinationItem, locale: Locale) {
   return (locale === "zh" ? scenarioTags[item.scenario].zh : scenarioTags[item.scenario].en).slice(0, 2);
 }
 
-export function DestinationCard({ item, locale, homeCity, badgeLabel, imagePriority = false, isSignedIn = false, featured = false }: Props) {
+export function DestinationCard({ item, locale, homeCity, badgeLabel, imagePriority = false, featured = false }: Props) {
   const image = getDestinationImage(item);
   const name = destinationName(item, locale);
   const region = destinationRegion(item, locale) || homeCity;
@@ -94,17 +92,9 @@ export function DestinationCard({ item, locale, homeCity, badgeLabel, imagePrior
           ))}
         </div>
         <div className="mt-5 grid grid-cols-2 gap-3">
-          <Link href={detailHref} className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600">
+          <Link href={detailHref} className="col-span-2 inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600">
             {pick(locale, "Details", "查看详情")}
           </Link>
-          <AmapNavigationButton
-            destination={item}
-            label={pick(locale, "Navigate", "立即导航")}
-            className="h-10 w-full rounded-full bg-emerald-600 px-4 text-sm font-bold text-white"
-            isSignedIn={isSignedIn}
-            loginHref={`/login?next=${encodeURIComponent(detailHref)}`}
-            signedOutLabel={pick(locale, "Navigate", "立即导航")}
-          />
         </div>
       </div>
     </article>

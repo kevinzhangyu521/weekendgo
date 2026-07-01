@@ -3,6 +3,7 @@ import { BrandLogo } from "@/components/brand/brand-logo";
 import { pick } from "@/lib/i18n/server";
 import type { Locale } from "@/lib/i18n/config";
 import { HeaderAccountMenu } from "./header-account-menu";
+import { HeaderMobileMenu } from "./header-mobile-menu";
 
 type Props = {
   locale: Locale;
@@ -18,7 +19,7 @@ export function AuthNav({ locale, email, isAdmin }: Props) {
       <div className="qmd-container flex h-[72px] items-center justify-between gap-6">
         <div className="flex min-w-0 items-center gap-8 text-sm">
           <BrandLogo />
-          <nav className="scrollbar-none flex min-w-0 items-center gap-4 overflow-x-auto whitespace-nowrap text-slate-700 md:gap-6">
+          <nav className="hidden min-w-0 items-center gap-6 whitespace-nowrap text-slate-700 md:flex">
             <Link href="/destinations" className="interactive-nav-link shrink-0">
               {pick(locale, "Discover", "发现")}
             </Link>
@@ -31,7 +32,10 @@ export function AuthNav({ locale, email, isAdmin }: Props) {
           </nav>
         </div>
 
-        <HeaderAccountMenu locale={locale} initialEmail={email} />
+        <div className="flex shrink-0 items-center gap-2">
+          <HeaderMobileMenu locale={locale} />
+          <HeaderAccountMenu locale={locale} initialEmail={email} />
+        </div>
       </div>
     </header>
   );

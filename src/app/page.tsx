@@ -221,11 +221,16 @@ export default async function HomePage() {
   }));
   const topDestinations = getTopDestinations(destinationsWithReviews, homeCity);
   const todayPicks = topDestinations.slice(0, 3);
+  const todayPickIds = new Set(todayPicks.map((item) => item.id));
   const weatherDestinations = destinationsWithReviews
-    .filter((item) => item.scenario === weekendWeather.scenario)
+    .filter((item) => item.scenario === weekendWeather.scenario && !todayPickIds.has(item.id))
     .sort((a, b) => worthScore(b) - worthScore(a))
+    .slice(0, 3);
+  const usedDestinationIds = new Set([...todayPicks, ...weatherDestinations].map((item) => item.id));
+  const nearbyDestinations = destinationsWithReviews
+    .filter((item) => !usedDestinationIds.has(item.id))
+    .sort((a, b) => a.distanceKm - b.distanceKm)
     .slice(0, 4);
-  const nearbyDestinations = [...destinationsWithReviews].sort((a, b) => a.distanceKm - b.distanceKm).slice(0, 4);
   const latestReviews = await getLatestDestinationReviews(destinationIds, 4);
   const destinationsById = new Map(destinationsWithReviews.map((item) => [item.id, item]));
 
@@ -276,11 +281,11 @@ export default async function HomePage() {
         />
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1.9fr)_minmax(320px,1fr)]">
           {todayPicks[0] ? (
-            <DestinationCard item={todayPicks[0]} locale={locale} homeCity={homeCity} badgeLabel={pick(locale, "Today's pick", "今日精选")} imagePriority isSignedIn={Boolean(profile)} featured />
+            <DestinationCard item={todayPicks[0]} locale={locale} homeCity={homeCity} badgeLabel={pick(locale, "Today's pick", "今日精选")} imagePriority featured />
           ) : null}
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-1">
             {todayPicks.slice(1, 3).map((item, index) => (
-              <DestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} badgeLabel={index === 0 ? pick(locale, "Family pick", "亲子精选") : pick(locale, "Weekend pick", "周末精选")} imagePriority={index < 1} isSignedIn={Boolean(profile)} />
+              <DestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} badgeLabel={index === 0 ? pick(locale, "Family pick", "亲子精选") : pick(locale, "Weekend pick", "周末精选")} imagePriority={index < 1} />
             ))}
           </div>
         </div>
@@ -346,7 +351,7 @@ export default async function HomePage() {
           <div className="scrollbar-none flex gap-5 overflow-x-auto pb-1">
           {weatherDestinations.slice(0, 3).map((item) => (
             <div key={item.id} className="w-[300px] shrink-0 md:w-[360px]">
-              <DestinationCard item={item} locale={locale} homeCity={homeCity} badgeLabel={pick(locale, "Weather pick", "天气推荐")} isSignedIn={Boolean(profile)} />
+              <DestinationCard item={item} locale={locale} homeCity={homeCity} badgeLabel={pick(locale, "Weather pick", "天气推荐")} />
             </div>
           ))}
           </div>
@@ -368,7 +373,7 @@ export default async function HomePage() {
           </div>
           <div className="grid gap-5 md:grid-cols-2">
             {nearbyDestinations.slice(0, 4).map((item) => (
-              <DestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} badgeLabel={pick(locale, "Nearby pick", "附近推荐")} isSignedIn={Boolean(profile)} />
+              <DestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} badgeLabel={pick(locale, "Nearby pick", "附近推荐")} />
             ))}
           </div>
         </div>
