@@ -24,17 +24,40 @@ function normalizeScenarios(values: unknown): Scenario[] {
   return values.map(String).filter((value): value is Scenario => validScenarios.has(value as Scenario));
 }
 
+function profileWriteErrorMessage(error: { message?: string; code?: string; details?: string | null }) {
+  const detail = [error.code, error.message, error.details].filter(Boolean).join(" ");
+  if (detail.includes("bio") || detail.includes("avatar_url")) {
+    return "资料表缺少头像或个人简介字段，请先执行最新数据库迁移后再保存。";
+  }
+  if (detail.includes("row-level security") || detail.includes("RLS")) {
+    return "资料保存被数据库权限拦截，请检查 user_profiles 的 RLS 策略。";
+  }
+  return error.message ? `保存失败：${error.message}` : "保存失败，请稍后再试。";
+}
+
 export async function GET(request: Request) {
   const { supabase, user, authSource } = await getRequestAuth(request);
   if (!user) {
     return NextResponse.json({ ok: false, profile: null, authSource, message: "\u8bf7\u5148\u767b\u5f55\u3002" }, { status: 401 });
   }
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("user_profiles")
     .select("user_id,nickname,avatar_url,bio,home_city,kid_age,preferred_scenarios,receive_notifications")
     .eq("user_id", user.id)
     .maybeSingle();
+
+  if (error) {
+    console.error("[profile/me] read failed", {
+      userId: user.id,
+      authSource,
+      code: error.code,
+      message: error.message,
+      details: error.details
+    });
+    return NextResponse.json({ ok: false, profile: null, authSource, message: `读取资料失败：${error.message}` }, { status: 500 });
+  }
+
   const row = data as ProfileRow | null;
 
   const profile: UserProfile = {
@@ -94,8 +117,27 @@ export async function PUT(request: Request) {
   );
 
   if (error) {
-    return NextResponse.json({ ok: false, message: "\u4fdd\u5b58\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002" }, { status: 500 });
+    console.error("[profile/me] save failed", {
+      userId: user.id,
+      authSource,
+      code: error.code,
+      message: error.message,
+      details: error.details
+    });
+    return NextResponse.json({ ok: false, authSource, message: profileWriteErrorMessage(error) }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, message: "\u8d44\u6599\u5df2\u4fdd\u5b58\u3002", authSource });
+  const profile: UserProfile = {
+    userId: user.id,
+    email: user.email ?? "",
+    nickname,
+    avatarUrl: body.avatarUrl?.trim() || null,
+    bio: body.bio?.trim() ?? "",
+    homeCity: body.homeCity?.trim() ?? "",
+    kidAge,
+    preferredScenarios: normalizeScenarios(body.preferredScenarios),
+    receiveNotifications: Boolean(body.receiveNotifications)
+  };
+
+  return NextResponse.json({ ok: true, message: "\u8d44\u6599\u5df2\u4fdd\u5b58\u3002", profile, authSource });
 }

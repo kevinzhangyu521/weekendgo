@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { AuthNav } from "@/components/layout/auth-nav";
 import { FeedbackWidget } from "@/components/feedback/feedback-widget";
-import { MobileTabBar } from "@/components/layout/mobile-tab-bar";
 import { InstallPrompt } from "@/components/pwa/install-prompt";
 import { getCurrentAuthWithAdmin } from "@/lib/auth/current-user";
 import { getLocale } from "@/lib/i18n/server";
@@ -44,12 +43,11 @@ export default async function RootLayout({
 
   return (
     <html lang="zh-CN">
-      <body className="bg-slate-50 pb-16 text-slate-800 antialiased md:pb-0">
+      <body className="bg-slate-50 text-slate-800 antialiased">
         <AuthNav locale={locale} email={user?.email ?? null} isAdmin={isAdmin} />
         {children}
         <FeedbackWidget />
         <InstallPrompt />
-        <MobileTabBar locale={locale} isSignedIn={Boolean(user)} />
       </body>
     </html>
   );

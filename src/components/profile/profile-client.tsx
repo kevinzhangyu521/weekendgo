@@ -89,7 +89,10 @@ export function ProfileClient() {
       upsert: true
     });
 
-    if (uploadError) throw new Error("头像上传失败，请稍后再试。");
+    if (uploadError) {
+      console.error("[profile] avatar upload failed", uploadError);
+      throw new Error(`头像上传失败：${uploadError.message}`);
+    }
 
     const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
     return data.publicUrl;
@@ -168,11 +171,11 @@ export function ProfileClient() {
       const result = (await response.json()) as ProfileResponse;
       if (!response.ok || !result.ok) throw new Error(result.message ?? "\u4fdd\u5b58\u5931\u8d25\u3002");
       setMessage(result.message ?? "\u8d44\u6599\u5df2\u4fdd\u5b58\u3002");
-      const nextProfile = profile ? { ...profile, ...payload } : null;
+      const nextProfile = result.profile ?? (profile ? { ...profile, ...payload } : null);
       setProfile(nextProfile);
       setAvatarFile(null);
-      setAvatarPreview(avatarUrl);
-      window.dispatchEvent(new CustomEvent("qimeide:profile-updated", { detail: { nickname, avatarUrl } }));
+      setAvatarPreview(nextProfile?.avatarUrl ?? avatarUrl);
+      window.dispatchEvent(new CustomEvent("qimeide:profile-updated", { detail: { nickname: nextProfile?.nickname ?? nickname, avatarUrl: nextProfile?.avatarUrl ?? avatarUrl } }));
     } catch (err) {
       setError(err instanceof Error ? err.message : "\u4fdd\u5b58\u5931\u8d25\u3002");
     } finally {

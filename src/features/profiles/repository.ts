@@ -19,6 +19,17 @@ function normalizeScenarios(values: FormDataEntryValue[]) {
   return values.map(String).filter((value): value is Scenario => validScenarios.has(value as Scenario));
 }
 
+function profileWriteErrorMessage(error: { message?: string; code?: string; details?: string | null }) {
+  const detail = [error.code, error.message, error.details].filter(Boolean).join(" ");
+  if (detail.includes("bio") || detail.includes("avatar_url")) {
+    return "资料表缺少头像或个人简介字段，请先执行最新数据库迁移后再保存。";
+  }
+  if (detail.includes("row-level security") || detail.includes("RLS")) {
+    return "资料保存被数据库权限拦截，请检查 user_profiles 的 RLS 策略。";
+  }
+  return error.message ? `保存失败：${error.message}` : "保存失败，请稍后再试。";
+}
+
 export async function getMyProfile(): Promise<UserProfile | null> {
   const { supabase, user } = await getCurrentAuth();
   if (!user) return null;
@@ -76,6 +87,14 @@ export async function saveMyProfile(formData: FormData) {
     { onConflict: "user_id" }
   );
 
-  if (error) return { ok: false, message: "\u4fdd\u5b58\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002" };
+  if (error) {
+    console.error("[profiles] save failed", {
+      userId: user.id,
+      code: error.code,
+      message: error.message,
+      details: error.details
+    });
+    return { ok: false, message: profileWriteErrorMessage(error) };
+  }
   return { ok: true, message: "\u8d44\u6599\u5df2\u4fdd\u5b58\u3002" };
 }
