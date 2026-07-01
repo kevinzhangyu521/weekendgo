@@ -276,11 +276,11 @@ export default async function HomePage() {
         />
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1.9fr)_minmax(320px,1fr)]">
           {todayPicks[0] ? (
-            <DestinationCard item={todayPicks[0]} locale={locale} homeCity={homeCity} badgeLabel={pick(locale, "Today's pick", "今日精选")} imagePriority />
+            <DestinationCard item={todayPicks[0]} locale={locale} homeCity={homeCity} badgeLabel={pick(locale, "Today's pick", "今日精选")} imagePriority isSignedIn={Boolean(profile)} />
           ) : null}
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-1">
             {todayPicks.slice(1, 3).map((item, index) => (
-              <DestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} badgeLabel={index === 0 ? pick(locale, "Family pick", "亲子精选") : pick(locale, "Weekend pick", "周末精选")} imagePriority={index < 1} />
+              <DestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} badgeLabel={index === 0 ? pick(locale, "Family pick", "亲子精选") : pick(locale, "Weekend pick", "周末精选")} imagePriority={index < 1} isSignedIn={Boolean(profile)} />
             ))}
           </div>
         </div>
@@ -344,7 +344,7 @@ export default async function HomePage() {
         />
         <div className="qmd-grid-3">
           {weatherDestinations.slice(0, 3).map((item) => (
-            <DestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} badgeLabel={pick(locale, "Weather pick", "天气推荐")} />
+            <DestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} badgeLabel={pick(locale, "Weather pick", "天气推荐")} isSignedIn={Boolean(profile)} />
           ))}
         </div>
       </section>
@@ -358,7 +358,7 @@ export default async function HomePage() {
         />
         <div className="qmd-grid-3">
           {nearbyDestinations.slice(0, 3).map((item) => (
-            <DestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} badgeLabel={pick(locale, "Nearby pick", "附近推荐")} />
+            <DestinationCard key={item.id} item={item} locale={locale} homeCity={homeCity} badgeLabel={pick(locale, "Nearby pick", "附近推荐")} isSignedIn={Boolean(profile)} />
           ))}
         </div>
       </section>
