@@ -29,8 +29,6 @@ function cardTags(item: DestinationItem, locale: Locale) {
 }
 
 export function DestinationCard({ item, locale, homeCity, metaLine, imagePriority = false, featured = false }: Props) {
-  void featured;
-
   const image = getDestinationImage(item);
   const name = destinationName(item, locale);
   const region = metaLine || destinationRegion(item, locale) || homeCity;
@@ -38,6 +36,52 @@ export function DestinationCard({ item, locale, homeCity, metaLine, imagePriorit
   const reason = shortReason(item, locale);
   const tags = cardTags(item, locale);
   const badgeText = item.badgeText?.trim();
+
+  if (featured) {
+    return (
+      <article className="qmd-place-card grid overflow-hidden md:grid-cols-[55fr_45fr]">
+        <Link href={detailHref} className="block">
+          <div className="relative aspect-[16/10] h-full overflow-hidden bg-slate-100 md:aspect-auto">
+            <img
+              src={image.src}
+              alt={name}
+              loading={imagePriority ? "eager" : "lazy"}
+              fetchPriority={imagePriority ? "high" : "auto"}
+              decoding="async"
+              referrerPolicy="no-referrer"
+              className="h-full w-full object-cover brightness-[1.03] saturate-[1.04]"
+            />
+            {badgeText ? (
+              <span className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-emerald-700 shadow-sm">
+                {badgeText}
+              </span>
+            ) : null}
+          </div>
+        </Link>
+        <div className="flex min-h-[280px] flex-col p-6 md:p-8">
+          <Link href={detailHref} className="block">
+            <h3 className="line-clamp-2 text-2xl font-black leading-tight text-slate-950 md:text-3xl">{name}</h3>
+          </Link>
+          <p className="mt-4 line-clamp-2 text-base leading-7 text-slate-600">{reason}</p>
+          <p className="mt-4 line-clamp-1 text-sm font-medium text-slate-500">{region}</p>
+          {tags.length > 0 ? (
+            <div className="mt-5 flex flex-wrap gap-2">
+              {tags.map((tag) => (
+                <span key={tag} className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          ) : null}
+          <div className="mt-auto pt-6">
+            <Link href={detailHref} className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-6 text-sm font-semibold text-slate-700">
+              {pick(locale, "Details", "\u67e5\u770b\u8be6\u60c5")}
+            </Link>
+          </div>
+        </div>
+      </article>
+    );
+  }
 
   return (
     <article className="qmd-place-card flex h-full min-h-[430px] flex-col">

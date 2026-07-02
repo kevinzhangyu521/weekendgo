@@ -142,9 +142,7 @@ export default async function HomePage() {
           locale={locale}
         />
         {featuredDestination ? (
-          <div className="max-w-3xl">
-            <DestinationCard item={featuredDestination} locale={locale} homeCity={homeCity} imagePriority featured />
-          </div>
+          <DestinationCard item={featuredDestination} locale={locale} homeCity={homeCity} imagePriority featured />
         ) : (
           <EmptyState>{pick(locale, "No featured destination yet", "\u6682\u65e0\u63a8\u8350\u5185\u5bb9")}</EmptyState>
         )}
