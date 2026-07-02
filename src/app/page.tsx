@@ -139,7 +139,6 @@ export default async function HomePage() {
       <section id="today-pick" className="qmd-container mt-6 scroll-mt-20 md:mt-8">
         <HomeSectionHeader
           title={pick(locale, "Today\u2019s Recommendation", "\u4eca\u65e5\u63a8\u8350")}
-          subtitle={pick(locale, "Selected in admin home recommendations.", "\u8bfb\u53d6\u540e\u53f0\u9996\u9875\u63a8\u8350\u914d\u7f6e\u3002")}
           locale={locale}
         />
         {featuredDestination ? (
@@ -154,7 +153,7 @@ export default async function HomePage() {
       <section id="nearby" className="qmd-container qmd-section scroll-mt-20">
         <HomeSectionHeader
           title={pick(locale, "Nearby Recommendations", "\ud83d\udccd \u9644\u8fd1\u63a8\u8350")}
-          subtitle={pick(locale, "Sorted by real destination coordinates.", "\u6839\u636e\u771f\u5b9e\u5750\u6807\u548c\u8ddd\u79bb\u6392\u5e8f\u3002")}
+          subtitle={pick(locale, "Closer places, easier departures.", "\u79bb\u4f60\u66f4\u8fd1\uff0c\u51fa\u53d1\u66f4\u8f7b\u677e\u3002")}
           href={destinationListHref({ city: homeCity, scenario: "all", difficulty: "all", maxDistance: 50, needParking: false, needToilet: false })}
           locale={locale}
         />
@@ -172,7 +171,7 @@ export default async function HomePage() {
       <section className="qmd-container qmd-section">
         <HomeSectionHeader
           title={pick(locale, "More to Explore", "\u66f4\u591a\u63a2\u7d22")}
-          subtitle={pick(locale, "Latest published destinations from the database.", "\u6309\u53d1\u5e03\u65f6\u95f4\u5012\u5e8f\u5c55\u793a\u771f\u5b9e\u76ee\u7684\u5730\u3002")}
+          subtitle={pick(locale, "Discover more places for weekend departures.", "\u53d1\u73b0\u66f4\u591a\u9002\u5408\u5468\u672b\u51fa\u53d1\u7684\u5730\u65b9\u3002")}
           href={destinationListHref({ city: homeCity, scenario: "all", difficulty: "all", maxDistance: 120, needParking: false, needToilet: false })}
           locale={locale}
         />
