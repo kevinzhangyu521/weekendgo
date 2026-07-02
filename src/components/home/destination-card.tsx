@@ -28,6 +28,34 @@ function cardTags(item: DestinationItem, locale: Locale) {
   return (item.tags ?? []).map((tag) => tag.trim()).filter(Boolean).slice(0, 2);
 }
 
+function featuredRecommendation(item: DestinationItem) {
+  const recommendation =
+    (item as DestinationItem & { editorRecommendation?: string | null; editor_recommendation?: string | null }).editorRecommendation ??
+    (item as DestinationItem & { editorRecommendation?: string | null; editor_recommendation?: string | null }).editor_recommendation ??
+    "";
+
+  return recommendation.trim() || "管理员暂未填写推荐理由。";
+}
+
+function featuredAge(item: DestinationItem) {
+  if (item.suitableAge?.trim()) return item.suitableAge.trim();
+  return item.minKidAge > 0 ? `${item.minKidAge}岁+` : "--";
+}
+
+function featuredPlayTime(item: DestinationItem) {
+  const playTime = (item as DestinationItem & { playTime?: string | null; suggestedPlayTime?: string | null }).playTime ?? (item as DestinationItem & { playTime?: string | null; suggestedPlayTime?: string | null }).suggestedPlayTime ?? "";
+  return playTime.trim() || "--";
+}
+
+function featuredCost(item: DestinationItem) {
+  return item.ticketPrice?.trim() || "--";
+}
+
+function featuredDistance(item: DestinationItem) {
+  if (!item.distanceKm || item.distanceKm <= 0) return "--";
+  return `${item.distanceKm % 1 === 0 ? item.distanceKm : item.distanceKm.toFixed(1)}km`;
+}
+
 export function DestinationCard({ item, locale, homeCity, metaLine, imagePriority = false, featured = false }: Props) {
   const image = getDestinationImage(item);
   const name = destinationName(item, locale);
@@ -38,8 +66,17 @@ export function DestinationCard({ item, locale, homeCity, metaLine, imagePriorit
   const badgeText = item.badgeText?.trim();
 
   if (featured) {
+    const recommendation = featuredRecommendation(item);
+    const infoItems = [
+      { label: "地点", value: region, icon: "📍" },
+      { label: "适合年龄", value: featuredAge(item), icon: "👶" },
+      { label: "建议游玩", value: featuredPlayTime(item), icon: "⏰" },
+      { label: "人均费用", value: featuredCost(item), icon: "💰" },
+      { label: "距离", value: featuredDistance(item), icon: "🚗" }
+    ];
+
     return (
-      <Link href={detailHref} className="group mx-auto block w-full max-w-[840px] md:w-[90%] lg:w-[820px]">
+      <Link href={detailHref} className="group mx-auto block w-full max-w-[840px] md:w-[90%] lg:w-[820px]" aria-label={`${name} 查看详情`}>
         <article className="qmd-place-card overflow-hidden">
           <div className="relative h-[320px] overflow-hidden bg-slate-100 md:h-[340px] lg:h-[360px]">
             <img
@@ -58,9 +95,19 @@ export function DestinationCard({ item, locale, homeCity, metaLine, imagePriorit
             ) : null}
           </div>
           <div className="p-6 md:p-7">
-            <h3 className="line-clamp-2 text-2xl font-black leading-tight text-slate-950 md:text-3xl">{name}</h3>
-            <p className="mt-3 line-clamp-2 text-base leading-7 text-slate-600">{reason}</p>
-            <p className="mt-3 line-clamp-1 text-sm font-medium text-slate-500">{region}</p>
+            <p className="inline-flex rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-700">⭐ 今天最值得去</p>
+            <h3 className="mt-4 line-clamp-2 text-2xl font-black leading-tight text-slate-950 md:text-3xl">{name}</h3>
+            <p className="mt-3 line-clamp-2 text-base font-semibold leading-7 text-slate-700">{recommendation}</p>
+            <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+              {infoItems.map((info) => (
+                <div key={info.label} className="rounded-2xl bg-slate-50 px-3 py-3">
+                  <p className="text-xs font-semibold text-slate-500">
+                    <span aria-hidden="true">{info.icon}</span> {info.label}
+                  </p>
+                  <p className="mt-1 line-clamp-1 text-sm font-black text-slate-950">{info.value}</p>
+                </div>
+              ))}
+            </div>
           {tags.length > 0 ? (
             <div className="mt-4 flex flex-wrap gap-2">
               {tags.map((tag) => (
@@ -71,7 +118,7 @@ export function DestinationCard({ item, locale, homeCity, metaLine, imagePriorit
             </div>
           ) : null}
             <span className="mt-5 inline-flex text-sm font-bold text-emerald-700 group-hover:text-emerald-800">
-              {pick(locale, "Details", "\u67e5\u770b\u8be6\u60c5")}
+              {pick(locale, "See if it is worth going →", "\u770b\u770b\u503c\u4e0d\u503c\u5f97\u53bb \u2192")}
             </span>
           </div>
         </article>
