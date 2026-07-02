@@ -29,26 +29,27 @@ function cardTags(item: DestinationItem, locale: Locale) {
 }
 
 function featuredRecommendation(item: DestinationItem) {
-  const recommendation =
-    (item as DestinationItem & { editorRecommendation?: string | null; editor_recommendation?: string | null }).editorRecommendation ??
-    (item as DestinationItem & { editorRecommendation?: string | null; editor_recommendation?: string | null }).editor_recommendation ??
-    "";
+  const recommendation = item.editorRecommendation ?? "";
 
   return recommendation.trim() || "管理员暂未填写推荐理由。";
 }
 
 function featuredAge(item: DestinationItem) {
+  if (typeof item.suitableAgeMin === "number" && typeof item.suitableAgeMax === "number" && item.suitableAgeMax > item.suitableAgeMin) {
+    return `${item.suitableAgeMin}-${item.suitableAgeMax}岁`;
+  }
+  if (typeof item.suitableAgeMin === "number" && item.suitableAgeMin >= 0) return `${item.suitableAgeMin}岁+`;
   if (item.suitableAge?.trim()) return item.suitableAge.trim();
   return item.minKidAge > 0 ? `${item.minKidAge}岁+` : "--";
 }
 
 function featuredPlayTime(item: DestinationItem) {
-  const playTime = (item as DestinationItem & { playTime?: string | null; suggestedPlayTime?: string | null }).playTime ?? (item as DestinationItem & { playTime?: string | null; suggestedPlayTime?: string | null }).suggestedPlayTime ?? "";
+  const playTime = item.suggestedDuration ?? "";
   return playTime.trim() || "--";
 }
 
 function featuredCost(item: DestinationItem) {
-  return item.ticketPrice?.trim() || "--";
+  return item.familyBudget?.trim() || item.ticketPrice?.trim() || "--";
 }
 
 function featuredDistance(item: DestinationItem) {

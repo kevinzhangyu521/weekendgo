@@ -12,6 +12,18 @@ function safeFileName(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9.]+/g, "-").replace(/^-+|-+$/g, "");
 }
 
+function optionalText(formData: FormData, key: string) {
+  const value = String(formData.get(key) ?? "").trim();
+  return value || null;
+}
+
+function optionalInteger(formData: FormData, key: string) {
+  const value = String(formData.get(key) ?? "").trim();
+  if (!value) return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.trunc(number) : null;
+}
+
 async function uploadImage(file: File | null) {
   if (!file || file.size === 0) return null;
   if (!file.type.startsWith("image/")) return null;
@@ -54,6 +66,8 @@ export async function saveDestination(_state: UpdateDestinationState, formData: 
       province_zh: province,
       city,
       city_zh: city,
+      address: optionalText(formData, "address"),
+      opening_hours: optionalText(formData, "opening_hours"),
       latitude: Number(formData.get("latitude") || "0") || 0,
       longitude: Number(formData.get("longitude") || "0") || 0,
       scenario: String(formData.get("scenario") ?? "creek"),
@@ -63,10 +77,23 @@ export async function saveDestination(_state: UpdateDestinationState, formData: 
       has_parking: formData.get("has_parking") === "on",
       has_toilet: formData.get("has_toilet") === "on",
       min_kid_age: Number(formData.get("min_kid_age") || "0") || 0,
+      suitable_age_min: optionalInteger(formData, "suitable_age_min"),
+      suitable_age_max: optionalInteger(formData, "suitable_age_max"),
+      suggested_duration: optionalText(formData, "suggested_duration"),
+      family_budget: optionalText(formData, "family_budget"),
+      reservation_required: formData.get("reservation_required") === "on",
+      parking_detail: optionalText(formData, "parking_detail"),
+      toilet_detail: optionalText(formData, "toilet_detail"),
+      stroller_friendly: formData.get("stroller_friendly") === "on",
+      pet_friendly: formData.get("pet_friendly") === "on",
+      best_time: optionalText(formData, "best_time"),
       ticket_price: String(formData.get("ticket_price") ?? "").trim() || null,
       ...(imageUrl ? { image: imageUrl } : {}),
       description,
       description_zh: description,
+      editor_recommendation: optionalText(formData, "editor_recommendation"),
+      family_tips: optionalText(formData, "family_tips"),
+      avoid_pitfalls: optionalText(formData, "avoid_pitfalls"),
       updated_at: new Date().toISOString()
     })
     .eq("id", id);

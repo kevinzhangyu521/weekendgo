@@ -1,6 +1,6 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AlertTriangle, Backpack, Bath, Car, ChevronLeft, Clock, MapPinned, ShieldCheck, Star, TentTree, Users } from "lucide-react";
+import { AlertTriangle, Bath, Car, ChevronLeft, Clock, MapPinned, ShieldCheck, Star, Users } from "lucide-react";
 import { FavoriteButton } from "@/components/favorites/favorite-button";
 import { DestinationFeedbackButton } from "@/components/feedback/destination-feedback-button";
 import { AuthActionHint } from "@/components/auth/auth-action-hint";
@@ -11,21 +11,12 @@ import { ReviewForm } from "@/components/reviews/review-form";
 import { DestinationViewTracker } from "@/components/destinations/destination-view-tracker";
 import { getDestinationImage, hasUsableDestinationImage } from "@/features/destinations/images";
 import {
-  destinationDescription,
-  destinationAgeRange,
-  destinationBestFor,
-  destinationDecisionTags,
-  destinationDifficulty,
-  destinationFamilyHighlight,
   destinationName,
-  destinationPackingList,
   destinationRegion,
-  destinationSafety,
-  destinationSafetyTip,
-  destinationScenario,
-  destinationTripDuration
+  destinationScenario
 } from "@/features/destinations/presenter";
-import { getAllDestinations } from "@/features/destinations/repository";
+import { getAllDestinations, getDestinationPhotos } from "@/features/destinations/repository";
+import type { DestinationItem, DestinationPhoto } from "@/features/destinations/types";
 import { getMyProfile } from "@/features/profiles/repository";
 import { getDestinationReviewsForUser } from "@/features/reviews/repository";
 import { getCurrentUser } from "@/lib/auth/current-user";
@@ -33,8 +24,31 @@ import { DEFAULT_HOME_CITY, withDistanceFromCity } from "@/lib/geo/distance";
 import { getLocale, pick } from "@/lib/i18n/server";
 
 function formatDistance(distanceKm: number, locale: "en" | "zh") {
-  if (!distanceKm || distanceKm <= 0) return pick(locale, "Distance pending", "\u8ddd\u79bb\u5f85\u8ba1\u7b97");
-  return pick(locale, `About ${distanceKm}km away`, `\u7ea6 ${distanceKm}km`);
+  if (!distanceKm || distanceKm <= 0) return "--";
+  return pick(locale, `About ${distanceKm}km away`, `约 ${distanceKm}km`);
+}
+
+function valueOrEmpty(value?: string | null) {
+  return value?.trim() || "--";
+}
+
+function ageDecision(item: DestinationItem, locale: "en" | "zh") {
+  const min = item.suitableAgeMin;
+  const max = item.suitableAgeMax;
+  if (typeof min === "number" && typeof max === "number" && max > min) {
+    return locale === "zh" ? `${min}-${max}岁` : `${min}-${max} years`;
+  }
+  if (typeof min === "number" && min >= 0) return locale === "zh" ? `${min}岁+` : `${min}+ years`;
+  return "--";
+}
+
+function booleanLabel(value: boolean | null | undefined, locale: "en" | "zh", yesZh: string, noZh: string, yesEn: string, noEn: string) {
+  if (typeof value !== "boolean") return "--";
+  return value ? pick(locale, yesEn, yesZh) : pick(locale, noEn, noZh);
+}
+
+function reservationLabel(item: DestinationItem, locale: "en" | "zh") {
+  return item.reservationRequired ? pick(locale, "Reservation required", "需要预约") : pick(locale, "No reservation needed", "无需预约");
 }
 
 function reviewAgeLabel(value: string | null, locale: "en" | "zh") {
@@ -84,13 +98,37 @@ function formatReviewDateTime(value: string, locale: "en" | "zh") {
   return formatted.replace(/\//g, "-");
 }
 
+function photoGallery(photos: DestinationPhoto[], fallback: { src: string; pending: boolean }, name: string): DestinationPhoto[] {
+  if (photos.length > 0) return photos;
+  if (fallback.pending) return [];
+  return [
+    {
+      id: "legacy-cover",
+      destinationId: "",
+      imageUrl: fallback.src,
+      category: "cover",
+      altText: name,
+      isCover: true,
+      sortOrder: 0
+    }
+  ];
+}
+
+function DecisionTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl bg-slate-50 p-4">
+      <p className="text-xs font-semibold text-slate-500">{label}</p>
+      <p className="mt-1 text-base font-black text-slate-950">{value}</p>
+    </div>
+  );
+}
+
 export default async function DestinationDetailPage({
   params
 }: {
   params: Promise<{ id: string }>;
 }) {
   const [locale, { id }] = await Promise.all([getLocale(), params]);
-  const isZh = locale === "zh";
   const [user, profile, allDestinationsRaw] = await Promise.all([getCurrentUser(), getMyProfile(), getAllDestinations()]);
   const homeCity = profile?.homeCity?.trim() || DEFAULT_HOME_CITY;
   const destinationRaw = allDestinationsRaw.find((item) => item.id === id) ?? null;
@@ -98,17 +136,37 @@ export default async function DestinationDetailPage({
   if (!destinationRaw || !hasUsableDestinationImage(destinationRaw)) notFound();
 
   const [destination] = withDistanceFromCity([destinationRaw], homeCity);
+  const name = destinationName(destination, locale);
+  const heroImage = getDestinationImage(destination);
+  const [photos, reviewResult] = await Promise.all([
+    getDestinationPhotos(destination.id),
+    getDestinationReviewsForUser(destination.id, user?.id)
+  ]);
+  const gallery = photoGallery(photos, heroImage, name);
   const related = withDistanceFromCity(
     allDestinationsRaw
       .filter((item) => item.id !== destination.id && (item.scenario === destination.scenario || item.city === destination.city))
       .slice(0, 3),
     homeCity
   );
-  const decisionTags = destinationDecisionTags(destination, locale);
-  const packingList = destinationPackingList(destination, locale);
-  const { reviews, myReview } = await getDestinationReviewsForUser(destination.id, user?.id);
-  const heroImage = getDestinationImage(destination);
   const loginHref = `/login?next=${encodeURIComponent(`/destinations/${destination.id}`)}`;
+  const decisionItems = [
+    { label: pick(locale, "Suitable age", "适合年龄"), value: ageDecision(destination, locale) },
+    { label: pick(locale, "Suggested duration", "建议游玩时长"), value: valueOrEmpty(destination.suggestedDuration) },
+    { label: pick(locale, "Family budget", "一家三口预算"), value: valueOrEmpty(destination.familyBudget) },
+    { label: pick(locale, "Reservation", "是否需要预约"), value: reservationLabel(destination, locale) },
+    { label: pick(locale, "Best time", "最佳游玩时间"), value: valueOrEmpty(destination.bestTime) },
+    { label: pick(locale, "Parking", "停车详情"), value: valueOrEmpty(destination.parkingDetail) },
+    { label: pick(locale, "Toilet", "卫生间详情"), value: valueOrEmpty(destination.toiletDetail) },
+    {
+      label: pick(locale, "Stroller friendly", "婴儿车友好"),
+      value: booleanLabel(destination.strollerFriendly, locale, "友好", "不确定", "Friendly", "Unknown")
+    },
+    {
+      label: pick(locale, "Pet friendly", "宠物友好"),
+      value: booleanLabel(destination.petFriendly, locale, "友好", "不确定", "Friendly", "Unknown")
+    }
+  ];
 
   return (
     <main className="min-h-screen bg-slate-50 pb-28 md:pb-12">
@@ -116,182 +174,185 @@ export default async function DestinationDetailPage({
       <section className="qmd-container py-6">
         <Link href="/destinations" className="interactive-text-link mb-4 inline-flex items-center gap-1 text-sm text-slate-600">
           <ChevronLeft className="h-4 w-4" />
-          {pick(locale, "Back to destinations", "\u8fd4\u56de\u76ee\u7684\u5730\u5217\u8868")}
+          {pick(locale, "Back to destinations", "返回目的地列表")}
         </Link>
 
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="relative h-64 overflow-hidden bg-slate-100 md:h-96">
-            <DestinationImage
-              src={heroImage.src}
-              alt={destinationName(destination, locale)}
-              fetchPriority="high"
-              decoding="async"
-              className="interactive-image h-full w-full object-cover"
-            />
-          </div>
-          <div className="space-y-4 p-5 md:p-6">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+        <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+          <div className="grid lg:grid-cols-[1.05fr_0.95fr]">
+            <div className="relative min-h-[280px] overflow-hidden bg-slate-100 md:min-h-[420px]">
+              <DestinationImage
+                src={heroImage.src}
+                alt={name}
+                fetchPriority="high"
+                decoding="async"
+                className="interactive-image h-full w-full object-cover"
+              />
+              <span className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-emerald-700 shadow-sm">
                 {destinationScenario(destination, locale)}
               </span>
-              <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-700">
-                {destinationDifficulty(destination, locale)}
-              </span>
-              <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs text-amber-700">
-                {destinationSafety(destination, locale)}
-              </span>
             </div>
-
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">{destinationName(destination, locale)}</h1>
-              <DestinationFeedbackButton destinationName={destinationName(destination, locale)} />
-            </div>
-            <p className="rounded-xl bg-emerald-50 px-4 py-3 text-base font-semibold text-emerald-800">{destinationFamilyHighlight(destination, locale)}</p>
-            <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-3 lg:grid-cols-[auto_minmax(240px,1fr)_auto] lg:items-center">
-              <div className="flex flex-wrap items-center gap-3">
-                <FavoriteButton destinationId={destination.id} initialIsLoggedIn={Boolean(user)} />
-                <AddToPlanButton destinationId={destination.id} locale={locale} />
-              </div>
-              <AuthActionHint text={pick(locale, "Sign in to save destinations and add them to your weekend plan.", "\u767b\u5f55\u540e\u53ef\u6536\u85cf\u5730\u70b9\u3001\u52a0\u5165\u5468\u672b\u8ba1\u5212")} />
-              <div className="hidden md:block">
-                <AmapNavigationButton
-                  destination={destination}
-                  label={pick(locale, "Navigate", "\u7acb\u5373\u5bfc\u822a")}
-                  isSignedIn={Boolean(user)}
-                  loginHref={loginHref}
-                  signedOutLabel={pick(locale, "Sign in to navigate", "\u767b\u5f55\u540e\u5bfc\u822a")}
-                />
-              </div>
-            </div>
-            <p className="text-slate-600">{destinationDescription(destination, locale)}</p>
-            <div className="flex flex-wrap gap-2">
-              {decisionTags.map((tag) => (
-                <span key={tag} className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700">
-                  {tag}
-                </span>
-              ))}
-            </div>
-
-            <div className="grid gap-3 text-sm text-slate-700 md:grid-cols-4">
-              <div className="rounded-xl bg-slate-50 p-3">
-                <p className="text-xs text-slate-500">{pick(locale, "Region", "\u7701\u5e02")}</p>
-                <p className="mt-1 font-medium">{destinationRegion(destination, locale)}</p>
-              </div>
-              <div className="rounded-xl bg-slate-50 p-3">
-                <p className="text-xs text-slate-500">{pick(locale, "Distance", "\u8ddd\u79bb")}</p>
-                <p className="mt-1 font-medium">{formatDistance(destination.distanceKm, locale)}</p>
-                <p className="mt-1 text-xs text-slate-500">{pick(locale, `From ${homeCity}`, `\u6309\u5e38\u4f4f\u57ce\u5e02\u300c${homeCity}\u300d\u8ba1\u7b97`)}</p>
-              </div>
-              <div className="rounded-xl bg-slate-50 p-3">
-                <p className="text-xs text-slate-500">{pick(locale, "Suitable age", "\u9002\u5408\u5e74\u9f84")}</p>
-                <p className="mt-1 font-medium">{destinationAgeRange(destination, locale)}</p>
-              </div>
-              <div className="rounded-xl bg-slate-50 p-3">
-                <p className="text-xs text-slate-500">{pick(locale, "Rating", "\u8bc4\u5206")}</p>
-                <p className="mt-1 inline-flex items-center gap-1 font-medium">
-                  <Star className="h-4 w-4 fill-current text-amber-500" />
-                  {destination.rating.toFixed(1)}
+            <div className="flex flex-col gap-5 p-5 md:p-7">
+              <div>
+                <p className="text-sm font-bold text-emerald-700">{pick(locale, "Worth going today?", "今天值不值得去？")}</p>
+                <h1 className="mt-2 text-3xl font-black leading-tight text-slate-950 md:text-4xl">{name}</h1>
+                <p className="mt-3 rounded-2xl bg-emerald-50 px-4 py-3 text-base font-semibold leading-7 text-emerald-900">
+                  {valueOrEmpty(destination.editorRecommendation)}
                 </p>
               </div>
-            </div>
-          </div>
-        </div>
 
-        <section className="mt-5 grid gap-4 md:grid-cols-3">
-          <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4">
-            <h2 className="mb-2 inline-flex items-center gap-2 text-base font-semibold text-emerald-950">
-              <Users className="h-4 w-4" />
-              {pick(locale, "Best for", "\u9002\u5408\u8c01\u53bb")}
-            </h2>
-            <p className="text-sm leading-6 text-emerald-900">{destinationBestFor(destination, locale)}</p>
-          </div>
-
-          <div className="rounded-xl border border-sky-100 bg-sky-50 p-4">
-            <h2 className="mb-2 inline-flex items-center gap-2 text-base font-semibold text-sky-950">
-              <Clock className="h-4 w-4" />
-              {pick(locale, "Suggested time", "\u5efa\u8bae\u6e38\u73a9\u65f6\u957f")}
-            </h2>
-            <p className="text-sm leading-6 text-sky-900">{destinationTripDuration(destination, locale)}</p>
-          </div>
-
-          <div className="rounded-xl border border-amber-100 bg-amber-50 p-4">
-            <h2 className="mb-2 inline-flex items-center gap-2 text-base font-semibold text-amber-950">
-              <AlertTriangle className="h-4 w-4" />
-              {pick(locale, "Main reminder", "\u4e3b\u8981\u63d0\u9192")}
-            </h2>
-            <p className="text-sm leading-6 text-amber-900">{destinationSafetyTip(destination, locale)}</p>
-          </div>
-        </section>
-
-        <section className="mt-5 grid gap-4 md:grid-cols-3">
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
-            <h2 className="mb-3 inline-flex items-center gap-2 text-base font-semibold text-slate-900">
-              <TentTree className="h-4 w-4" />
-              {pick(locale, "Facilities", "\u8bbe\u65bd\u4fe1\u606f")}
-            </h2>
-            <div className="space-y-2 text-sm text-slate-700">
-              <p className="inline-flex items-center gap-2">
-                <Car className="h-4 w-4" />
-                {isZh ? (destination.hasParking ? "\u53ef\u505c\u8f66" : "\u505c\u8f66\u4f4d\u8f83\u5c11") : destination.hasParking ? "Parking available" : "Parking is limited"}
-              </p>
-              <p className="inline-flex items-center gap-2">
-                <Bath className="h-4 w-4" />
-                {isZh ? (destination.hasToilet ? "\u6709\u516c\u5171\u5395\u6240" : "\u5395\u6240\u8f83\u5c11") : destination.hasToilet ? "Public toilet available" : "Limited toilet access"}
-              </p>
-              <p className="inline-flex items-center gap-2">
-                <MapPinned className="h-4 w-4" />
-                {pick(locale, "Suitable for half-day or full-day trips", "\u9002\u5408\u534a\u65e5\u6216\u4e00\u65e5\u5f80\u8fd4")}
-              </p>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-slate-200 bg-white p-4 md:col-span-2">
-            <h2 className="mb-3 inline-flex items-center gap-2 text-base font-semibold text-slate-900">
-              <ShieldCheck className="h-4 w-4" />
-              {pick(locale, "Family Safety Notes", "\u4eb2\u5b50\u5b89\u5168\u63d0\u793a")}
-            </h2>
-            <ul className="space-y-2 text-sm text-slate-700">
-              <li>{pick(locale, "Check weather and rain forecast before departure, especially for creek routes.", "\u51fa\u53d1\u524d\u8bf7\u68c0\u67e5\u5929\u6c14\u4e0e\u964d\u96e8\u60c5\u51b5\uff0c\u6d89\u6c34\u8def\u7ebf\u9700\u66f4\u8c28\u614e\u3002")}</li>
-              <li>{pick(locale, "Keep young children in clear sight and use anti-slip shoes near water.", "\u4f4e\u9f84\u5b69\u5b50\u8bf7\u5168\u7a0b\u5728\u5bb6\u957f\u53ef\u89c6\u8303\u56f4\u5185\uff0c\u5efa\u8bae\u7a7f\u9632\u6ed1\u978b\u3002")}</li>
-              <li>{pick(locale, "Carry water, sunscreen, and a small first-aid kit as a fixed checklist.", "\u8865\u6c34\u3001\u9632\u6652\u548c\u6025\u6551\u5305\u5efa\u8bae\u4f5c\u4e3a\u56fa\u5b9a\u6e05\u5355\u643a\u5e26\u3002")}</li>
-            </ul>
-          </div>
-        </section>
-
-        <section className="mt-5 rounded-xl border border-slate-200 bg-white p-4">
-          <h2 className="inline-flex items-center gap-2 text-base font-semibold text-slate-900">
-            <Backpack className="h-4 w-4" />
-            {pick(locale, "Before Departure Checklist", "\u51fa\u53d1\u524d\u51c6\u5907\u6e05\u5355")}
-          </h2>
-          <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {packingList.map((item) => (
-              <div key={item} className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">
-                {item}
+              <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-3">
+                <DecisionTile label={pick(locale, "Region", "城市/地区")} value={destinationRegion(destination, locale) || "--"} />
+                <DecisionTile label={pick(locale, "Distance", "距离")} value={formatDistance(destination.distanceKm, locale)} />
+                <DecisionTile label={pick(locale, "Age", "适合年龄")} value={ageDecision(destination, locale)} />
+                <DecisionTile label={pick(locale, "Duration", "游玩时长")} value={valueOrEmpty(destination.suggestedDuration)} />
+                <DecisionTile label={pick(locale, "Budget", "预算")} value={valueOrEmpty(destination.familyBudget)} />
               </div>
+
+              <div className="mt-auto grid gap-3 rounded-2xl border border-slate-200 bg-white p-3">
+                <div className="flex flex-wrap items-center gap-3">
+                  <AmapNavigationButton
+                    destination={destination}
+                    label={pick(locale, "Navigate", "立即导航")}
+                    className="h-11"
+                    isSignedIn={Boolean(user)}
+                    loginHref={loginHref}
+                    signedOutLabel={pick(locale, "Sign in to navigate", "登录后导航")}
+                  />
+                  <FavoriteButton destinationId={destination.id} initialIsLoggedIn={Boolean(user)} />
+                  <AddToPlanButton destinationId={destination.id} locale={locale} />
+                </div>
+                <AuthActionHint text={pick(locale, "Sign in to save destinations and add them to your weekend plan.", "登录后可收藏地点、加入周末计划")} />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="text-xl font-black text-slate-950">{pick(locale, "Check before leaving", "出发前先看")}</h2>
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            {decisionItems.map((item) => (
+              <DecisionTile key={item.label} label={item.label} value={item.value} />
             ))}
           </div>
         </section>
 
-        <section id="reviews" className="mt-5 scroll-mt-24 rounded-xl border border-slate-200 bg-white p-4">
+        <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="text-xl font-black text-slate-950">{pick(locale, "Photos", "图片")}</h2>
+          {gallery.length > 0 ? (
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              {gallery.map((photo) => (
+                <figure key={photo.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+                  <div className="aspect-[4/3] overflow-hidden bg-slate-100">
+                    <DestinationImage
+                      src={photo.imageUrl}
+                      alt={photo.altText || name}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  <figcaption className="flex items-center justify-between gap-2 px-3 py-2 text-xs text-slate-600">
+                    <span className="rounded-full bg-white px-2 py-1 font-semibold">{photo.category}</span>
+                    {photo.isCover ? <span className="font-semibold text-emerald-700">{pick(locale, "Cover", "封面")}</span> : null}
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-3 rounded-xl bg-slate-50 p-4 text-sm text-slate-500">{pick(locale, "No photos yet", "暂无图片")}</p>
+          )}
+        </section>
+
+        <section className="mt-5 grid gap-4 md:grid-cols-2">
+          <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5">
+            <h2 className="inline-flex items-center gap-2 text-xl font-black text-emerald-950">
+              <Users className="h-5 w-5" />
+              {pick(locale, "Family tips", "带娃提醒")}
+            </h2>
+            <p className="mt-3 whitespace-pre-line text-sm leading-7 text-emerald-900">
+              {destination.familyTips?.trim() || pick(locale, "No family tips yet", "暂无带娃提醒")}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-amber-100 bg-amber-50 p-5">
+            <h2 className="inline-flex items-center gap-2 text-xl font-black text-amber-950">
+              <AlertTriangle className="h-5 w-5" />
+              {pick(locale, "Avoid pitfalls", "避坑提醒")}
+            </h2>
+            <p className="mt-3 whitespace-pre-line text-sm leading-7 text-amber-900">
+              {destination.avoidPitfalls?.trim() || pick(locale, "No pitfalls yet", "暂无避坑提醒")}
+            </p>
+          </div>
+        </section>
+
+        <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="text-xl font-black text-slate-950">{pick(locale, "Map and navigation", "地图与导航")}</h2>
+          <div className="mt-4 grid gap-3 md:grid-cols-[1fr_auto] md:items-center">
+            <div className="grid gap-3 text-sm text-slate-700 md:grid-cols-3">
+              <DecisionTile label={pick(locale, "Address", "地址")} value={valueOrEmpty(destination.address)} />
+              <DecisionTile label={pick(locale, "Coordinates", "经纬度")} value={`${destination.latitude || "--"}, ${destination.longitude || "--"}`} />
+              <DecisionTile label={pick(locale, "Distance", "距离")} value={formatDistance(destination.distanceKm, locale)} />
+            </div>
+            <AmapNavigationButton
+              destination={destination}
+              label={pick(locale, "Navigate", "立即导航")}
+              className="h-11"
+              isSignedIn={Boolean(user)}
+              loginHref={loginHref}
+              signedOutLabel={pick(locale, "Sign in to navigate", "登录后导航")}
+            />
+          </div>
+        </section>
+
+        <section className="mt-5">
+          <h2 className="mb-3 text-xl font-black text-slate-950">{pick(locale, "Related picks", "相关推荐")}</h2>
+          <div className="grid gap-3 md:grid-cols-3">
+            {related.map((item) => {
+              const image = getDestinationImage(item);
+              return (
+                <Link
+                  key={item.id}
+                  href={`/destinations/${item.id}`}
+                  className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
+                >
+                  <div className="relative h-28 overflow-hidden bg-slate-100">
+                    <DestinationImage
+                      src={image.src}
+                      alt={destinationName(item, locale)}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover transition duration-300 hover:scale-105"
+                    />
+                  </div>
+                  <div className="p-3">
+                    <p className="text-sm font-medium text-slate-900">{destinationName(item, locale)}</p>
+                    <p className="mt-1 text-xs text-slate-600">
+                      {destinationRegion(item, locale)} - {formatDistance(item.distanceKm, locale)}
+                    </p>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+
+        <section id="reviews" className="mt-5 scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
             <div>
-              <h2 className="text-base font-semibold text-slate-900">{pick(locale, "Real Family Experiences", "\u771f\u5b9e\u4eb2\u5b50\u4f53\u9a8c")}</h2>
-              <p className="mt-1 text-sm text-slate-600">{pick(locale, "Short notes from families who have been there.", "\u6765\u81ea\u7528\u6237\u7684\u771f\u5b9e\u6e38\u73a9\u53cd\u9988\uff0c\u5e2e\u52a9\u522b\u7684\u5bb6\u5ead\u5c11\u8e29\u5751\u3002")}</p>
+              <h2 className="text-xl font-black text-slate-950">{pick(locale, "Real family experiences", "真实亲子体验")}</h2>
+              <p className="mt-1 text-sm text-slate-600">{pick(locale, "Short notes from families who have been there.", "来自用户的真实游玩反馈，帮助别的家庭少踩坑。")}</p>
             </div>
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
-              {pick(locale, `${reviews.length} reviews`, `${reviews.length} \u6761\u4f53\u9a8c`)}
-            </span>
+            <DestinationFeedbackButton destinationName={name} />
           </div>
 
-          <ReviewForm destinationId={destination.id} initialReview={myReview} isSignedIn={Boolean(user)} />
+          <ReviewForm destinationId={destination.id} initialReview={reviewResult.myReview} isSignedIn={Boolean(user)} />
 
           <div className="mt-4 space-y-3">
-            {reviews.length === 0 ? (
+            {reviewResult.reviews.length === 0 ? (
               <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-600">
-                {pick(locale, "No real experiences yet. Be the first family to share.", "\u6682\u65e0\u771f\u5b9e\u4f53\u9a8c\uff0c\u4f60\u53ef\u4ee5\u6210\u4e3a\u7b2c\u4e00\u4e2a\u5206\u4eab\u7684\u5bb6\u5ead\u3002")}
+                {pick(locale, "No real experiences yet. Be the first family to share.", "暂无真实体验，你可以成为第一个分享的家庭。")}
               </div>
             ) : (
-              reviews.map((review) => {
+              reviewResult.reviews.map((review) => {
                 const tags = [
                   reviewAgeLabel(review.suitableAge, locale),
                   reviewParkingLabel(review.parkingRating, locale),
@@ -339,53 +400,21 @@ export default async function DestinationDetailPage({
             )}
           </div>
         </section>
-
-        <section className="mt-5">
-          <h2 className="mb-3 text-base font-semibold text-slate-900">{pick(locale, "Related Picks", "\u76f8\u5173\u63a8\u8350")}</h2>
-          <div className="grid gap-3 md:grid-cols-3">
-            {related.map((item) => {
-              const image = getDestinationImage(item);
-              return (
-                <Link
-                  key={item.id}
-                  href={`/destinations/${item.id}`}
-                  className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
-                >
-                  <div className="relative h-28 overflow-hidden bg-slate-100">
-                    <DestinationImage
-                      src={image.src}
-                      alt={destinationName(item, locale)}
-                      loading="lazy"
-                      decoding="async"
-                      className="h-full w-full object-cover transition duration-300 hover:scale-105"
-                    />
-                  </div>
-                <div className="p-3">
-                  <p className="text-sm font-medium text-slate-900">{destinationName(item, locale)}</p>
-                  <p className="mt-1 text-xs text-slate-600">
-                    {destinationRegion(item, locale)} - {formatDistance(item.distanceKm, locale)} - {pick(locale, "Rating", "\u8bc4\u5206")} {item.rating.toFixed(1)}
-                  </p>
-                </div>
-                </Link>
-              );
-            })}
-          </div>
-        </section>
       </section>
 
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 px-4 py-3 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur md:hidden">
         <div className="qmd-container flex items-center gap-2">
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-slate-900">{destinationName(destination, locale)}</p>
+            <p className="truncate text-sm font-semibold text-slate-900">{name}</p>
             <p className="text-xs text-slate-500">{formatDistance(destination.distanceKm, locale)}</p>
           </div>
           <AmapNavigationButton
             destination={destination}
-            label={pick(locale, "Navigate", "\u7acb\u5373\u5bfc\u822a")}
+            label={pick(locale, "Navigate", "立即导航")}
             className="h-11 shrink-0"
             isSignedIn={Boolean(user)}
             loginHref={loginHref}
-            signedOutLabel={pick(locale, "Sign in to navigate", "\u767b\u5f55\u540e\u5bfc\u822a")}
+            signedOutLabel={pick(locale, "Sign in to navigate", "登录后导航")}
           />
         </div>
       </div>

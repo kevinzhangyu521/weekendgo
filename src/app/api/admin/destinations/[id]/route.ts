@@ -1,7 +1,7 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import type { AdminDestination } from "@/features/admin/destinations";
-import type { DestinationItem } from "@/features/destinations/types";
+import type { DestinationItem, DestinationPhoto } from "@/features/destinations/types";
 import { getRequestAuth } from "@/lib/auth/request-auth";
 
 type DestinationRow = {
@@ -13,6 +13,8 @@ type DestinationRow = {
   province_zh: string | null;
   city: string | null;
   city_zh: string | null;
+  address: string | null;
+  opening_hours: string | null;
   latitude: number | null;
   longitude: number | null;
   scenario: DestinationItem["scenario"] | null;
@@ -23,22 +25,59 @@ type DestinationRow = {
   has_parking: boolean | null;
   has_toilet: boolean | null;
   min_kid_age: number | null;
+  suitable_age_min: number | null;
+  suitable_age_max: number | null;
+  suggested_duration: string | null;
+  family_budget: string | null;
+  reservation_required: boolean | null;
+  parking_detail: string | null;
+  toilet_detail: string | null;
+  stroller_friendly: boolean | null;
+  pet_friendly: boolean | null;
+  best_time: string | null;
   ticket_price: string | null;
   image: string | null;
   description: string | null;
   description_zh: string | null;
+  editor_recommendation: string | null;
+  family_tips: string | null;
+  avoid_pitfalls: string | null;
   is_active: boolean | null;
   updated_at: string | null;
 };
 
+type DestinationPhotoRow = {
+  id: string;
+  destination_id: string;
+  image_url: string;
+  category: DestinationPhoto["category"] | null;
+  alt_text: string | null;
+  is_cover: boolean | null;
+  sort_order: number | null;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
 const selectFields =
-  "id,external_id,name,name_zh,province,province_zh,city,city_zh,latitude,longitude,scenario,distance_km,difficulty,safety,rating,has_parking,has_toilet,min_kid_age,ticket_price,image,description,description_zh,is_active,updated_at";
+  "id,external_id,name,name_zh,province,province_zh,city,city_zh,address,opening_hours,latitude,longitude,scenario,distance_km,difficulty,safety,rating,has_parking,has_toilet,min_kid_age,suitable_age_min,suitable_age_max,suggested_duration,family_budget,reservation_required,parking_detail,toilet_detail,stroller_friendly,pet_friendly,best_time,ticket_price,image,description,description_zh,editor_recommendation,family_tips,avoid_pitfalls,is_active,updated_at";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 function safeFileName(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9.]+/g, "-").replace(/^-+|-+$/g, "");
+}
+
+function optionalText(formData: FormData, key: string) {
+  const value = String(formData.get(key) ?? "").trim();
+  return value || null;
+}
+
+function optionalInteger(formData: FormData, key: string) {
+  const value = String(formData.get(key) ?? "").trim();
+  if (!value) return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.trunc(number) : null;
 }
 
 function normalize(row: DestinationRow): AdminDestination | null {
@@ -53,6 +92,8 @@ function normalize(row: DestinationRow): AdminDestination | null {
     provinceZh: row.province_zh,
     city: row.city ?? "",
     cityZh: row.city_zh,
+    address: row.address,
+    openingHours: row.opening_hours,
     latitude: row.latitude ?? 0,
     longitude: row.longitude ?? 0,
     scenario: row.scenario,
@@ -63,11 +104,38 @@ function normalize(row: DestinationRow): AdminDestination | null {
     hasParking: row.has_parking ?? false,
     hasToilet: row.has_toilet ?? false,
     minKidAge: row.min_kid_age ?? 0,
+    suitableAgeMin: row.suitable_age_min,
+    suitableAgeMax: row.suitable_age_max,
+    suggestedDuration: row.suggested_duration,
+    familyBudget: row.family_budget,
+    reservationRequired: row.reservation_required ?? false,
+    parkingDetail: row.parking_detail,
+    toiletDetail: row.toilet_detail,
+    strollerFriendly: row.stroller_friendly,
+    petFriendly: row.pet_friendly,
+    bestTime: row.best_time,
     ticketPrice: row.ticket_price,
     image: row.image ?? "",
     description: row.description ?? "",
     descriptionZh: row.description_zh,
+    editorRecommendation: row.editor_recommendation,
+    familyTips: row.family_tips,
+    avoidPitfalls: row.avoid_pitfalls,
     isActive: row.is_active ?? true,
+    updatedAt: row.updated_at
+  };
+}
+
+function normalizePhoto(row: DestinationPhotoRow): DestinationPhoto {
+  return {
+    id: row.id,
+    destinationId: row.destination_id,
+    imageUrl: row.image_url,
+    category: row.category ?? "gallery",
+    altText: row.alt_text,
+    isCover: row.is_cover ?? false,
+    sortOrder: row.sort_order ?? 0,
+    createdAt: row.created_at,
     updatedAt: row.updated_at
   };
 }
@@ -86,7 +154,24 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
   const { data, error } = await supabase.from("destinations").select(selectFields).eq("id", id).maybeSingle();
   if (error || !data) return NextResponse.json({ ok: false, item: null, message: "\u6ca1\u6709\u627e\u5230\u8fd9\u4e2a\u76ee\u7684\u5730\u3002" }, { status: 404 });
-  return NextResponse.json({ ok: true, item: normalize(data as DestinationRow), authSource });
+  const item = normalize(data as DestinationRow);
+  if (!item) return NextResponse.json({ ok: false, item: null, message: "\u76ee\u7684\u5730\u6570\u636e\u4e0d\u5b8c\u6574\u3002" }, { status: 404 });
+
+  const { data: photos } = await supabase
+    .from("destination_photos")
+    .select("id,destination_id,image_url,category,alt_text,is_cover,sort_order,created_at,updated_at")
+    .eq("destination_id", id)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  return NextResponse.json({
+    ok: true,
+    item: {
+      ...item,
+      photos: ((photos ?? []) as DestinationPhotoRow[]).map(normalizePhoto)
+    },
+    authSource
+  });
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -127,6 +212,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       province_zh: province,
       city,
       city_zh: city,
+      address: optionalText(formData, "address"),
+      opening_hours: optionalText(formData, "opening_hours"),
       latitude: Number(formData.get("latitude") || "0") || 0,
       longitude: Number(formData.get("longitude") || "0") || 0,
       scenario: String(formData.get("scenario") ?? "creek"),
@@ -136,10 +223,23 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       has_parking: formData.get("has_parking") === "on",
       has_toilet: formData.get("has_toilet") === "on",
       min_kid_age: Number(formData.get("min_kid_age") || "0") || 0,
+      suitable_age_min: optionalInteger(formData, "suitable_age_min"),
+      suitable_age_max: optionalInteger(formData, "suitable_age_max"),
+      suggested_duration: optionalText(formData, "suggested_duration"),
+      family_budget: optionalText(formData, "family_budget"),
+      reservation_required: formData.get("reservation_required") === "on",
+      parking_detail: optionalText(formData, "parking_detail"),
+      toilet_detail: optionalText(formData, "toilet_detail"),
+      stroller_friendly: formData.get("stroller_friendly") === "on",
+      pet_friendly: formData.get("pet_friendly") === "on",
+      best_time: optionalText(formData, "best_time"),
       ticket_price: String(formData.get("ticket_price") ?? "").trim() || null,
       ...(imageUrl ? { image: imageUrl } : {}),
       description,
       description_zh: description,
+      editor_recommendation: optionalText(formData, "editor_recommendation"),
+      family_tips: optionalText(formData, "family_tips"),
+      avoid_pitfalls: optionalText(formData, "avoid_pitfalls"),
       updated_at: new Date().toISOString()
     })
     .eq("id", id);

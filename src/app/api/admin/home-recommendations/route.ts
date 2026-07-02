@@ -10,6 +10,9 @@ type RecommendationRow = {
   is_active: boolean | null;
   start_at: string | null;
   end_at: string | null;
+  recommendation: string | null;
+  custom_title: string | null;
+  custom_cover_image: string | null;
   created_at: string | null;
   updated_at: string | null;
 };
@@ -39,6 +42,9 @@ function normalizeRecommendation(row: RecommendationRow, destination?: Destinati
     isActive: row.is_active ?? true,
     startAt: row.start_at,
     endAt: row.end_at,
+    recommendation: row.recommendation,
+    customTitle: row.custom_title,
+    customCoverImage: row.custom_cover_image,
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };
@@ -48,7 +54,12 @@ function cleanSectionType(value: unknown): "today_pick" | "more_explore" {
   return value === "more_explore" ? "more_explore" : "today_pick";
 }
 
-const selectFields = "id,destination_id,section_type,sort_order,is_active,start_at,end_at,created_at,updated_at";
+const selectFields = "id,destination_id,section_type,sort_order,is_active,start_at,end_at,recommendation,custom_title,custom_cover_image,created_at,updated_at";
+
+function cleanOptionalText(value: unknown) {
+  const text = String(value ?? "").trim();
+  return text || null;
+}
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -101,6 +112,9 @@ export async function POST(request: Request) {
     is_active: body.isActive !== false,
     start_at: body.startAt ? String(body.startAt) : null,
     end_at: body.endAt ? String(body.endAt) : null,
+    recommendation: cleanOptionalText(body.recommendation),
+    custom_title: cleanOptionalText(body.customTitle),
+    custom_cover_image: cleanOptionalText(body.customCoverImage),
     updated_at: new Date().toISOString()
   };
 
@@ -126,6 +140,9 @@ export async function PATCH(request: Request) {
     is_active: body.isActive !== false,
     start_at: body.startAt ? String(body.startAt) : null,
     end_at: body.endAt ? String(body.endAt) : null,
+    ...(Object.prototype.hasOwnProperty.call(body, "recommendation") ? { recommendation: cleanOptionalText(body.recommendation) } : {}),
+    ...(Object.prototype.hasOwnProperty.call(body, "customTitle") ? { custom_title: cleanOptionalText(body.customTitle) } : {}),
+    ...(Object.prototype.hasOwnProperty.call(body, "customCoverImage") ? { custom_cover_image: cleanOptionalText(body.customCoverImage) } : {}),
     updated_at: new Date().toISOString()
   };
 

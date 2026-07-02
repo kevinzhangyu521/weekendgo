@@ -21,6 +21,11 @@ function isGenericOrUnverifiedImage(url: string) {
 
 export function getDestinationImage(item: DestinationItem) {
   const text = normalizedText(item);
+  const coverImage = item.coverImage?.trim() ?? "";
+
+  if (coverImage && !isGenericOrUnverifiedImage(coverImage)) {
+    return { src: coverImage, pending: false };
+  }
 
   if (VERIFIED_REAL_IMAGES[item.id]) {
     return { src: VERIFIED_REAL_IMAGES[item.id], pending: false };

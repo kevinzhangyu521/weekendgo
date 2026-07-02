@@ -67,6 +67,14 @@ export function destinationSafety(item: DestinationItem, locale: Locale) {
 }
 
 export function destinationAgeRange(item: DestinationItem, locale: Locale) {
+  const min = item.suitableAgeMin;
+  const max = item.suitableAgeMax;
+  if (typeof min === "number" && typeof max === "number" && max > min) {
+    return locale === "zh" ? `${min}-${max}\u5c81` : `${min}-${max} years`;
+  }
+  if (typeof min === "number" && min >= 0) {
+    return locale === "zh" ? `${min}\u5c81+` : `${min}+ years`;
+  }
   const age = item.minKidAge;
   if (age >= 12) return locale === "zh" ? "12\u5c81+" : "12+ years";
   if (age >= 6) return locale === "zh" ? "6-12\u5c81" : "6-12 years";
@@ -139,6 +147,8 @@ export function destinationDecisionTags(item: DestinationItem, locale: Locale) {
 }
 
 export function destinationTripDuration(item: DestinationItem, locale: Locale) {
+  if (item.suggestedDuration?.trim()) return item.suggestedDuration.trim();
+
   const duration: Record<Scenario, { en: string; zh: string }> = {
     camping: { en: "Half-day to full-day", zh: "\u534a\u65e5\u5230\u4e00\u65e5" },
     creek: { en: "2-4 hours", zh: "2-4 \u5c0f\u65f6" },

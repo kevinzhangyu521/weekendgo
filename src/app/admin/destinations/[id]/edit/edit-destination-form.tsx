@@ -30,7 +30,7 @@ async function authHeaders() {
 
 export function EditDestinationForm({ item }: { item: AdminDestination }) {
   const router = useRouter();
-  const [locationText, setLocationText] = useState(`${item.provinceZh || toChineseRegionName(item.province)} ${item.cityZh || toChineseRegionName(item.city)} ${item.nameZh || item.name}`.trim());
+  const [locationText, setLocationText] = useState(item.address || `${item.provinceZh || toChineseRegionName(item.province)} ${item.cityZh || toChineseRegionName(item.city)} ${item.nameZh || item.name}`.trim());
   const [latitude, setLatitude] = useState(String(item.latitude || ""));
   const [longitude, setLongitude] = useState(String(item.longitude || ""));
   const [locating, setLocating] = useState(false);
@@ -135,12 +135,17 @@ export function EditDestinationForm({ item }: { item: AdminDestination }) {
         <label className={labelClass}>
           {"\u5730\u70b9\u5730\u5740/\u5bfc\u822a\u4f4d\u7f6e"}
           <input
+            name="address"
             value={locationText}
             onChange={(event) => setLocationText(event.target.value)}
             placeholder={"\u4f8b\u5982\uff1a\u6b66\u6c49 \u4e1c\u6e56\u7eff\u9053 \u68a8\u56ed\u5e7f\u573a"}
             className={inputClass}
           />
           <span className="mt-1 block text-xs font-normal text-slate-500">{"\u7528\u4e8e\u81ea\u52a8\u5b9a\u4f4d\uff0c\u4e0d\u9700\u8981\u76f4\u63a5\u586b\u5199\u7eac\u5ea6\u548c\u7ecf\u5ea6\u3002"}</span>
+        </label>
+        <label className={labelClass}>
+          {"开放时间"}
+          <input name="opening_hours" defaultValue={item.openingHours ?? ""} placeholder="例如：09:00-18:00 / 全天开放 / 以现场为准" className={inputClass} />
         </label>
       </section>
 
@@ -236,6 +241,78 @@ export function EditDestinationForm({ item }: { item: AdminDestination }) {
       </section>
 
       <section className="space-y-3 border-t border-slate-100 pt-5">
+        <h2 className="text-base font-bold text-slate-900">{"决策信息"}</h2>
+        <div className="grid gap-3 md:grid-cols-2">
+          <label className={labelClass}>
+            {"适合年龄下限"}
+            <input name="suitable_age_min" type="number" min="0" defaultValue={item.suitableAgeMin ?? ""} placeholder="例如：3" className={inputClass} />
+          </label>
+          <label className={labelClass}>
+            {"适合年龄上限"}
+            <input name="suitable_age_max" type="number" min="0" defaultValue={item.suitableAgeMax ?? ""} placeholder="例如：12" className={inputClass} />
+          </label>
+          <label className={labelClass}>
+            {"建议游玩时长"}
+            <input name="suggested_duration" defaultValue={item.suggestedDuration ?? ""} placeholder="例如：2-4小时 / 半天 / 1天" className={inputClass} />
+          </label>
+          <label className={labelClass}>
+            {"一家三口预算"}
+            <input name="family_budget" defaultValue={item.familyBudget ?? ""} placeholder="例如：约100-200元 / 免费 / 以现场为准" className={inputClass} />
+          </label>
+          <label className={labelClass}>
+            {"最佳游玩时间"}
+            <input name="best_time" defaultValue={item.bestTime ?? ""} placeholder="例如：春秋季 / 上午 / 傍晚" className={inputClass} />
+          </label>
+          <label className="flex items-end gap-2 rounded-lg bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700">
+            <input name="reservation_required" type="checkbox" defaultChecked={Boolean(item.reservationRequired)} />
+            {"是否需要预约"}
+          </label>
+        </div>
+      </section>
+
+      <section className="space-y-3 border-t border-slate-100 pt-5">
+        <h2 className="text-base font-bold text-slate-900">{"配套设施"}</h2>
+        <div className="grid gap-3 md:grid-cols-2">
+          <label className={labelClass}>
+            {"停车详情"}
+            <textarea name="parking_detail" rows={3} defaultValue={item.parkingDetail ?? ""} placeholder="例如：有停车场，周末建议早到；停车费以现场为准。" className={inputClass} />
+          </label>
+          <label className={labelClass}>
+            {"卫生间详情"}
+            <textarea name="toilet_detail" rows={3} defaultValue={item.toiletDetail ?? ""} placeholder="例如：入口附近有公共卫生间，部分区域距离较远。" className={inputClass} />
+          </label>
+        </div>
+        <div className="flex flex-wrap gap-4 rounded-lg bg-slate-50 p-3 text-sm text-slate-700">
+          <label className="inline-flex items-center gap-2 font-semibold">
+            <input name="stroller_friendly" type="checkbox" defaultChecked={Boolean(item.strollerFriendly)} />
+            {"婴儿车友好"}
+          </label>
+          <label className="inline-flex items-center gap-2 font-semibold">
+            <input name="pet_friendly" type="checkbox" defaultChecked={Boolean(item.petFriendly)} />
+            {"宠物友好"}
+          </label>
+        </div>
+      </section>
+
+      <section className="space-y-3 border-t border-slate-100 pt-5">
+        <h2 className="text-base font-bold text-slate-900">{"推荐与提醒"}</h2>
+        <label className={labelClass}>
+          {"编辑推荐理由"}
+          <textarea name="editor_recommendation" rows={3} defaultValue={item.editorRecommendation ?? ""} placeholder="例如：第一次带孩子来不会累，路线成熟，适合周末半日出发。" className={inputClass} />
+        </label>
+        <div className="grid gap-3 md:grid-cols-2">
+          <label className={labelClass}>
+            {"带娃提醒"}
+            <textarea name="family_tips" rows={3} defaultValue={item.familyTips ?? ""} placeholder="例如：建议带防晒、防蚊、水杯和替换衣物。" className={inputClass} />
+          </label>
+          <label className={labelClass}>
+            {"避坑提醒"}
+            <textarea name="avoid_pitfalls" rows={3} defaultValue={item.avoidPitfalls ?? ""} placeholder="例如：周末停车紧张，雨后涉水区域需要谨慎。" className={inputClass} />
+          </label>
+        </div>
+      </section>
+
+      <section className="space-y-3 border-t border-slate-100 pt-5">
         <h2 className="text-base font-bold text-slate-900">{"\u56fe\u7247\u4e0e\u63cf\u8ff0"}</h2>
         {item.image ? (
           <div className="h-40 overflow-hidden rounded-lg bg-slate-100">
@@ -251,6 +328,27 @@ export function EditDestinationForm({ item }: { item: AdminDestination }) {
           {"\u63cf\u8ff0 *"}
           <textarea name="description" required rows={4} defaultValue={item.descriptionZh || item.description} className={inputClass} />
         </label>
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <h3 className="text-sm font-bold text-slate-900">{"当前图片列表"}</h3>
+          {item.photos && item.photos.length > 0 ? (
+            <div className="mt-3 grid gap-3 md:grid-cols-2">
+              {item.photos.map((photo) => (
+                <div key={photo.id} className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                  <div className="h-36 bg-slate-100">
+                    <DestinationImage src={photo.imageUrl} alt={photo.altText || item.nameZh || item.name} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                  </div>
+                  <div className="space-y-1 p-3 text-xs text-slate-600">
+                    <p><span className="font-semibold text-slate-900">{"分类："}</span>{photo.category}</p>
+                    <p><span className="font-semibold text-slate-900">{"封面："}</span>{photo.isCover ? "是" : "否"}</p>
+                    <p><span className="font-semibold text-slate-900">{"排序："}</span>{photo.sortOrder}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-2 text-sm text-slate-500">{"暂无多图记录，当前仍使用上方封面图字段。"}</p>
+          )}
+        </div>
       </section>
 
       <div className="flex flex-wrap items-center gap-3 border-t border-slate-100 pt-5">

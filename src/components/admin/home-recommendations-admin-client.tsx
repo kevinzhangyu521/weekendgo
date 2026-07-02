@@ -24,6 +24,9 @@ type RecommendationItem = {
   isActive: boolean;
   startAt: string | null;
   endAt: string | null;
+  recommendation?: string | null;
+  customTitle?: string | null;
+  customCoverImage?: string | null;
 };
 
 type RecommendationsResponse = {

@@ -10,6 +10,8 @@ export type DestinationItem = {
   provinceZh?: string | null;
   city: string;
   cityZh?: string | null;
+  address?: string | null;
+  openingHours?: string | null;
   latitude: number;
   longitude: number;
   scenario: Scenario;
@@ -20,9 +22,22 @@ export type DestinationItem = {
   hasParking: boolean;
   hasToilet: boolean;
   minKidAge: number;
+  suitableAgeMin?: number | null;
+  suitableAgeMax?: number | null;
+  suggestedDuration?: string | null;
+  familyBudget?: string | null;
+  reservationRequired?: boolean | null;
+  parkingDetail?: string | null;
+  toiletDetail?: string | null;
+  strollerFriendly?: boolean | null;
+  petFriendly?: boolean | null;
+  bestTime?: string | null;
   image: string;
   description: string;
   descriptionZh?: string | null;
+  editorRecommendation?: string | null;
+  familyTips?: string | null;
+  avoidPitfalls?: string | null;
   isActive?: boolean;
   coverImage?: string | null;
   region?: string | null;
@@ -38,6 +53,23 @@ export type DestinationItem = {
   shareCount?: number | null;
   badgeText?: string | null;
   featured?: boolean | null;
+  homeRecommendation?: {
+    recommendation?: string | null;
+    customTitle?: string | null;
+    customCoverImage?: string | null;
+  } | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+};
+
+export type DestinationPhoto = {
+  id: string;
+  destinationId: string;
+  imageUrl: string;
+  category: "cover" | "gallery" | "play" | "parking" | "toilet" | "food" | "camping" | "water";
+  altText?: string | null;
+  isCover: boolean;
+  sortOrder: number;
   createdAt?: string | null;
   updatedAt?: string | null;
 };
