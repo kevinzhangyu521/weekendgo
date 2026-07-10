@@ -3,6 +3,7 @@ import { getDestinationImage } from "@/features/destinations/images";
 import { destinationDescription, destinationName, destinationRegion } from "@/features/destinations/presenter";
 import type { DestinationItem } from "@/features/destinations/types";
 import type { Locale } from "@/lib/i18n/config";
+import { HomeDestinationImage } from "./home-destination-image";
 
 type Props = {
   item: DestinationItem;
@@ -80,13 +81,11 @@ export function DestinationCard({ item, locale, homeCity, metaLine, imagePriorit
       <Link href={detailHref} className="group mx-auto block w-full max-w-[840px] md:w-[90%] lg:w-[820px]" aria-label={`${name} 查看详情`}>
         <article className="qmd-place-card overflow-hidden">
           <div className="relative h-[320px] overflow-hidden bg-slate-100 md:h-[340px] lg:h-[360px]">
-            <img
+            <HomeDestinationImage
               src={image.src}
               alt={name}
-              loading={imagePriority ? "eager" : "lazy"}
-              fetchPriority={imagePriority ? "high" : "auto"}
-              decoding="async"
-              referrerPolicy="no-referrer"
+              priority={imagePriority}
+              sizes="(max-width: 767px) 100vw, (max-width: 1023px) 90vw, 820px"
               className="h-full w-full object-cover brightness-[1.03] saturate-[1.04] transition duration-300 group-hover:scale-[1.03]"
             />
             {badgeText ? (
@@ -131,13 +130,11 @@ export function DestinationCard({ item, locale, homeCity, metaLine, imagePriorit
     <article className="qmd-place-card flex h-full min-h-[430px] flex-col">
       <Link href={detailHref} className="block">
         <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
-          <img
+          <HomeDestinationImage
             src={image.src}
             alt={name}
-            loading={imagePriority ? "eager" : "lazy"}
-            fetchPriority={imagePriority ? "high" : "auto"}
-            decoding="async"
-            referrerPolicy="no-referrer"
+            priority={imagePriority}
+            sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 420px"
             className="h-full w-full object-cover brightness-[1.03] saturate-[1.04]"
           />
           {badgeText ? (
