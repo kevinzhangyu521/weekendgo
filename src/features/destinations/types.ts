@@ -4,6 +4,7 @@ export type Safety = "low_risk" | "medium_risk" | "high_risk";
 
 export type DestinationItem = {
   id: string;
+  externalId?: string | null;
   name: string;
   nameZh?: string | null;
   province?: string | null;

@@ -9,13 +9,13 @@ import { AddToPlanButton } from "@/components/plans/add-to-plan-button";
 import { AmapNavigationButton } from "@/components/plans/amap-navigation-button";
 import { ReviewForm } from "@/components/reviews/review-form";
 import { DestinationViewTracker } from "@/components/destinations/destination-view-tracker";
-import { getDestinationImage, hasUsableDestinationImage } from "@/features/destinations/images";
+import { getDestinationImage } from "@/features/destinations/images";
 import {
   destinationName,
   destinationRegion,
   destinationScenario
 } from "@/features/destinations/presenter";
-import { getAllDestinations, getDestinationPhotos } from "@/features/destinations/repository";
+import { getAllDestinations, getDestinationById, getDestinationPhotos } from "@/features/destinations/repository";
 import type { DestinationItem, DestinationPhoto } from "@/features/destinations/types";
 import { getMyProfile } from "@/features/profiles/repository";
 import { getDestinationReviewsForUser } from "@/features/reviews/repository";
@@ -98,9 +98,9 @@ function formatReviewDateTime(value: string, locale: "en" | "zh") {
   return formatted.replace(/\//g, "-");
 }
 
-function photoGallery(photos: DestinationPhoto[], fallback: { src: string; pending: boolean }, name: string): DestinationPhoto[] {
-  if (photos.length > 0) return photos;
-  if (fallback.pending) return [];
+function photoGallery(photos: DestinationPhoto[] | null | undefined, fallback: { src: string; pending: boolean }, name: string): DestinationPhoto[] {
+  if (Array.isArray(photos) && photos.length > 0) return photos;
+  if (fallback.pending || !fallback.src) return [];
   return [
     {
       id: "legacy-cover",
@@ -129,11 +129,15 @@ export default async function DestinationDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const [locale, { id }] = await Promise.all([getLocale(), params]);
-  const [user, profile, allDestinationsRaw] = await Promise.all([getCurrentUser(), getMyProfile(), getAllDestinations()]);
+  const [user, profile, destinationRaw, allDestinationsRaw] = await Promise.all([
+    getCurrentUser(),
+    getMyProfile(),
+    getDestinationById(id),
+    getAllDestinations()
+  ]);
   const homeCity = profile?.homeCity?.trim() || DEFAULT_HOME_CITY;
-  const destinationRaw = allDestinationsRaw.find((item) => item.id === id) ?? null;
 
-  if (!destinationRaw || !hasUsableDestinationImage(destinationRaw)) notFound();
+  if (!destinationRaw) notFound();
 
   const [destination] = withDistanceFromCity([destinationRaw], homeCity);
   const name = destinationName(destination, locale);
@@ -149,7 +153,7 @@ export default async function DestinationDetailPage({
       .slice(0, 3),
     homeCity
   );
-  const loginHref = `/login?next=${encodeURIComponent(`/destinations/${destination.id}`)}`;
+  const loginHref = `/login?next=${encodeURIComponent(`/destinations/${id}`)}`;
   const decisionItems = [
     { label: pick(locale, "Suitable age", "适合年龄"), value: ageDecision(destination, locale) },
     { label: pick(locale, "Suggested duration", "建议游玩时长"), value: valueOrEmpty(destination.suggestedDuration) },
@@ -421,3 +425,4 @@ export default async function DestinationDetailPage({
     </main>
   );
 }
+
