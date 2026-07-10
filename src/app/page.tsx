@@ -38,7 +38,7 @@ function formatKm(distanceKm: number) {
 function nearbyDistanceLine(item: DestinationItem, locale: Locale) {
   if (!item.distanceKm || item.distanceKm <= 0) return undefined;
 
-  return pick(locale, `About ${formatKm(item.distanceKm)} km away`, `\ud83d\udccd \u8ddd\u79bb\u7ea6 ${formatKm(item.distanceKm)} km`);
+  return pick(locale, `About ${formatKm(item.distanceKm)} km away`, `\u8ddd\u79bb\u7ea6 ${formatKm(item.distanceKm)} km`);
 }
 
 function timestamp(item: DestinationItem) {
@@ -100,7 +100,7 @@ export default async function HomePage() {
   return (
     <main className="min-h-screen bg-slate-50 pb-10">
       <section className="bg-white">
-        <div className="qmd-container flex min-h-[180px] flex-col justify-center py-4 md:min-h-[200px]">
+        <div className="qmd-container flex min-h-[220px] flex-col justify-center py-5 md:min-h-[260px]">
           <div className="max-w-3xl">
             <h1 className="text-3xl font-black leading-tight tracking-[-0.03em] text-slate-950 md:text-5xl">
               {pick(locale, `${homeCity} \u00b7 Where to go this weekend?`, `${homeCity} \u00b7 \u8fd9\u4e2a\u5468\u672b\u53bb\u54ea\uff1f`)}
@@ -121,12 +121,12 @@ export default async function HomePage() {
             </button>
           </form>
 
-          <div className="mt-4 flex flex-wrap gap-3">
+          <div className="-mx-1 mt-4 flex gap-3 overflow-x-auto px-1 pb-1 md:flex-wrap md:overflow-visible md:pb-0">
             {heroPlayLinks.map((item) => (
               <Link
                 key={item.key}
                 href={item.href}
-                className="interactive-button inline-flex h-10 items-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 shadow-sm hover:border-emerald-500 hover:bg-emerald-600 hover:text-white"
+                className="interactive-button inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 shadow-sm hover:border-emerald-500 hover:bg-emerald-600 hover:text-white"
               >
                 <item.icon className="h-4 w-4" />
                 {item.label}
@@ -150,7 +150,7 @@ export default async function HomePage() {
 
       <section id="nearby" className="qmd-container qmd-section scroll-mt-20">
         <HomeSectionHeader
-          title={pick(locale, "Nearby Recommendations", "\ud83d\udccd \u9644\u8fd1\u63a8\u8350")}
+          title={pick(locale, "Nearby Recommendations", "\u9644\u8fd1\u63a8\u8350")}
           subtitle={pick(locale, "Closer places, easier departures.", "\u79bb\u4f60\u66f4\u8fd1\uff0c\u51fa\u53d1\u66f4\u8f7b\u677e\u3002")}
           href={destinationListHref({ city: homeCity, scenario: "all", difficulty: "all", maxDistance: 50, needParking: false, needToilet: false })}
           locale={locale}
@@ -174,9 +174,9 @@ export default async function HomePage() {
           locale={locale}
         />
         {explorationDestinations.length > 0 ? (
-          <div className="columns-1 gap-5 md:columns-2 lg:columns-3">
+          <div className="qmd-explore-grid">
             {explorationDestinations.map((item) => (
-              <div key={item.id} className="mb-5 break-inside-avoid">
+              <div key={item.id}>
                 <DestinationCard item={item} locale={locale} homeCity={homeCity} />
               </div>
             ))}
