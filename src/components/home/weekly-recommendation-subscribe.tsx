@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { Bell, CheckCircle2, Mail, MessageCircle, Smartphone, X } from "lucide-react";
+import { X } from "lucide-react";
 import {
   familyExperienceScenarioOptions,
   familyExperienceStatusLabels,
@@ -49,13 +49,6 @@ function formatDate(value: string) {
     minute: "2-digit"
   }).format(new Date(value));
 }
-
-const futureChannels = [
-  { label: "微信通知", icon: MessageCircle },
-  { label: "邮件", icon: Mail },
-  { label: "短信", icon: Smartphone },
-  { label: "小程序订阅消息", icon: Bell }
-];
 
 export function WeeklyRecommendationSubscribe({ locale }: Props) {
   const currentUser = useCurrentUser();
@@ -151,22 +144,10 @@ export function WeeklyRecommendationSubscribe({ locale }: Props) {
       <div className="rounded-[24px] border border-emerald-100 bg-white p-5 shadow-[0_14px_34px_rgba(15,23,42,0.06)] md:p-7">
         <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-sm font-black text-emerald-700">{pick(locale, "Early Family Experience", "首批体验家庭招募")}</p>
+            <p className="text-sm font-black text-emerald-700">{pick(locale, "Founding Family Experience", "加入栖美地首批体验家庭")}</p>
             <h2 className="mt-2 text-2xl font-black tracking-[-0.02em] text-slate-950 md:text-3xl">
-              {pick(locale, "Get one family-friendly pick every Friday.", "每周五，为你推荐适合家庭出行的目的地。")}
+              {pick(locale, "Experience real Wuhan family destinations and share your feedback with us.", "每周体验真实的武汉亲子目的地，并把你的使用感受告诉我们。")}
             </h2>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {futureChannels.map((channel) => {
-                const Icon = channel.icon;
-
-                return (
-                  <span key={channel.label} className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-600">
-                    <Icon className="h-3.5 w-3.5 text-emerald-700" />
-                    {channel.label}
-                  </span>
-                );
-              })}
-            </div>
             {latestApplication ? (
               <div className="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
                 <p className="font-bold">
@@ -186,7 +167,7 @@ export function WeeklyRecommendationSubscribe({ locale }: Props) {
             onClick={() => setOpen(true)}
             className="interactive-button h-12 shrink-0 rounded-full bg-emerald-600 px-7 text-base font-bold text-white shadow-sm hover:bg-emerald-700"
           >
-            {pick(locale, "Apply now", "订阅本周推荐")}
+            {pick(locale, "Apply now", "申请成为体验家庭")}
           </button>
         </div>
       </div>
@@ -198,9 +179,9 @@ export function WeeklyRecommendationSubscribe({ locale }: Props) {
               <div>
                 <p className="text-sm font-black text-emerald-700">首批体验家庭</p>
                 <h3 id="family-application-title" className="mt-2 text-2xl font-black text-slate-950">
-                  申请本周推荐订阅
+                  申请成为体验家庭
                 </h3>
-                <p className="mt-2 text-sm leading-6 text-slate-600">提交后我们会在后台处理申请，后续可接入微信通知、邮件、短信和小程序订阅消息。</p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">提交后我们会在后台处理申请，适合时会联系你参与体验。</p>
               </div>
               <button
                 type="button"
