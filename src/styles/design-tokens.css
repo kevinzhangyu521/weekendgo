@@ -1,0 +1,98 @@
+:root {
+  /* Color tokens */
+  --color-primary: #2e7d32;
+  --color-primary-hover: #256628;
+  --color-secondary: #f5f7f3;
+  --color-accent: #f59e0b;
+  --color-background: #ffffff;
+  --color-page: #f8faf9;
+  --color-surface: #fafaf8;
+  --color-card: #ffffff;
+  --color-border: #e5e7eb;
+  --color-border-strong: #dde5ef;
+  --color-text-primary: #1f2937;
+  --color-text-strong: #0f172a;
+  --color-text-secondary: #6b7280;
+  --color-text-muted: #64748b;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-focus-ring: rgba(46, 125, 50, 0.14);
+  --color-primary-soft: #ecfdf5;
+  --color-primary-soft-border: #a7f3d0;
+  --color-season-soft: #eff6ff;
+  --color-season-text: #0369a1;
+  --color-people-soft: #fff7ed;
+  --color-people-text: #c2410c;
+
+  /* Typography tokens */
+  --font-sans: "PingFang SC", "HarmonyOS Sans", "Noto Sans SC", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-size-h1: 40px;
+  --font-size-h2: 32px;
+  --font-size-h3: 24px;
+  --font-size-body: 16px;
+  --font-size-small: 14px;
+  --font-size-caption: 12px;
+  --font-size-button: 15px;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-heavy: 800;
+  --line-height-tight: 1.2;
+  --line-height-heading: 1.25;
+  --line-height-body: 1.7;
+  --letter-spacing-normal: 0;
+
+  /* Spacing tokens */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+  /* Radius tokens */
+  --radius-button: 12px;
+  --radius-card: 16px;
+  --radius-card-large: 24px;
+  --radius-image: 20px;
+  --radius-input: 12px;
+  --radius-modal: 24px;
+  --radius-pill: 999px;
+
+  /* Shadow tokens */
+  --shadow-soft: 0 8px 24px rgba(31, 41, 55, 0.08);
+  --shadow-medium: 0 16px 40px rgba(31, 41, 55, 0.12);
+  --shadow-card: 0 12px 30px rgba(15, 23, 42, 0.08);
+  --shadow-card-hover: 0 18px 40px rgba(15, 23, 42, 0.12);
+
+  /* Transition tokens */
+  --transition-duration-fast: 200ms;
+  --transition-duration-medium: 300ms;
+  --transition-ease: ease-out;
+  --transition-standard: 200ms ease-out;
+
+  /* Container tokens */
+  --container-max: 1280px;
+  --container-padding-mobile: 16px;
+  --container-padding-tablet: 24px;
+  --container-padding-desktop: 32px;
+
+  /* Component tokens */
+  --button-height: 44px;
+  --button-height-large: 48px;
+  --button-padding-x: 20px;
+  --input-height: 48px;
+  --input-padding-x: 16px;
+  --section-gap: 64px;
+  --section-gap-compact: 56px;
+  --card-gap: 24px;
+  --card-padding: 24px;
+  --image-ratio-place: 4 / 3;
+}

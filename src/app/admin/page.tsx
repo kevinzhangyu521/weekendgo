@@ -6,6 +6,7 @@ const adminLinks = [
   { href: "/admin/destinations", label: "\u7ba1\u7406\u6240\u6709\u76ee\u7684\u5730", description: "\u7f16\u8f91\u3001\u4e0a\u4e0b\u67b6\u548c\u7ef4\u62a4\u524d\u53f0\u76ee\u7684\u5730\u3002" },
   { href: "/admin/submissions", label: "\u7ba1\u7406\u6295\u7a3f", description: "\u5ba1\u6838\u7528\u6237\u63d0\u4ea4\u7684\u65b0\u5730\u70b9\u3002" },
   { href: "/admin/feedback", label: "\u7ba1\u7406\u53cd\u9988", description: "\u5904\u7406\u7528\u6237\u63d0\u4ea4\u7684\u95ee\u9898\u548c\u5efa\u8bae\u3002" },
+  { href: "/admin/family-experience-applications", label: "体验家庭申请", description: "处理首批体验家庭招募申请。" },
   { href: "/admin/home-recommendations", label: "\u9996\u9875\u63a8\u8350\u7ba1\u7406", description: "\u914d\u7f6e\u4eca\u65e5\u63a8\u8350\u548c\u66f4\u591a\u63a2\u7d22\u3002" },
   { href: "/admin/settings", label: "\u7528\u6237\u7ba1\u7406", description: "\u67e5\u770b\u5f53\u524d\u8d26\u53f7\u7684\u7ba1\u7406\u5458\u72b6\u6001\u3002" },
   { href: "/notifications", label: "\u7cfb\u7edf\u901a\u77e5", description: "\u67e5\u770b\u9700\u8981\u7ba1\u7406\u5458\u5904\u7406\u7684\u7ad9\u5185\u4fe1\u3002" }

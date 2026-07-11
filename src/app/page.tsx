@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Baby, Search, Tent, TreePine, Waves } from "lucide-react";
 import { DestinationCard } from "@/components/home/destination-card";
 import { HomeSectionHeader } from "@/components/home/top10-carousel";
+import { WeeklyRecommendationSubscribe } from "@/components/home/weekly-recommendation-subscribe";
 import { hasUsableDestinationImage } from "@/features/destinations/images";
 import { getHomeRecommendedDestinations, getPublishedDestinations } from "@/features/destinations/repository";
 import type { DestinationItem } from "@/features/destinations/types";
@@ -185,6 +186,8 @@ export default async function HomePage() {
           <EmptyState>{pick(locale, "No more destinations yet", "\u6682\u65e0\u66f4\u591a\u76ee\u7684\u5730")}</EmptyState>
         )}
       </section>
+
+      <WeeklyRecommendationSubscribe locale={locale} />
 
       <footer className="qmd-container mt-16 border-t border-slate-200 py-16 text-sm text-slate-500">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">

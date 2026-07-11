@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="196" height="56" viewBox="0 0 196 56" role="img" aria-labelledby="title desc">
+  <title id="title">Qimeide Horizontal Logo</title>
+  <desc id="desc">Primary polished horizontal Qimeide logo.</desc>
+  <g fill="#2E7D32">
+    <path fill-rule="evenodd" d="M24.5 10a15.5 15.5 0 1 0 0 31 15.5 15.5 0 0 0 0-31Zm1.7 4.8a9.3 9.3 0 1 0 0 18.6 9.3 9.3 0 0 0 0-18.6Z"/>
+  </g>
+  <path d="M32.9 34c2.4 2.1 4.8 4.2 7.4 6.4" fill="none" stroke="#2E7D32" stroke-width="6.3" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="55" y="37" fill="#1F2937" font-family="PingFang SC, HarmonyOS Sans, Noto Sans SC, Microsoft YaHei, Arial, sans-serif" font-size="29" font-weight="900" letter-spacing="0">&#x6816;&#x7F8E;&#x5730;</text>
+</svg>

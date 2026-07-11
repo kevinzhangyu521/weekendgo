@@ -25,6 +25,9 @@ function hrefFor(row: NotificationRow) {
   if (row.related_type === "submission" && row.related_id) {
     return row.role === "admin" ? `/admin/submissions?submissionId=${row.related_id}` : "/my-submissions";
   }
+  if (row.related_type === "family_experience_application" && row.related_id) {
+    return row.role === "admin" ? `/admin/family-experience-applications?applicationId=${row.related_id}` : "/#weekly-recommendation-subscribe";
+  }
   return row.role === "admin" ? "/admin/feedback" : "/my-feedback";
 }
 

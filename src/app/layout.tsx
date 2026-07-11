@@ -21,14 +21,12 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/icons/favicon-16.png", sizes: "16x16", type: "image/png" },
-      { url: "/icons/favicon-32.png", sizes: "32x32", type: "image/png" },
-      { url: "/icons/favicon-48.png", sizes: "48x48", type: "image/png" },
-      { url: "/icons/favicon-512.png", sizes: "512x512", type: "image/png" },
-      { url: "/brand/logo-mark.svg", sizes: "512x512", type: "image/svg+xml" }
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/brand/qimeide-icon.svg", sizes: "any", type: "image/svg+xml" }
     ],
     apple: [
-      { url: "/icons/favicon-180.png", sizes: "180x180", type: "image/png" }
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }
     ]
   }
 };
@@ -43,7 +41,7 @@ export default async function RootLayout({
 
   return (
     <html lang="zh-CN">
-      <body className="bg-slate-50 text-slate-800 antialiased">
+      <body className="antialiased">
         <AuthNav locale={locale} email={user?.email ?? null} isAdmin={isAdmin} />
         {children}
         <FeedbackWidget />

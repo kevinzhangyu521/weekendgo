@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="64" viewBox="0 0 220 64" role="img" aria-labelledby="title desc">
+  <title id="title">Qimeide Bilingual Logo</title>
+  <desc id="desc">Polished Qimeide logo with Chinese and English wordmark.</desc>
+  <g fill="#2E7D32">
+    <path fill-rule="evenodd" d="M28 12a16.5 16.5 0 1 0 0 33 16.5 16.5 0 0 0 0-33Zm1.8 5.2a9.9 9.9 0 1 0 0 19.8 9.9 9.9 0 0 0 0-19.8Z"/>
+  </g>
+  <path d="M37 37.6c2.6 2.4 5.2 4.7 8.1 7.1" fill="none" stroke="#2E7D32" stroke-width="6.7" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="62" y="34" fill="#1F2937" font-family="PingFang SC, HarmonyOS Sans, Noto Sans SC, Microsoft YaHei, Arial, sans-serif" font-size="29" font-weight="900">&#x6816;&#x7F8E;&#x5730;</text>
+  <text x="64" y="52" fill="#6B7280" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="1.8">QIMEIDE</text>
+</svg>

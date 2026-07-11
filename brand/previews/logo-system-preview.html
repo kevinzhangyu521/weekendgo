@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Qimeide Logo System Preview</title>
+    <style>
+      :root {
+        --primary: #2E7D32;
+        --text: #1F2937;
+        --surface: #FAFAF8;
+        --border: #E5E7EB;
+      }
+
+      body {
+        margin: 0;
+        background: var(--surface);
+        color: var(--text);
+        font-family: "PingFang SC", "HarmonyOS Sans", "Noto Sans SC", system-ui, sans-serif;
+      }
+
+      main {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 40px 24px;
+      }
+
+      h1 {
+        margin: 0 0 24px;
+        font-size: 32px;
+      }
+
+      section {
+        margin-top: 28px;
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        background: #fff;
+        padding: 24px;
+      }
+
+      .dark {
+        background: #1F2937;
+      }
+
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        align-items: center;
+      }
+
+      .tile {
+        display: grid;
+        min-width: 120px;
+        gap: 10px;
+        place-items: center;
+        color: #6B7280;
+        font-size: 13px;
+      }
+
+      .avatar {
+        display: grid;
+        width: 160px;
+        height: 160px;
+        place-items: center;
+        overflow: hidden;
+        border-radius: 999px;
+        background: var(--primary);
+      }
+
+      .black-white {
+        background: linear-gradient(90deg, #fff 0 50%, #111 50% 100%);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>栖美地 Logo System Preview</h1>
+
+      <section>
+        <h2>浅色背景</h2>
+        <div class="row">
+          <img src="../../public/brand/qimeide-logo-horizontal.svg" alt="栖美地横向 Logo" width="196" height="56" />
+          <img src="../../public/brand/qimeide-logo-bilingual.svg" alt="栖美地中英 Logo" width="220" height="72" />
+          <img src="../../public/brand/qimeide-icon.svg" alt="栖美地图标" width="96" height="96" />
+        </div>
+      </section>
+
+      <section class="dark">
+        <h2 style="color:#fff">深色背景</h2>
+        <div class="row">
+          <img src="../../public/brand/qimeide-logo-light.svg" alt="栖美地反白 Logo" width="196" height="56" />
+          <img src="../../public/brand/qimeide-icon-white.svg" alt="栖美地反白图标" width="96" height="96" />
+        </div>
+      </section>
+
+      <section>
+        <h2>尺寸测试</h2>
+        <div class="row">
+          <div class="tile"><img src="../../public/brand/qimeide-icon.svg" alt="16px" width="16" height="16" />16</div>
+          <div class="tile"><img src="../../public/brand/qimeide-icon.svg" alt="32px" width="32" height="32" />32</div>
+          <div class="tile"><img src="../../public/brand/qimeide-icon.svg" alt="64px" width="64" height="64" />64</div>
+          <div class="tile"><img src="../../public/brand/qimeide-icon.svg" alt="128px" width="128" height="128" />128</div>
+          <div class="tile"><img src="../../public/brand/qimeide-icon.svg" alt="512px" width="180" height="180" />512 scaled</div>
+        </div>
+      </section>
+
+      <section>
+        <h2>社媒头像圆形裁切</h2>
+        <div class="avatar">
+          <img src="../../public/brand/qimeide-icon-white.svg" alt="社媒头像" width="104" height="104" />
+        </div>
+      </section>
+
+      <section class="black-white">
+        <h2 style="color:#fff">黑白测试</h2>
+        <div class="row">
+          <img src="../../public/brand/qimeide-icon-black.svg" alt="黑色图标" width="96" height="96" />
+          <img src="../../public/brand/qimeide-icon-white.svg" alt="白色图标" width="96" height="96" />
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

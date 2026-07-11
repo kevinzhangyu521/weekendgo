@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">Qimeide White Icon</title>
+  <desc id="desc">White polished geometric Q mark for Qimeide.</desc>
+  <g fill="#FFFFFF">
+    <path fill-rule="evenodd" d="M60 18a40 40 0 1 0 0 80 40 40 0 0 0 0-80Zm4 12a24 24 0 1 0 0 48 24 24 0 0 0 0-48Z"/>
+  </g>
+  <path d="M81 80c6 6 12 11 19 17" fill="none" stroke="#FFFFFF" stroke-width="16.2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
