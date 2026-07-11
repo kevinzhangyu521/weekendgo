@@ -144,10 +144,13 @@ export function WeeklyRecommendationSubscribe({ locale }: Props) {
       <div className="rounded-[24px] border border-emerald-100 bg-white p-5 shadow-[0_14px_34px_rgba(15,23,42,0.06)] md:p-7">
         <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-sm font-black text-emerald-700">{pick(locale, "Founding Family Experience", "加入栖美地首批体验家庭")}</p>
+            <p className="text-sm font-black text-emerald-700">{pick(locale, "Founding Family Experience", "首批体验家庭")}</p>
             <h2 className="mt-2 text-2xl font-black tracking-[-0.02em] text-slate-950 md:text-3xl">
-              {pick(locale, "Experience real Wuhan family destinations and share your feedback with us.", "每周体验真实的武汉亲子目的地，并把你的使用感受告诉我们。")}
+              {pick(locale, "Join Qimeide's founding family experience group", "加入栖美地首批体验家庭")}
             </h2>
+            <p className="mt-2 max-w-2xl text-base font-semibold leading-7 text-slate-600">
+              {pick(locale, "Experience real Wuhan family destinations every week and share your feedback with us.", "每周体验真实的武汉亲子目的地，并把你的使用感受告诉我们。")}
+            </p>
             {latestApplication ? (
               <div className="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
                 <p className="font-bold">
