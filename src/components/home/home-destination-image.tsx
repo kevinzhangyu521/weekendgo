@@ -12,6 +12,10 @@ type Props = {
   className?: string;
 };
 
+function shouldBypassOptimizer(src: string) {
+  return src.includes("commons.wikimedia.org") || src.includes("upload.wikimedia.org");
+}
+
 export function HomeDestinationImage({ src, alt, sizes, priority = false, className }: Props) {
   const [currentSrc, setCurrentSrc] = useState(src || DEFAULT_DESTINATION_IMAGE);
 
@@ -23,6 +27,7 @@ export function HomeDestinationImage({ src, alt, sizes, priority = false, classN
       sizes={sizes}
       priority={priority}
       quality={72}
+      unoptimized={shouldBypassOptimizer(currentSrc)}
       className={className}
       onError={() => {
         if (currentSrc !== DEFAULT_DESTINATION_IMAGE) setCurrentSrc(DEFAULT_DESTINATION_IMAGE);

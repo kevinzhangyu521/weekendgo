@@ -128,6 +128,46 @@ function normalizePhoto(row: DestinationPhotoRow): DestinationPhoto {
   };
 }
 
+async function getCoverImagesByDestinationId(destinationIds: string[]) {
+  if (!hasSupabaseEnv() || destinationIds.length === 0) return new Map<string, string>();
+
+  try {
+    const supabase = createPublicClient();
+    const { data, error } = await supabase
+      .from("destination_photos")
+      .select("destination_id,image_url,is_cover,sort_order,created_at")
+      .in("destination_id", destinationIds)
+      .order("is_cover", { ascending: false })
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true });
+
+    if (error || !data) return new Map<string, string>();
+
+    const covers = new Map<string, string>();
+    data.forEach((row) => {
+      const destinationId = typeof row.destination_id === "string" ? row.destination_id : "";
+      const imageUrl = typeof row.image_url === "string" ? row.image_url.trim() : "";
+      if (destinationId && imageUrl && !covers.has(destinationId)) {
+        covers.set(destinationId, imageUrl);
+      }
+    });
+    return covers;
+  } catch {
+    return new Map<string, string>();
+  }
+}
+
+async function applyDestinationPhotoCovers(items: DestinationItem[]) {
+  const ids = items.map((item) => item.id).filter(Boolean);
+  const covers = await getCoverImagesByDestinationId(ids);
+  if (covers.size === 0) return items;
+
+  return items.map((item) => ({
+    ...item,
+    coverImage: item.coverImage?.trim() || covers.get(item.id) || item.image || null
+  }));
+}
+
 const baseDestinationSelectFields =
   "id,external_id,name,name_zh,province,province_zh,city,city_zh,address,opening_hours,latitude,longitude,scenario,distance_km,difficulty,safety,rating,has_parking,has_toilet,min_kid_age,suitable_age_min,suitable_age_max,suggested_duration,family_budget,reservation_required,parking_detail,toilet_detail,stroller_friendly,pet_friendly,best_time,ticket_price,image,description,description_zh,editor_recommendation,family_tips,avoid_pitfalls,is_active";
 
@@ -158,10 +198,12 @@ async function fetchPublicSupabaseDestinations(): Promise<DestinationItem[] | nu
 
       if (fallback.error || !fallback.data) return null;
 
-      return (fallback.data as DestinationRow[]).map(normalizeRow).filter((item): item is DestinationItem => item !== null);
+      const normalized = (fallback.data as DestinationRow[]).map(normalizeRow).filter((item): item is DestinationItem => item !== null);
+      return applyDestinationPhotoCovers(normalized);
     }
 
-    return (data as DestinationRow[]).map(normalizeRow).filter((item): item is DestinationItem => item !== null);
+    const normalized = (data as DestinationRow[]).map(normalizeRow).filter((item): item is DestinationItem => item !== null);
+    return applyDestinationPhotoCovers(normalized);
   } catch {
     return null;
   }
@@ -227,12 +269,13 @@ export async function getHomeRecommendedDestinations(sectionType: "today_pick" |
 
     if (destinationError || !destinations) return [];
 
-    const byId = new Map(
+    const normalizedDestinations = await applyDestinationPhotoCovers(
       (destinations as DestinationRow[])
         .map(normalizeRow)
         .filter((item): item is DestinationItem => item !== null)
-        .map((item) => [item.id, item])
     );
+
+    const byId = new Map(normalizedDestinations.map((item) => [item.id, item]));
 
     const recommendationById = new Map(
       (data as HomeRecommendationRow[])
