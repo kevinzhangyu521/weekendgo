@@ -4,9 +4,11 @@ import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { Eye, EyeOff, Pencil } from "lucide-react";
 import { DestinationImage } from "@/components/destinations/destination-image";
+import { calculateContentHealth, type ExperienceCounts, type FamilyDestinationExperienceStatus } from "@/features/admin/content-health";
 import type { AdminDestination } from "@/features/admin/destinations";
 import { getDestinationImage } from "@/features/destinations/images";
 import { destinationScenario } from "@/features/destinations/presenter";
+import type { DestinationPhoto } from "@/features/destinations/types";
 import { toChineseRegionName } from "@/lib/geo/region-names";
 import { createClient } from "@/lib/supabase/client";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
@@ -21,6 +23,23 @@ type AdminDestinationsResponse = {
 type AdminDestinationStatusResponse = {
   ok?: boolean;
   message?: string;
+};
+
+type DestinationPhotoRow = {
+  id: string;
+  destination_id: string;
+  image_url: string;
+  category: DestinationPhoto["category"] | null;
+  alt_text: string | null;
+  is_cover: boolean | null;
+  sort_order: number | null;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
+type FamilyExperienceStatusRow = {
+  destination_id: string;
+  status: FamilyDestinationExperienceStatus;
 };
 
 async function authHeaders() {
@@ -45,15 +64,91 @@ function formatRegion(item: { province?: string | null; provinceZh?: string | nu
   return `${province} ${city}`;
 }
 
+function imageStatusClass(pending: boolean) {
+  return pending
+    ? "border-amber-200 bg-amber-50 text-amber-800"
+    : "border-emerald-200 bg-emerald-50 text-emerald-800";
+}
+
+function healthBadgeClass(score: number) {
+  if (score >= 80) return "border-emerald-200 bg-emerald-50 text-emerald-800";
+  if (score >= 50) return "border-amber-200 bg-amber-50 text-amber-800";
+  return "border-rose-200 bg-rose-50 text-rose-700";
+}
+
+function normalizePhoto(row: DestinationPhotoRow): DestinationPhoto {
+  return {
+    id: row.id,
+    destinationId: row.destination_id,
+    imageUrl: row.image_url,
+    category: row.category ?? "gallery",
+    altText: row.alt_text,
+    isCover: row.is_cover ?? false,
+    sortOrder: row.sort_order ?? 0,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+
+function emptyExperienceCounts(): ExperienceCounts {
+  return { approved: 0, pending: 0, rejected: 0 };
+}
+
 export function AdminDestinationsClient() {
   const currentUser = useCurrentUser();
   const [q, setQ] = useState("");
   const [destinations, setDestinations] = useState<AdminDestination[]>([]);
+  const [photosByDestination, setPhotosByDestination] = useState<Record<string, DestinationPhoto[]>>({});
+  const [experiencesByDestination, setExperiencesByDestination] = useState<Record<string, ExperienceCounts>>({});
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
   const [updatingId, setUpdatingId] = useState("");
+
+  async function loadHealthData(items: AdminDestination[]) {
+    const ids = items.map((item) => item.id);
+    if (ids.length === 0) {
+      setPhotosByDestination({});
+      setExperiencesByDestination({});
+      return;
+    }
+
+    try {
+      const supabase = createClient();
+      const [photoResult, experienceResult] = await Promise.all([
+        supabase
+          .from("destination_photos")
+          .select("id,destination_id,image_url,category,alt_text,is_cover,sort_order,created_at,updated_at")
+          .in("destination_id", ids),
+        supabase
+          .from("family_destination_experiences")
+          .select("destination_id,status")
+          .in("destination_id", ids)
+      ]);
+
+      const nextPhotos: Record<string, DestinationPhoto[]> = {};
+      ((photoResult.data ?? []) as DestinationPhotoRow[]).forEach((row) => {
+        const photo = normalizePhoto(row);
+        nextPhotos[photo.destinationId] = [...(nextPhotos[photo.destinationId] ?? []), photo];
+      });
+
+      const nextExperiences: Record<string, ExperienceCounts> = {};
+      ((experienceResult.data ?? []) as FamilyExperienceStatusRow[]).forEach((experience) => {
+        const current = nextExperiences[experience.destination_id] ?? emptyExperienceCounts();
+        nextExperiences[experience.destination_id] = {
+          ...current,
+          [experience.status]: current[experience.status] + 1
+        };
+      });
+
+      setPhotosByDestination(nextPhotos);
+      setExperiencesByDestination(nextExperiences);
+    } catch {
+      setPhotosByDestination({});
+      setExperiencesByDestination({});
+    }
+  }
 
   async function loadDestinations(nextQ = q) {
     if (currentUser.isLoading) return;
@@ -73,9 +168,13 @@ export function AdminDestinationsClient() {
       const result = (await response.json()) as AdminDestinationsResponse;
       setIsAdmin(Boolean(result.isAdmin));
       if (!response.ok || !result.ok) throw new Error(result.message ?? "\u8bfb\u53d6\u76ee\u7684\u5730\u5931\u8d25\u3002");
-      setDestinations(result.destinations ?? []);
+      const nextDestinations = result.destinations ?? [];
+      setDestinations(nextDestinations);
+      await loadHealthData(nextDestinations);
     } catch (err) {
       setDestinations([]);
+      setPhotosByDestination({});
+      setExperiencesByDestination({});
       setError(err instanceof Error ? err.message : "\u8bfb\u53d6\u76ee\u7684\u5730\u5931\u8d25\u3002");
     } finally {
       setLoading(false);
@@ -156,17 +255,38 @@ export function AdminDestinationsClient() {
               <div className="divide-y divide-slate-100">
                 {destinations.map((item) => {
                   const image = getDestinationImage(item);
+                  const health = calculateContentHealth(item, photosByDestination[item.id] ?? item.photos ?? [], experiencesByDestination[item.id]);
                   return (
                     <article key={item.id} className="grid gap-3 p-4 md:grid-cols-[96px_1fr_auto] md:items-center">
                       <div className="relative h-20 overflow-hidden rounded-lg bg-slate-100">
                         <DestinationImage src={image.src} alt={item.nameZh || item.name} loading="lazy" decoding="async" className="h-full w-full object-cover" />
-                        {image.pending ? <span className="absolute left-1 top-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">{"\u5f85\u8865\u5145"}</span> : null}
+                        {image.pending ? <span className="absolute left-1 top-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">{"\u7f3a\u5c11\u5c01\u9762"}</span> : null}
                       </div>
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
                           <h2 className="font-semibold text-slate-900">{item.nameZh || item.name}</h2>
                           <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">{item.source}</span>
                           {!item.isActive ? <span className="rounded-full bg-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700">{"\u5df2\u4e0b\u67b6"}</span> : null}
+                        </div>
+                        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                          <span className={`rounded-full border px-2.5 py-1 font-semibold ${healthBadgeClass(health.contentScore)}`}>
+                            Content {health.contentScore}%
+                          </span>
+                          <span className={`rounded-full border px-2.5 py-1 font-semibold ${healthBadgeClass(health.imageScore)}`}>
+                            Image {health.imageScore}%
+                          </span>
+                          <span className="rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 font-semibold text-sky-800">
+                            Experience total {health.experienceTotal}
+                          </span>
+                          <span className={`rounded-full border px-2.5 py-1 font-semibold ${imageStatusClass(image.pending)}`}>
+                            {image.pending ? "\u7f3a\u5c11\u5c01\u9762" : "\u5df2\u6709\u5c01\u9762"}
+                          </span>
+                          <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-600">
+                            {"\u6765\u6e90\uff1a"}{image.sourceLabel}
+                          </span>
+                          {image.isDefault ? (
+                            <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 font-semibold text-amber-800">{"\u9ed8\u8ba4\u56fe"}</span>
+                          ) : null}
                         </div>
                         <p className="mt-1 text-sm text-slate-600">{formatRegion(item)} - {destinationScenario(item, "zh")} - {formatDistance(item.distanceKm)}</p>
                         <p className="mt-1 line-clamp-1 text-sm text-slate-500">{item.descriptionZh || item.description}</p>

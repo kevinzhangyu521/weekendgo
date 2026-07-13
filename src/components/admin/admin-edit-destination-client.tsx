@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { calculateContentHealth, type ExperienceCounts, type FamilyDestinationExperienceStatus } from "@/features/admin/content-health";
 import type { AdminDestination } from "@/features/admin/destinations";
 import { createClient } from "@/lib/supabase/client";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
@@ -11,6 +12,10 @@ type DestinationResponse = {
   ok?: boolean;
   item?: AdminDestination | null;
   message?: string;
+};
+
+type FamilyExperienceStatusRow = {
+  status: FamilyDestinationExperienceStatus;
 };
 
 async function authHeaders() {
@@ -23,9 +28,20 @@ async function authHeaders() {
   return headers;
 }
 
+function emptyExperienceCounts(): ExperienceCounts {
+  return { approved: 0, pending: 0, rejected: 0 };
+}
+
+function healthBadgeClass(score: number) {
+  if (score >= 80) return "border-emerald-200 bg-emerald-50 text-emerald-800";
+  if (score >= 50) return "border-amber-200 bg-amber-50 text-amber-800";
+  return "border-rose-200 bg-rose-50 text-rose-700";
+}
+
 export function AdminEditDestinationClient({ id }: { id: string }) {
   const currentUser = useCurrentUser();
   const [item, setItem] = useState<AdminDestination | null>(null);
+  const [experienceCounts, setExperienceCounts] = useState<ExperienceCounts>(emptyExperienceCounts);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -50,6 +66,19 @@ export function AdminEditDestinationClient({ id }: { id: string }) {
         const result = (await response.json()) as DestinationResponse;
         if (!response.ok || !result.ok || !result.item) throw new Error(result.message ?? "\u8bfb\u53d6\u76ee\u7684\u5730\u5931\u8d25\u3002");
         if (mounted) setItem(result.item);
+
+        const supabase = createClient();
+        const experienceResult = await supabase
+          .from("family_destination_experiences")
+          .select("status")
+          .eq("destination_id", id);
+        if (!experienceResult.error) {
+          const counts = emptyExperienceCounts();
+          ((experienceResult.data ?? []) as FamilyExperienceStatusRow[]).forEach((experience) => {
+            counts[experience.status] += 1;
+          });
+          if (mounted) setExperienceCounts(counts);
+        }
       } catch (err) {
         if (mounted) setError(err instanceof Error ? err.message : "\u8bfb\u53d6\u76ee\u7684\u5730\u5931\u8d25\u3002");
       } finally {
@@ -82,7 +111,51 @@ export function AdminEditDestinationClient({ id }: { id: string }) {
             </Link>
           </div>
         ) : null}
-        {item ? <EditDestinationForm item={item} /> : null}
+        {item ? (
+          <>
+            {(() => {
+              const health = calculateContentHealth(item, item.photos ?? [], experienceCounts);
+              return (
+                <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className={`rounded-full border px-3 py-1 text-sm font-bold ${healthBadgeClass(health.contentScore)}`}>
+                      Content {health.contentScore}%
+                    </span>
+                    <span className={`rounded-full border px-3 py-1 text-sm font-bold ${healthBadgeClass(health.imageScore)}`}>
+                      Image {health.imageScore}%
+                    </span>
+                    <span className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-sm font-bold text-sky-800">
+                      Experience total {health.experienceTotal}
+                    </span>
+                  </div>
+                  <div className="mt-4">
+                    <p className="text-sm font-bold text-slate-900">{"\u5185\u5bb9\u7f3a\u5931"}</p>
+                    {health.missingItems.length > 0 ? (
+                      <div className="mt-2 flex flex-wrap gap-2 text-sm">
+                        {["Cover", "Parking", "Family Experience", "Toilet", "Gallery"].map((label) => {
+                          const missing = health.missingItems.includes(label);
+                          return (
+                            <span
+                              key={label}
+                              className={`rounded-full border px-3 py-1 font-semibold ${
+                                missing ? "border-amber-200 bg-amber-50 text-amber-800" : "border-emerald-200 bg-emerald-50 text-emerald-800"
+                              }`}
+                            >
+                              {missing ? "\u2610" : "\u2713"} {label}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="mt-2 text-sm text-emerald-700">{"\u6838\u5fc3\u5185\u5bb9\u5df2\u8865\u9f50\u3002"}</p>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+            <EditDestinationForm item={item} />
+          </>
+        ) : null}
       </section>
     </main>
   );
