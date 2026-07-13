@@ -67,7 +67,7 @@ export function AdminSettingsClient() {
     <main className="min-h-screen bg-slate-50">
       <section className="qmd-container py-10">
         <h1 className="text-2xl font-bold text-slate-900">{"\u7ba1\u7406\u5458\u8bbe\u7f6e"}</h1>
-        <p className="mt-2 text-sm leading-6 text-slate-600">{"\u7528\u4e8e\u67e5\u770b\u5f53\u524d\u8d26\u53f7\u7684\u7ba1\u7406\u5458\u72b6\u6001\u3002"}</p>
+        <p className="mt-2 text-sm leading-6 text-slate-600">{"\u67e5\u770b\u5f53\u524d\u8d26\u53f7\u7684\u7ba1\u7406\u5458\u72b6\u6001\uff0c\u5e76\u8fdb\u5165\u5e38\u7528\u7ba1\u7406\u529f\u80fd\u3002"}</p>
 
         <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           {loading ? (

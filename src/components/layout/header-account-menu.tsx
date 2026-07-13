@@ -44,7 +44,7 @@ const adminMenuItems = [
   { href: "/admin/feedback", label: "\u7ba1\u7406\u53cd\u9988" },
   { href: "/admin/family-experience-applications", label: "体验家庭申请" },
   { href: "/admin/home-recommendations", label: "\u9996\u9875\u63a8\u8350\u7ba1\u7406" },
-  { href: "/admin/settings", label: "\u7528\u6237\u7ba1\u7406" },
+  { href: "/admin/settings", label: "\u7ba1\u7406\u5458\u8bbe\u7f6e" },
   { href: "/notifications", label: "\u7cfb\u7edf\u901a\u77e5" },
   { href: "/profile", label: "\u8d26\u53f7\u8bbe\u7f6e" }
 ];
