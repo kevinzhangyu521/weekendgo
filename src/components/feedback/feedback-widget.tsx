@@ -39,6 +39,7 @@ function detectDeviceType() {
 
 export function FeedbackWidget() {
   const [open, setOpen] = useState(false);
+  const [externallyHidden, setExternallyHidden] = useState(false);
   const [type, setType] = useState<FeedbackType>("experience");
   const [content, setContent] = useState("");
   const [contact, setContact] = useState("");
@@ -58,6 +59,16 @@ export function FeedbackWidget() {
 
     window.addEventListener("qimeide:open-feedback", handleOpen);
     return () => window.removeEventListener("qimeide:open-feedback", handleOpen);
+  }, []);
+
+  useEffect(() => {
+    function handleVisibility(event: Event) {
+      const detail = (event as CustomEvent<{ hidden?: boolean }>).detail;
+      setExternallyHidden(Boolean(detail?.hidden));
+    }
+
+    window.addEventListener("qimeide:feedback-visibility", handleVisibility);
+    return () => window.removeEventListener("qimeide:feedback-visibility", handleVisibility);
   }, []);
 
   async function submitFeedback(event: FormEvent<HTMLFormElement>) {
@@ -97,15 +108,17 @@ export function FeedbackWidget() {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="interactive-button fixed bottom-20 right-4 z-50 inline-flex h-12 items-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white shadow-xl shadow-slate-900/20 hover:bg-slate-800 md:bottom-8 md:right-6"
-        aria-label="提交反馈"
-      >
-        <Lightbulb className="h-4 w-4 text-amber-300" />
-        <span>反馈</span>
-      </button>
+      {!externallyHidden ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="interactive-button fixed bottom-20 right-4 z-50 inline-flex h-12 items-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white shadow-xl shadow-slate-900/20 hover:bg-slate-800 md:bottom-8 md:right-6"
+          aria-label="提交反馈"
+        >
+          <Lightbulb className="h-4 w-4 text-amber-300" />
+          <span>反馈</span>
+        </button>
+      ) : null}
 
       {open ? (
         <div className="fixed inset-0 z-[70] flex items-end bg-slate-950/40 p-3 backdrop-blur-sm md:items-center md:justify-center">
