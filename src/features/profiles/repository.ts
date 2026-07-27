@@ -24,10 +24,10 @@ function normalizeScenarios(values: FormDataEntryValue[]) {
 function profileWriteErrorMessage(error: { message?: string; code?: string; details?: string | null }) {
   const detail = [error.code, error.message, error.details].filter(Boolean).join(" ");
   if (detail.includes("bio") || detail.includes("avatar_url")) {
-    return "资料表缺少头像或个人简介字段，请先执行最新数据库迁移后再保存。";
+    return "资料保存功能尚未准备好，请联系管理员处理。";
   }
   if (detail.includes("row-level security") || detail.includes("RLS")) {
-    return "资料保存被数据库权限拦截，请检查 user_profiles 的 RLS 策略。";
+    return "暂时无法保存资料，请联系管理员处理。";
   }
   return error.message ? `保存失败：${error.message}` : "保存失败，请稍后再试。";
 }

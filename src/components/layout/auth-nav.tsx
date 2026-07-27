@@ -19,13 +19,13 @@ export function AuthNav({ locale, email, isAdmin }: Props) {
           <BrandLogo />
           <nav className="hidden min-w-0 items-center gap-6 whitespace-nowrap text-slate-700 md:flex">
             <Link href="/destinations" className="interactive-nav-link shrink-0">
-              {pick(locale, "Discover", "\u53d1\u73b0")}
+              {pick(locale, "发现", "\u53d1\u73b0")}
             </Link>
             <Link href="/map" className="interactive-nav-link shrink-0">
-              {pick(locale, "Map", "\u5730\u56fe")}
+              {pick(locale, "地图", "\u5730\u56fe")}
             </Link>
             <Link href="/submit-spot" className="interactive-nav-link shrink-0">
-              {pick(locale, "Submit", "\u6295\u7a3f")}
+              {pick(locale, "投稿", "\u6295\u7a3f")}
             </Link>
           </nav>
         </div>

@@ -346,7 +346,7 @@ export function EditDestinationForm({ item }: { item: AdminDestination }) {
               ))}
             </div>
           ) : (
-            <p className="mt-2 text-sm text-slate-500">{"暂无多图记录，当前仍使用上方封面图字段。"}</p>
+            <p className="mt-2 text-sm text-slate-500">{"暂无更多图片，当前仍使用上方封面图。"}</p>
           )}
         </div>
       </section>

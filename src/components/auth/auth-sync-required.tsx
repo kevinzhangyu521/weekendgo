@@ -14,7 +14,7 @@ export function AuthSyncRequired({ title, description, loginHref }: Props) {
           <h1 className="text-2xl font-bold text-slate-900">{title}</h1>
           <p className="mt-2 text-sm text-slate-600">{description}</p>
           <Link href={loginHref} className="mt-4 inline-flex rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">
-            去登录
+            登录后继续
           </Link>
         </div>
       </section>

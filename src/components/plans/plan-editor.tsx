@@ -259,7 +259,7 @@ export function PlanEditor({ plan, locale }: Props) {
 
     ctx.fillStyle = "#86efac";
     ctx.font = "20px sans-serif";
-    ctx.fillText(locale === "zh" ? "\u5728\u8ba1\u5212\u9875\u751f\u6210 QR \u540e\u5373\u53ef\u5206\u4eab\u5b9e\u65f6\u94fe\u63a5" : "Open QR in plan editor to share the live link", 110, 550);
+    ctx.fillText(locale === "zh" ? "\u5728\u8ba1\u5212\u9875\u751f\u6210 QR \u540e\u5373\u53ef\u5206\u4eab\u5b9e\u65f6\u94fe\u63a5" : "在计划页生成二维码后即可分享实时链接", 110, 550);
 
     const data = canvas.toDataURL("image/png");
     const a = document.createElement("a");

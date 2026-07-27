@@ -113,7 +113,7 @@ export function FeedbackWidget() {
           type="button"
           onClick={() => setOpen(true)}
           className="interactive-button fixed bottom-20 right-4 z-50 inline-flex h-12 items-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white shadow-xl shadow-slate-900/20 hover:bg-slate-800 md:bottom-8 md:right-6"
-          aria-label="提交反馈"
+          aria-label="问题反馈"
         >
           <Lightbulb className="h-4 w-4 text-amber-300" />
           <span>反馈</span>
@@ -127,7 +127,7 @@ export function FeedbackWidget() {
               <div>
                 <p className="inline-flex items-center gap-2 text-lg font-bold text-slate-900">
                   <MessageSquare className="h-5 w-5 text-emerald-600" />
-                  提交反馈
+                  问题反馈
                 </p>
                 <p className="mt-1 text-sm text-slate-500">告诉我们哪里不好用，或者地点信息哪里需要修正。</p>
               </div>
@@ -171,7 +171,7 @@ export function FeedbackWidget() {
             </label>
 
             <div className="mt-4 rounded-xl bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-500">
-              系统会自动记录当前页面、设备类型和提交时间，帮助我们更快定位问题。
+              我们会结合当前页面信息一起查看，方便更快定位问题。
             </div>
 
             {error ? (
@@ -188,7 +188,7 @@ export function FeedbackWidget() {
               </button>
               <button disabled={submitting} className="interactive-button inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60">
                 {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                {submitting ? "提交中..." : "提交反馈"}
+                {submitting ? "提交中..." : "确认提交"}
               </button>
             </div>
           </form>

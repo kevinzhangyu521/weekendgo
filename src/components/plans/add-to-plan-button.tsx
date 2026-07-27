@@ -73,7 +73,7 @@ export function AddToPlanButton({ destinationId, locale }: Props) {
         return;
       }
 
-      if (!response.ok || !result.ok) throw new Error(result.message ?? "Add to plan failed");
+      if (!response.ok || !result.ok) throw new Error(result.message ?? "加入计划失败");
 
       if (result.alreadyInPlan) {
         setAddedToPlan(true);
@@ -82,7 +82,7 @@ export function AddToPlanButton({ destinationId, locale }: Props) {
 
       setAddedToPlan(true);
     } catch (error) {
-      const detail = error instanceof Error && error.message !== "Add to plan failed" ? error.message : text.addFailed;
+      const detail = error instanceof Error && error.message !== "加入计划失败" ? error.message : text.addFailed;
       setError(detail);
     } finally {
       setLoading(false);

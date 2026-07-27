@@ -162,12 +162,12 @@ export function WeeklyRecommendationSubscribe({ locale }: Props) {
       <div className="rounded-[24px] border border-emerald-100 bg-white p-5 shadow-[0_14px_34px_rgba(15,23,42,0.06)] md:p-7">
         <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-sm font-black text-emerald-700">{pick(locale, "Founding Family Experience", "首批体验家庭")}</p>
+            <p className="text-sm font-black text-emerald-700">{pick(locale, "首批体验家庭", "首批体验家庭")}</p>
             <h2 className="mt-2 text-2xl font-black tracking-[-0.02em] text-slate-950 md:text-3xl">
-              {pick(locale, "Join Qimeide's founding family experience group", "加入栖美地首批体验家庭")}
+              {pick(locale, "加入首批体验家庭", "加入首批体验家庭")}
             </h2>
             <p className="mt-2 max-w-2xl text-base font-semibold leading-7 text-slate-600">
-              {pick(locale, "Experience real Wuhan family destinations every week and share your feedback with us.", "每周体验真实的武汉亲子目的地，并把你的使用感受告诉我们。")}
+              {pick(locale, "每周体验真实的武汉亲子目的地，并把你的使用感受告诉我们。", "每周体验真实的武汉亲子目的地，并把你的使用感受告诉我们。")}
             </p>
             {latestApplication ? (
               <div className="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
@@ -194,7 +194,7 @@ export function WeeklyRecommendationSubscribe({ locale }: Props) {
             onClick={() => setOpen(true)}
             className="interactive-button h-12 shrink-0 rounded-full bg-emerald-600 px-7 text-base font-bold text-white shadow-sm hover:bg-emerald-700"
           >
-            {pick(locale, "Apply now", "申请成为体验家庭")}
+            {pick(locale, "申请加入体验家庭", "申请加入体验家庭")}
           </button>
         </div>
       </div>
@@ -207,7 +207,7 @@ export function WeeklyRecommendationSubscribe({ locale }: Props) {
                 <div>
                   <p className="text-sm font-black text-emerald-700">首批体验家庭</p>
                   <h3 id="family-application-title" className="mt-2 text-2xl font-black text-slate-950">
-                    申请成为体验家庭
+                    申请加入体验家庭
                   </h3>
                 </div>
                 <button
@@ -230,7 +230,7 @@ export function WeeklyRecommendationSubscribe({ locale }: Props) {
               <section className="mt-5 rounded-2xl border border-slate-100 bg-white">
                 <div className="border-b border-slate-100 px-4 py-3">
                   <h4 className="text-base font-black text-slate-950">基本信息（必填）</h4>
-                  <p className="mt-1 text-xs text-slate-500">前三项填完即可提交申请。</p>
+                  <p className="mt-1 text-xs text-slate-500">填完前三项，就可以先提交申请。</p>
                 </div>
                 <div className="grid gap-4 p-4 md:grid-cols-2">
                   <label className="text-sm font-bold text-slate-800">
@@ -310,10 +310,10 @@ export function WeeklyRecommendationSubscribe({ locale }: Props) {
             <div className="sticky bottom-0 border-t border-slate-100 bg-white/95 px-5 py-3 pb-[calc(12px+env(safe-area-inset-bottom))] backdrop-blur md:static md:px-6 md:pb-6">
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                 <button type="button" onClick={closeDialog} className="interactive-button h-12 rounded-full border border-slate-200 bg-white px-5 text-sm font-bold text-slate-700 hover:bg-slate-50 sm:w-36">
-                  先不提交
+                  暂时不申请
                 </button>
                 <button type="submit" disabled={submitting} className="interactive-button h-12 rounded-full bg-emerald-600 px-6 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-60 sm:min-w-52">
-                  {submitting ? "提交中..." : "申请成为首批体验家庭"}
+                  {submitting ? "提交中..." : "申请加入首批体验家庭"}
                 </button>
               </div>
             </div>

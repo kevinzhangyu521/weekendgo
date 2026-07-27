@@ -11,8 +11,8 @@ import { getAmapNavigationUrl } from "@/lib/maps/navigation";
 import { getLocale, pick } from "@/lib/i18n/server";
 
 function formatDistance(distanceKm: number, locale: "en" | "zh") {
-  if (!distanceKm || distanceKm <= 0) return pick(locale, "Distance pending", "\u8ddd\u79bb\u5f85\u8ba1\u7b97");
-  return pick(locale, `About ${distanceKm}km away`, `\u7ea6 ${distanceKm}km`);
+  if (!distanceKm || distanceKm <= 0) return pick(locale, "距离信息完善中", "\u8ddd\u4fe1\u606f\u5b8c\u5584\u4e2d");
+  return pick(locale, `约 ${distanceKm}km`, `\u7ea6 ${distanceKm}km`);
 }
 
 function withPlanDistances(plan: PlanDetail): PlanDetail {
@@ -54,13 +54,13 @@ export default async function SharedPlanPage({
         {!cardView ? (
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2 no-print">
             <Link href="/plans" className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700">
-              {pick(locale, "Back to plans", "\u8fd4\u56de\u8ba1\u5212")}
+              {pick(locale, "返回计划", "\u8fd4\u56de\u8ba1\u5212")}
             </Link>
             <Link
               href={`/plans/share/${slug}?view=card`}
               className="rounded-full bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white"
             >
-              {pick(locale, "Open card view", "\u6253\u5f00\u5361\u7247\u89c6\u56fe")}
+              {pick(locale, "打开卡片视图", "\u6253\u5f00\u5361\u7247\u89c6\u56fe")}
             </Link>
           </div>
         ) : null}
@@ -75,12 +75,12 @@ export default async function SharedPlanPage({
             </span>
             <span className="inline-flex items-center gap-1">
               <Route className="h-4 w-4" />
-              {pick(locale, `${plan.items.length} stops`, `${plan.items.length} \u4e2a\u7ad9\u70b9`)}
+              {pick(locale, `${plan.items.length} 个站点`, `${plan.items.length} \u4e2a\u7ad9\u70b9`)}
             </span>
             {!cardView ? (
               <span className="inline-flex items-center gap-1">
                 <Share2 className="h-4 w-4" />
-                {pick(locale, "Read-only view", "\u53ea\u8bfb\u89c6\u56fe")}
+                {pick(locale, "仅查看", "\u4ec5\u67e5\u770b")}
               </span>
             ) : null}
           </div>
@@ -90,12 +90,12 @@ export default async function SharedPlanPage({
 
         {!cardView ? (
           <div className="mb-4 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-700 shadow-sm print-card">
-            <p className="font-medium text-slate-900">{pick(locale, "Quick checklist", "\u51fa\u53d1\u6e05\u5355")}</p>
+            <p className="font-medium text-slate-900">{pick(locale, "出发清单", "\u51fa\u53d1\u6e05\u5355")}</p>
             <div className="mt-2 grid gap-2 md:grid-cols-2">
-              <p>{pick(locale, "1. Water, sunscreen, and first-aid kit", "1. \u996e\u7528\u6c34\u3001\u9632\u6652\u548c\u6025\u6551\u5305")}</p>
-              <p>{pick(locale, "2. Kids anti-slip shoes for creek sections", "2. \u6d89\u6c34\u8def\u6bb5\u4e3a\u5b69\u5b50\u51c6\u5907\u9632\u6ed1\u978b")}</p>
-              <p>{pick(locale, "3. Backup clothes and towels", "3. \u5907\u7528\u8863\u7269\u4e0e\u6bdb\u5dfe")}</p>
-              <p>{pick(locale, "4. Confirm weather before departure", "4. \u51fa\u53d1\u524d\u518d\u786e\u8ba4\u5929\u6c14")}</p>
+              <p>{pick(locale, "1. 饮用水、防晒和急救包", "1. \u996e\u7528\u6c34\u3001\u9632\u6652\u548c\u6025\u6551\u5305")}</p>
+              <p>{pick(locale, "2. 涉水路段为孩子准备防滑鞋", "2. \u6d89\u6c34\u8def\u6bb5\u4e3a\u5b69\u5b50\u51c6\u5907\u9632\u6ed1\u978b")}</p>
+              <p>{pick(locale, "3. 备用衣物与毛巾", "3. \u5907\u7528\u8863\u7269\u4e0e\u6bdb\u5dfe")}</p>
+              <p>{pick(locale, "4. 出发前再确认天气", "4. \u51fa\u53d1\u524d\u518d\u786e\u8ba4\u5929\u6c14")}</p>
             </div>
           </div>
         ) : null}
@@ -132,27 +132,27 @@ export default async function SharedPlanPage({
                               rel="noopener noreferrer"
                               className="inline-flex rounded-full bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white"
                             >
-                              {pick(locale, "Navigate", "\u7acb\u5373\u5bfc\u822a")}
+                              {pick(locale, "立即导航", "\u7acb\u5373\u5bfc\u822a")}
                             </a>
                           ) : (
                             <Link
                               href={`/login?next=${encodeURIComponent(`/plans/share/${slug}`)}`}
                               className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-700"
                             >
-                              {pick(locale, "Sign in to navigate", "\u767b\u5f55\u540e\u5bfc\u822a")}
+                              {pick(locale, "登录后导航", "\u767b\u5f55\u540e\u5bfc\u822a")}
                             </Link>
                           )}
                           <Link
                             href={`/destinations/${item.destination.id}`}
                             className="inline-flex rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700"
                           >
-                            {pick(locale, "Open destination", "\u6253\u5f00\u76ee\u7684\u5730")}
+                            {pick(locale, "打开目的地", "\u6253\u5f00\u76ee\u7684\u5730")}
                           </Link>
                         </div>
                       ) : null}
                     </>
                   ) : (
-                    <p className="mt-1 text-sm text-slate-600">{pick(locale, "Destination not available", "\u76ee\u7684\u5730\u6682\u4e0d\u53ef\u7528")}</p>
+                    <p className="mt-1 text-sm text-slate-600">{pick(locale, "目的地暂不可用", "\u76ee\u7684\u5730\u6682\u4e0d\u53ef\u7528")}</p>
                   )}
                 </div>
               </div>

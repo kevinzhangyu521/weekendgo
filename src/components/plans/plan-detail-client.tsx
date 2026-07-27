@@ -82,23 +82,23 @@ export function PlanDetailClient({ id, locale }: Props) {
       <section className="qmd-container py-6">
         <Link href="/plans" className="mb-4 inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900">
           <ChevronLeft className="h-4 w-4" />
-          {pick(locale, "Back to plans", "\u8fd4\u56de\u8ba1\u5212")}
+          {pick(locale, "返回计划", "\u8fd4\u56de\u8ba1\u5212")}
         </Link>
 
         {loading ? (
-          <div className="rounded-xl border border-slate-200 bg-white p-6 text-slate-700">{pick(locale, "Loading plan...", "\u6b63\u5728\u8bfb\u53d6\u8ba1\u5212...")}</div>
+          <div className="rounded-xl border border-slate-200 bg-white p-6 text-slate-700">{pick(locale, "正在读取计划...", "\u6b63\u5728\u8bfb\u53d6\u8ba1\u5212...")}</div>
         ) : !currentUser.isAuthenticated ? (
           <div className="rounded-xl border border-slate-200 bg-white p-6 text-slate-700">
-            <p className="font-medium">{pick(locale, "Please sign in to view this plan.", "\u8bf7\u5148\u767b\u5f55\uff0c\u7136\u540e\u67e5\u770b\u8fd9\u4e2a\u8ba1\u5212\u3002")}</p>
+            <p className="font-medium">{pick(locale, "请先登录，然后查看这个计划。", "\u8bf7\u5148\u767b\u5f55\uff0c\u7136\u540e\u67e5\u770b\u8fd9\u4e2a\u8ba1\u5212\u3002")}</p>
             <Link href={`/login?next=${encodeURIComponent(`/plans/${id}`)}`} className="mt-4 inline-flex rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white">
-              {pick(locale, "Sign in", "\u53bb\u767b\u5f55")}
+              {pick(locale, "登录查看", "\u767b\u5f55\u67e5\u770b")}
             </Link>
           </div>
         ) : error ? (
           <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-amber-900">
             <p>{error}</p>
             <Link href="/plans" className="mt-4 inline-flex rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white">
-              {pick(locale, "Back to plans", "\u8fd4\u56de\u8ba1\u5212")}
+              {pick(locale, "返回计划", "\u8fd4\u56de\u8ba1\u5212")}
             </Link>
           </div>
         ) : plan ? (
@@ -110,10 +110,10 @@ export function PlanDetailClient({ id, locale }: Props) {
                 <span className="rounded-full bg-slate-100 px-2 py-1 text-xs">{planStatusLabel(plan.status, locale)}</span>
                 <span className="inline-flex items-center gap-1">
                   <Route className="h-4 w-4" />
-                  {pick(locale, `${plan.items.length} stops`, `${plan.items.length} \u4e2a\u7ad9\u70b9`)}
+                  {pick(locale, `${plan.items.length} 个站点`, `${plan.items.length} \u4e2a\u7ad9\u70b9`)}
                 </span>
               </div>
-              <p className="mt-2 text-xs text-slate-500">{pick(locale, "Tip: enable public share in the editor below to get a read-only link.", "\u63d0\u793a\uff1a\u5728\u4e0b\u65b9\u7f16\u8f91\u533a\u5f00\u542f\u516c\u5f00\u5206\u4eab\uff0c\u5373\u53ef\u751f\u6210\u53ea\u8bfb\u94fe\u63a5\u3002")}</p>
+              <p className="mt-2 text-xs text-slate-500">{pick(locale, "提示：在下方编辑区开启公开分享，即可生成只读链接。", "\u63d0\u793a\uff1a\u5728\u4e0b\u65b9\u7f16\u8f91\u533a\u5f00\u542f\u516c\u5f00\u5206\u4eab\uff0c\u5373\u53ef\u751f\u6210\u53ea\u8bfb\u94fe\u63a5\u3002")}</p>
               {plan.notes ? <p className="mt-3 text-sm text-slate-700">{plan.notes}</p> : null}
             </div>
             <PlanEditor plan={plan} locale={locale} />

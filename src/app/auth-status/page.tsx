@@ -29,7 +29,7 @@ export default async function AuthStatusPage() {
           </Link>
           {!user ? (
             <Link href="/login?next=/auth-status" className="rounded-full border border-emerald-200 px-4 py-2 text-sm font-semibold text-emerald-700">
-              去登录
+              重新登录
             </Link>
           ) : null}
         </div>

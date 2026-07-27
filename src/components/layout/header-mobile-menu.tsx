@@ -18,7 +18,7 @@ const links: Record<Locale, Array<{ href: string; label: string }>> = {
   en: [
     { href: "/destinations", label: "Discover" },
     { href: "/map", label: "Map" },
-    { href: "/submit-spot", label: "Submit" }
+    { href: "/submit-spot", label: "投稿" }
   ]
 };
 
@@ -41,7 +41,7 @@ export function HeaderMobileMenu({ locale }: Props) {
         type="button"
         onClick={() => setOpen((value) => !value)}
         className="interactive-button inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700"
-        aria-label={locale === "zh" ? "\u6253\u5f00\u5bfc\u822a\u83dc\u5355" : "Open navigation menu"}
+        aria-label={locale === "zh" ? "\u6253\u5f00\u5bfc\u822a\u83dc\u5355" : "打开导航菜单"}
         aria-expanded={open}
       >
         {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}

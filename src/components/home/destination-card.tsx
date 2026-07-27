@@ -40,7 +40,7 @@ function shortReason(item: DestinationItem, locale: Locale) {
   if (recommendation) return shortText(recommendation, 54);
 
   const description = cleanText(destinationDescription(item, locale));
-  return description ? shortText(description, 54) : pick(locale, "Recommendation is being updated.", "推荐理由正在补充中");
+  return description ? shortText(description, 54) : pick(locale, "编辑正在完善推荐内容", "编辑正在完善推荐内容");
 }
 
 function ageValue(item: DestinationItem, locale: Locale) {
@@ -73,11 +73,11 @@ function distanceValue(item: DestinationItem, homeCity: string, locale: Locale) 
   if (!item.distanceKm || item.distanceKm <= 0) return null;
 
   const value = Number.isInteger(item.distanceKm) ? `${item.distanceKm}` : item.distanceKm.toFixed(1);
-  return pick(locale, `About ${value} km from ${homeCity}`, `距${homeCity}约${value}公里`);
+  return pick(locale, `距${homeCity}约${value}公里`, `距${homeCity}约${value}公里`);
 }
 
 function reservationValue(item: DestinationItem, locale: Locale) {
-  if (item.reservationRequired === true) return pick(locale, "Reservation needed", "需要预约");
+  if (item.reservationRequired === true) return pick(locale, "出发前建议预约", "出发前建议预约");
   return null;
 }
 
@@ -97,12 +97,12 @@ function featuredInfoItems(item: DestinationItem, locale: Locale, homeCity: stri
   const distance = distanceValue(item, homeCity, locale);
   const reservation = reservationValue(item, locale);
   const candidates: Array<InfoItem | null> = [
-    { key: "region", label: pick(locale, "Area", "地点"), value: region, icon: MapPin },
-    age ? { key: "age", label: pick(locale, "Age", "适合年龄"), value: age, icon: Baby } : null,
-    duration ? { key: "duration", label: pick(locale, "Duration", "游玩时长"), value: duration, icon: Clock3 } : null,
-    budget ? { key: "budget", label: pick(locale, "Budget", "家庭预算"), value: budget, icon: WalletCards } : null,
-    distance ? { key: "distance", label: pick(locale, "Distance", "距离"), value: distance, icon: Route } : null,
-    reservation ? { key: "reservation", label: pick(locale, "Reservation", "预约"), value: reservation, icon: CalendarCheck } : null
+    { key: "region", label: pick(locale, "地点", "地点"), value: region, icon: MapPin },
+    age ? { key: "age", label: pick(locale, "适合年龄", "适合年龄"), value: age, icon: Baby } : null,
+    duration ? { key: "duration", label: pick(locale, "游玩时长", "游玩时长"), value: duration, icon: Clock3 } : null,
+    budget ? { key: "budget", label: pick(locale, "家庭预算", "家庭预算"), value: budget, icon: WalletCards } : null,
+    distance ? { key: "distance", label: pick(locale, "距离", "距离"), value: distance, icon: Route } : null,
+    reservation ? { key: "reservation", label: pick(locale, "预约", "预约"), value: reservation, icon: CalendarCheck } : null
   ];
 
   return candidates.filter((info): info is InfoItem => info !== null).slice(0, 6);
@@ -114,10 +114,10 @@ function compactInfoItems(item: DestinationItem, locale: Locale, homeCity: strin
   const budget = budgetValue(item);
   const age = ageValue(item, locale);
   const candidates: Array<InfoItem | null> = [
-    distance ? { key: "distance", label: pick(locale, "Distance", "距离"), value: distance.replace(/^📍\s*/, ""), icon: Route } : null,
-    age ? { key: "age", label: pick(locale, "Age", "年龄"), value: age, icon: Baby } : null,
-    duration ? { key: "duration", label: pick(locale, "Duration", "时长"), value: duration, icon: Clock3 } : null,
-    !duration && budget ? { key: "budget", label: pick(locale, "Budget", "预算"), value: budget, icon: WalletCards } : null
+    distance ? { key: "distance", label: pick(locale, "距离", "距离"), value: distance.replace(/^📍\s*/, ""), icon: Route } : null,
+    age ? { key: "age", label: pick(locale, "年龄", "年龄"), value: age, icon: Baby } : null,
+    duration ? { key: "duration", label: pick(locale, "时长", "时长"), value: duration, icon: Clock3 } : null,
+    !duration && budget ? { key: "budget", label: pick(locale, "预算", "预算"), value: budget, icon: WalletCards } : null
   ];
 
   return candidates.filter((info): info is InfoItem => info !== null).slice(0, 3);
@@ -157,7 +157,7 @@ export function DestinationCard({ item, locale, homeCity, metaLine, imagePriorit
     const infoItems = featuredInfoItems(item, locale, homeCity, region);
 
     return (
-      <Link href={detailHref} className="group block" aria-label={`${name} ${pick(locale, "details", "查看详情")}`}>
+      <Link href={detailHref} className="group block" aria-label={`${name} ${pick(locale, "查看详情", "查看详情")}`}>
         <article className="qmd-place-card grid overflow-hidden md:grid-cols-[52fr_48fr]">
           <div className="relative aspect-[4/3] overflow-hidden bg-slate-100 md:h-full md:min-h-[360px]">
             <HomeDestinationImage
@@ -168,12 +168,12 @@ export function DestinationCard({ item, locale, homeCity, metaLine, imagePriorit
               className="h-full w-full object-cover brightness-[1.03] saturate-[1.04] transition duration-200 group-hover:scale-[1.03]"
             />
             <div className="absolute left-4 top-4 flex max-w-[calc(100%-2rem)] flex-wrap gap-2">
-              <ImageBadge>{pick(locale, "Today", "今日推荐")}</ImageBadge>
+              <ImageBadge>{pick(locale, "今日推荐", "今日推荐")}</ImageBadge>
               <ImageBadge>{sceneLabel}</ImageBadge>
             </div>
           </div>
           <div className="flex flex-col p-5 md:p-7">
-            <p className="text-sm font-black text-emerald-700">{pick(locale, "Today's Recommendation", "今日推荐")}</p>
+            <p className="text-sm font-black text-emerald-700">{pick(locale, "今日推荐", "今日推荐")}</p>
             <h3 className="mt-3 line-clamp-2 text-3xl font-black leading-tight text-slate-950 md:text-4xl">{name}</h3>
             <p className="mt-3 line-clamp-2 text-base font-semibold leading-7 text-slate-700">{reason}</p>
             {infoItems.length > 0 ? (
@@ -184,7 +184,7 @@ export function DestinationCard({ item, locale, homeCity, metaLine, imagePriorit
               </div>
             ) : (
               <p className="mt-5 rounded-2xl bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-500">
-                {pick(locale, "Decision details are being confirmed.", "决策信息正在确认中")}
+                {pick(locale, "决策信息正在确认中", "决策信息正在确认中")}
               </p>
             )}
             {tags.length > 0 ? (
@@ -197,7 +197,7 @@ export function DestinationCard({ item, locale, homeCity, metaLine, imagePriorit
               </div>
             ) : null}
             <span className="mt-5 inline-flex text-sm font-bold text-emerald-700 group-hover:text-emerald-800 md:mt-auto md:pt-5">
-              {pick(locale, "View details", "查看详情")}
+              {pick(locale, "查看详情", "查看详情")}
             </span>
           </div>
         </article>
@@ -247,7 +247,7 @@ export function DestinationCard({ item, locale, homeCity, metaLine, imagePriorit
         ) : null}
         <div className="mt-auto pt-4">
           <Link href={detailHref} className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700">
-            {pick(locale, "Details", "查看详情")}
+            {pick(locale, "查看详情", "查看详情")}
           </Link>
         </div>
       </div>

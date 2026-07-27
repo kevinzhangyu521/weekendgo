@@ -163,7 +163,7 @@ export function FamilyExperienceApplicationsAdminClient() {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">体验家庭申请</h1>
-            <p className="mt-2 text-sm text-slate-600">查看首批体验家庭申请，筛选状态并记录处理结果。</p>
+            <p className="mt-2 text-sm text-slate-600">查看首批体验家庭申请，筛选进度并跟进处理结果。</p>
           </div>
           <button onClick={() => void loadItems()} className="interactive-button inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50">
             <RefreshCw className="h-4 w-4" />
@@ -208,7 +208,7 @@ export function FamilyExperienceApplicationsAdminClient() {
                     </div>
                     <h2 className="mt-3 text-lg font-bold text-slate-950">{item.parentName} · {item.city}</h2>
                     <p className="mt-1 text-sm text-slate-600">联系方式：{item.contact}</p>
-                    <p className="mt-1 text-sm text-slate-600">提交用户：{item.userEmail || item.userName || "游客"} · {item.userRole === "guest" ? "游客" : item.userRole}</p>
+                    <p className="mt-1 text-sm text-slate-600">申请人：{item.userEmail || item.userName || "游客"} · {item.userRole === "guest" ? "游客" : item.userRole}</p>
                   </div>
                   <select value={statusDraft} onChange={(event) => setStatusDrafts((values) => ({ ...values, [item.id]: event.target.value as FamilyExperienceApplicationStatus }))} className="h-10 rounded-xl border border-slate-200 px-3 text-sm">
                     {familyExperienceStatusOptions.map((option) => (

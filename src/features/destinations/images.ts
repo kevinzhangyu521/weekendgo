@@ -24,9 +24,9 @@ function isSupabaseStorageImage(url: string) {
 }
 
 function imageSourceLabel(source: DestinationImageSource) {
-  if (source === "supabase_storage") return "Supabase Storage";
-  if (source === "destination_photos") return "destination_photos";
-  if (source === "legacy_image") return "destinations.image";
+  if (source === "supabase_storage") return "图片存储";
+  if (source === "destination_photos") return "图片图库";
+  if (source === "legacy_image") return "兼容封面";
   return "默认占位图";
 }
 
@@ -43,7 +43,7 @@ export function getDestinationImage(item: DestinationItem): DestinationImageInfo
     return {
       src: coverImage,
       pending: false,
-      source: "supabase_storage" as const,
+      source: "supabase_storage",
       sourceLabel: imageSourceLabel("supabase_storage"),
       hasCover: true,
       isDefault: false
@@ -54,7 +54,7 @@ export function getDestinationImage(item: DestinationItem): DestinationImageInfo
     return {
       src: legacyImage,
       pending: false,
-      source: "supabase_storage" as const,
+      source: "supabase_storage",
       sourceLabel: imageSourceLabel("supabase_storage"),
       hasCover: true,
       isDefault: false
@@ -65,7 +65,7 @@ export function getDestinationImage(item: DestinationItem): DestinationImageInfo
     return {
       src: coverImage,
       pending: false,
-      source: "destination_photos" as const,
+      source: "destination_photos",
       sourceLabel: imageSourceLabel("destination_photos"),
       hasCover: true,
       isDefault: false
@@ -76,7 +76,7 @@ export function getDestinationImage(item: DestinationItem): DestinationImageInfo
     return {
       src: legacyImage,
       pending: false,
-      source: "legacy_image" as const,
+      source: "legacy_image",
       sourceLabel: imageSourceLabel("legacy_image"),
       hasCover: true,
       isDefault: false
@@ -86,7 +86,7 @@ export function getDestinationImage(item: DestinationItem): DestinationImageInfo
   return {
     src: DEFAULT_DESTINATION_IMAGE,
     pending: true,
-    source: "default" as const,
+    source: "default",
     sourceLabel: imageSourceLabel("default"),
     hasCover: false,
     isDefault: true

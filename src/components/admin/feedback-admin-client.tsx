@@ -46,7 +46,7 @@ async function readJsonResponse<T extends { message?: string }>(response: Respon
 }
 
 function formatDate(value: string | null) {
-  if (!value) return "暂无记录";
+  if (!value) return "暂无信息";
   return new Intl.DateTimeFormat("zh-CN", {
     month: "2-digit",
     day: "2-digit",
@@ -222,7 +222,7 @@ export function FeedbackAdminClient() {
       });
       const result = await readJsonResponse<FeedbackResponse>(response);
       if (!response.ok || !result.ok) throw new Error(result.message ?? "更新失败。");
-      if (!result.item) throw new Error("保存失败：接口没有返回数据库记录。");
+      if (!result.item) throw new Error("保存失败：没有收到保存结果。");
       const savedItem = result.item;
 
       setMessage(result.message ?? "反馈已更新。");
@@ -426,7 +426,7 @@ export function FeedbackAdminClient() {
                   </div>
                   <div className="mt-3 grid gap-2 rounded-xl bg-slate-50 p-3 text-xs text-slate-600 md:grid-cols-3">
                     <p>
-                      <span className="font-semibold text-slate-800">提交用户：</span>
+                    <span className="font-semibold text-slate-800">反馈人：</span>
                       {item.userEmail || item.userName || (item.userId ? item.userId : "游客")}
                     </p>
                     <p>

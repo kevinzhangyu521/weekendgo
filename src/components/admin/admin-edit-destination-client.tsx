@@ -119,20 +119,20 @@ export function AdminEditDestinationClient({ id }: { id: string }) {
                 <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className={`rounded-full border px-3 py-1 text-sm font-bold ${healthBadgeClass(health.contentScore)}`}>
-                      Content {health.contentScore}%
+                      内容完整度 {health.contentScore}%
                     </span>
                     <span className={`rounded-full border px-3 py-1 text-sm font-bold ${healthBadgeClass(health.imageScore)}`}>
-                      Image {health.imageScore}%
+                      图片完整度 {health.imageScore}%
                     </span>
                     <span className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-sm font-bold text-sky-800">
-                      Experience total {health.experienceTotal}
+                      真实体验记录 {health.experienceTotal}
                     </span>
                   </div>
                   <div className="mt-4">
                     <p className="text-sm font-bold text-slate-900">{"\u5185\u5bb9\u7f3a\u5931"}</p>
                     {health.missingItems.length > 0 ? (
                       <div className="mt-2 flex flex-wrap gap-2 text-sm">
-                        {["Cover", "Parking", "Family Experience", "Toilet", "Gallery"].map((label) => {
+                        {["封面图", "停车信息", "家庭体验", "卫生间信息", "图库"].map((label) => {
                           const missing = health.missingItems.includes(label);
                           return (
                             <span

@@ -74,12 +74,12 @@ export function FavoriteButton({ destinationId, size = "md", className = "", ini
         return;
       }
 
-      if (!response.ok || !result.ok) throw new Error(result.message ?? "Save favorite failed");
+      if (!response.ok || !result.ok) throw new Error(result.message ?? "保存收藏失败");
 
       setIsFavorite(Boolean(result.isFavorite));
       setFeedbackText("");
     } catch (error) {
-      const message = error instanceof Error && error.message !== "Save favorite failed" ? error.message : "\u4fdd\u5b58\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002";
+      const message = error instanceof Error && error.message !== "保存收藏失败" ? error.message : "\u4fdd\u5b58\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002";
       setFeedbackText(message);
     } finally {
       setSaving(false);

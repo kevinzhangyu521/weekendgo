@@ -39,8 +39,8 @@ const difficultyLabelMap = {
 } as const;
 
 function formatDistance(distanceKm: number, locale: "en" | "zh") {
-  if (!distanceKm || distanceKm <= 0) return pick(locale, "Distance pending", "\u8ddd\u79bb\u5f85\u8ba1\u7b97");
-  return pick(locale, `About ${distanceKm}km away`, `\u8ddd\u79bb\u5e38\u4f4f\u57ce\u5e02\u7ea6 ${distanceKm}km`);
+  if (!distanceKm || distanceKm <= 0) return pick(locale, "距离信息完善中", "\u8ddd\u4fe1\u606f\u5b8c\u5584\u4e2d");
+  return pick(locale, `距离常住城市约 ${distanceKm}km`, `\u8ddd\u79bb\u5e38\u4f4f\u57ce\u5e02\u7ea6 ${distanceKm}km`);
 }
 
 export default async function DestinationsPage({
@@ -66,13 +66,13 @@ export default async function DestinationsPage({
     <main className="min-h-screen bg-slate-50">
       <section className="qmd-container py-6">
         <div className="mb-5">
-          <h1 className="text-2xl font-bold text-slate-900">{pick(locale, "Family-Friendly Weekend Picks", "\u4eb2\u5b50\u5468\u672b\u63a8\u8350")}</h1>
+          <h1 className="text-2xl font-bold text-slate-900">{pick(locale, "亲子周末推荐", "\u4eb2\u5b50\u5468\u672b\u63a8\u8350")}</h1>
         </div>
 
         <div className="mb-4 rounded-xl border border-slate-200 bg-white p-3 md:p-4">
           <div className="mb-3 flex items-center gap-2 text-sm font-medium text-slate-700">
             <SlidersHorizontal className="h-4 w-4" />
-            {pick(locale, "Quick Filters", "\u5feb\u901f\u7b5b\u9009")}
+            {pick(locale, "快速筛选", "\u5feb\u901f\u7b5b\u9009")}
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -124,7 +124,7 @@ export default async function DestinationsPage({
                 filters.needParking ? "bg-amber-600 text-white" : "bg-slate-100 text-slate-700"
               }`}
             >
-              {pick(locale, "Parking Needed", "\u9700\u8981\u505c\u8f66")}
+              {pick(locale, "需要停车", "\u9700\u8981\u505c\u8f66")}
             </Link>
             <Link
               href={`/destinations?scenario=${filters.scenario}&difficulty=${filters.difficulty}&maxDistance=${filters.maxDistanceKm}&needParking=${filters.needParking}&needToilet=${!filters.needToilet}`}
@@ -132,13 +132,13 @@ export default async function DestinationsPage({
                 filters.needToilet ? "bg-amber-600 text-white" : "bg-slate-100 text-slate-700"
               }`}
             >
-              {pick(locale, "Toilet Needed", "\u9700\u8981\u5395\u6240")}
+              {pick(locale, "需要厕所", "\u9700\u8981\u5395\u6240")}
             </Link>
           </div>
         </div>
 
         <div className="mb-3 text-sm text-slate-600">
-          {pick(locale, "Results", "\u7ed3\u679c")}: {list.length} - {pick(locale, `Distance calculated from ${homeCity}`, `\u8ddd\u79bb\u6309\u5e38\u4f4f\u57ce\u5e02\u300c${homeCity}\u300d\u8ba1\u7b97`)}
+          {pick(locale, "结果", "\u7ed3\u679c")}: {list.length} - {pick(locale, `距离按常住城市「${homeCity}」计算`, `\u8ddd\u79bb\u6309\u5e38\u4f4f\u57ce\u5e02\u300c${homeCity}\u300d\u8ba1\u7b97`)}
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -167,7 +167,7 @@ export default async function DestinationsPage({
                       {item.rating.toFixed(1)}
                     </span>
                     <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
-                      {pick(locale, `${reviewCounts.get(item.id) ?? 0} reviews`, `${reviewCounts.get(item.id) ?? 0}条真实体验`)}
+                      {pick(locale, `${reviewCounts.get(item.id) ?? 0}条真实体验`, `${reviewCounts.get(item.id) ?? 0}条真实体验`)}
                     </span>
                     <FavoriteButton
                       destinationId={item.id}
@@ -204,7 +204,7 @@ export default async function DestinationsPage({
                 <div className="rounded-lg border border-amber-100 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800">
                   <span className="inline-flex items-center gap-1 font-semibold">
                     <AlertTriangle className="h-3.5 w-3.5" />
-                    {pick(locale, "Safety note", "\u5b89\u5168\u63d0\u793a")}
+                    {pick(locale, "安全提示", "\u5b89\u5168\u63d0\u793a")}
                   </span>
                   <span className="ml-1">{destinationSafetyTip(item, locale)}</span>
                 </div>
@@ -223,11 +223,11 @@ export default async function DestinationsPage({
                   </div>
                   <AmapNavigationButton
                     destination={item}
-                    label={pick(locale, "Navigate", "\u5bfc\u822a")}
+                    label={pick(locale, "导航", "\u5bfc\u822a")}
                     className="h-11 w-full md:w-auto"
                     isSignedIn={Boolean(profile)}
                     loginHref={`/login?next=${encodeURIComponent("/destinations")}`}
-                    signedOutLabel={pick(locale, "Sign in to navigate", "\u767b\u5f55\u540e\u5bfc\u822a")}
+                    signedOutLabel={pick(locale, "登录后导航", "\u767b\u5f55\u540e\u5bfc\u822a")}
                   />
                 </div>
               </div>

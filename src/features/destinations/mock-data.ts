@@ -20,12 +20,12 @@ export const destinationMockData: DestinationItem[] = [
     hasToilet: true,
     minKidAge: 3,
     image: "https://commons.wikimedia.org/wiki/Special:FilePath/%E6%9C%A8%E5%85%B0%E8%8D%89%E5%8E%9F%E9%A3%8E%E6%99%AF%E5%8C%BA%E5%A4%A7%E9%97%A8_-_panoramio.jpg?width=1400",
-    description: "Open grassland, mature scenic facilities, and camping-friendly weekend routes for families.",
+    description: "草原空间开阔，景区配套成熟，适合家庭安排轻松的周末露营体验。",
     descriptionZh: "草原空间开阔，景区配套成熟，适合亲子家庭周末露营、放风筝和轻户外体验。"
   },
   {
     id: "wuhan-camping-jiuzhen-mountain",
-    name: "Jiuzhen Mountain Scenic Area",
+    name: "九真山风景区",
     nameZh: "九真山风景区",
     province: "Hubei",
     provinceZh: "湖北",
@@ -64,12 +64,12 @@ export const destinationMockData: DestinationItem[] = [
     hasToilet: true,
     minKidAge: 5,
     image: "",
-    description: "Mountain water, valley trails, and shaded summer routes suitable for cautious family creek play.",
+    description: "山水峡谷型路线，夏季适合亲水和轻溯溪体验，带孩子需关注天气和水位。",
     descriptionZh: "山水峡谷型路线，夏季适合亲水和轻溯溪体验；带孩子需关注天气和水位。"
   },
   {
     id: "wuhan-creek-qingliangzhai",
-    name: "Qingliangzhai Scenic Area",
+    name: "清凉寨",
     nameZh: "清凉寨",
     province: "Hubei",
     provinceZh: "湖北",
@@ -174,7 +174,7 @@ export const destinationMockData: DestinationItem[] = [
     hasToilet: false,
     minKidAge: 3,
     image: "",
-    description: "Open wetland landscape near the city, good for simple picnic, birdwatching, and sunset walks.",
+    description: "靠近城市的湿地景观开阔，适合简单野餐、观鸟和傍晚散步。",
     descriptionZh: "城市近郊湿地空间开阔，适合轻野餐、观鸟和傍晚散步；厕所等配套相对有限。"
   }
 ];

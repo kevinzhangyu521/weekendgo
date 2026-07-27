@@ -270,13 +270,13 @@ export function AdminDestinationsClient() {
                         </div>
                         <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
                           <span className={`rounded-full border px-2.5 py-1 font-semibold ${healthBadgeClass(health.contentScore)}`}>
-                            Content {health.contentScore}%
+                            内容完整度 {health.contentScore}%
                           </span>
                           <span className={`rounded-full border px-2.5 py-1 font-semibold ${healthBadgeClass(health.imageScore)}`}>
-                            Image {health.imageScore}%
+                            图片完整度 {health.imageScore}%
                           </span>
                           <span className="rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 font-semibold text-sky-800">
-                            Experience total {health.experienceTotal}
+                            真实体验记录 {health.experienceTotal}
                           </span>
                           <span className={`rounded-full border px-2.5 py-1 font-semibold ${imageStatusClass(image.pending)}`}>
                             {image.pending ? "\u7f3a\u5c11\u5c01\u9762" : "\u5df2\u6709\u5c01\u9762"}

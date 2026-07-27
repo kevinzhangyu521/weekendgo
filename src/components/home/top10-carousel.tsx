@@ -66,20 +66,20 @@ function formatKm(distanceKm: number) {
 
 function estimateDriveTime(distanceKm: number, locale: Locale) {
   const minutes = Math.max(15, Math.round((distanceKm / 45) * 60 / 5) * 5);
-  if (minutes < 60) return pick(locale, `about ${minutes} min`, `约${minutes}分钟`);
+  if (minutes < 60) return pick(locale, `约${minutes}分钟`, `约${minutes}分钟`);
   const hours = Math.round((minutes / 60) * 10) / 10;
-  return pick(locale, `about ${hours} h`, `约${hours}小时`);
+  return pick(locale, `约${hours}小时`, `约${hours}小时`);
 }
 
 function distanceLine(item: DestinationItem, homeCity: string, locale: Locale) {
   if (!item.distanceKm || item.distanceKm <= 0) {
-    return pick(locale, "Around Wuhan · Check navigation", "武汉周边 · 车程以导航为准");
+    return pick(locale, "武汉周边 · 车程以导航为准", "武汉周边 · 车程以导航为准");
   }
 
   const driveTime = item.driveTime || estimateDriveTime(item.distanceKm, locale);
   return pick(
     locale,
-    `About ${formatKm(item.distanceKm)} km from ${homeCity} · ${driveTime}`,
+    `距${homeCity}约${formatKm(item.distanceKm)}公里 · ${driveTime}`,
     `距${homeCity}约${formatKm(item.distanceKm)}公里 · ${driveTime}`
   );
 }
@@ -87,7 +87,7 @@ function distanceLine(item: DestinationItem, homeCity: string, locale: Locale) {
 function inspirationDistanceLine(item: DestinationItem, homeCity: string, locale: Locale) {
   const region = destinationRegion(item, locale);
   if (!item.distanceKm || item.distanceKm <= 0) {
-    return pick(locale, `${region || homeCity} · Check navigation`, `${region || homeCity}周边 · 车程以导航为准`);
+    return pick(locale, `${region || homeCity}周边 · 车程以导航为准`, `${region || homeCity}周边 · 车程以导航为准`);
   }
 
   const driveTime = item.driveTime || estimateDriveTime(item.distanceKm, locale);
@@ -151,9 +151,9 @@ function shortReason(item: DestinationItem, locale: Locale) {
 
 function ratingText(item: DestinationItem, locale: Locale) {
   if (typeof item.reviewCount === "number" && item.reviewCount > 0 && typeof item.rating === "number" && item.rating > 0) {
-    return pick(locale, `${item.rating.toFixed(1)} (${item.reviewCount} reviews)`, `${item.rating.toFixed(1)}（${item.reviewCount}条评价）`);
+    return pick(locale, `${item.rating.toFixed(1)}（${item.reviewCount}条评价）`, `${item.rating.toFixed(1)}（${item.reviewCount}条评价）`);
   }
-  return pick(locale, "No reviews yet", "暂无评价");
+  return pick(locale, "暂无家庭体验", "暂无家庭体验");
 }
 
 function tagClassName(tag: string) {
@@ -188,7 +188,7 @@ export function HomeSectionHeader({
       {action ??
         (href ? (
           <Link href={href} className="qmd-section-action">
-            {pick(locale, "More", "更多")}
+            {pick(locale, "更多", "更多")}
           </Link>
         ) : null)}
     </div>
@@ -200,7 +200,7 @@ export function HomeDestinationCard({ item, locale, homeCity, isSignedIn, badgeL
   const image = getDestinationImage(item);
   const name = destinationName(item, locale);
   const detailHref = `/destinations/${item.id}`;
-  const navigationLabel = pick(locale, "Navigate", "立即导航");
+  const navigationLabel = pick(locale, "立即导航", "立即导航");
   const tags = playTags(item, locale);
   const cardDistanceLine = inspiration ? inspirationDistanceLine(item, homeCity, locale) : distanceLine(item, homeCity, locale);
 
@@ -273,7 +273,7 @@ export function HomeDestinationCard({ item, locale, homeCity, isSignedIn, badgeL
               onClick={(event) => event.stopPropagation()}
               className="qmd-btn-secondary px-3 text-sm shadow-sm transition-all duration-300 ease-out hover:border-emerald-200 hover:bg-gradient-to-r hover:from-white hover:to-emerald-50 hover:text-emerald-700 hover:shadow-md active:scale-[0.98]"
             >
-              {pick(locale, "Details", "查看详情")}
+              {pick(locale, "查看详情", "查看详情")}
             </Link>
             <div onClick={(event) => event.stopPropagation()}>
               <AmapNavigationButton
@@ -298,8 +298,8 @@ export function Top10Carousel({ locale, homeCity, rankings, isSignedIn = false }
   return (
     <section id="top10" className={`${homeContainerClass} qmd-section scroll-mt-20`}>
       <HomeSectionHeader
-        title={pick(locale, "Where to go this weekend?", "这个周末去哪？")}
-        subtitle={pick(locale, "Family-friendly camping and water-play picks for this week.", "精选适合本周出发的亲子、露营、玩水目的地。")}
+        title={pick(locale, "这个周末去哪？", "这个周末去哪？")}
+        subtitle={pick(locale, "精选适合本周出发的亲子、露营、玩水目的地。", "精选适合本周出发的亲子、露营、玩水目的地。")}
         locale={locale}
       />
 
@@ -311,7 +311,7 @@ export function Top10Carousel({ locale, homeCity, rankings, isSignedIn = false }
             locale={locale}
             homeCity={homeCity}
             isSignedIn={isSignedIn}
-            badgeLabel={index === 0 ? pick(locale, "Hot this week", "本周热门") : undefined}
+            badgeLabel={index === 0 ? pick(locale, "本周热门", "本周热门") : undefined}
             inspiration
             showRating={false}
             imagePriority={index < 3}

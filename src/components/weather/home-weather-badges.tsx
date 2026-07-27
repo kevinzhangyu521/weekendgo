@@ -54,14 +54,14 @@ export function HomeWeatherBadges({ city, locale, fallbackWeather, fallbackWind,
         </span>
         <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700">{advice}</span>
         <span className="rounded-full bg-emerald-100/95 px-3 py-1 text-xs font-semibold text-emerald-800">
-          {loaded && weather ? pick(locale, "Live weather", "\u5b9e\u65f6\u5929\u6c14") : pick(locale, "Updating weather", "\u5929\u6c14\u66f4\u65b0\u4e2d")}
+          {loaded && weather ? pick(locale, "实时天气", "\u5b9e\u65f6\u5929\u6c14") : pick(locale, "天气更新中", "\u5929\u6c14\u66f4\u65b0\u4e2d")}
         </span>
       </div>
       <Link
         href={detailHref}
         className="mt-3 inline-flex text-xs font-medium text-emerald-100 underline-offset-4 hover:text-white hover:underline"
       >
-        {pick(locale, "View weather details", "\u67e5\u770b\u5929\u6c14\u8be6\u60c5")}
+        {pick(locale, "查看天气详情", "\u67e5\u770b\u5929\u6c14\u8be6\u60c5")}
       </Link>
     </>
   );

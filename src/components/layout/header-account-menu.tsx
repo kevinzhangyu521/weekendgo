@@ -33,6 +33,7 @@ const userMenuItems = [
   { href: "/plans", label: "\u6211\u7684\u8ba1\u5212" },
   { href: "/my-submissions", label: "\u6211\u7684\u6295\u7a3f" },
   { href: "/my-feedback", label: "\u6211\u7684\u53cd\u9988" },
+  { href: "/my-experiences", label: "\u6211\u7684\u4f53\u9a8c" },
   { href: "/notifications", label: "\u6211\u7684\u6d88\u606f" },
   { href: "/profile", label: "\u8d26\u53f7\u8bbe\u7f6e" }
 ];
@@ -43,6 +44,7 @@ const adminMenuItems = [
   { href: "/admin/submissions", label: "\u7ba1\u7406\u6295\u7a3f" },
   { href: "/admin/feedback", label: "\u7ba1\u7406\u53cd\u9988" },
   { href: "/admin/family-experience-applications", label: "体验家庭申请" },
+  { href: "/admin/family-destination-experiences", label: "\u4f53\u9a8c\u5ba1\u6838" },
   { href: "/admin/home-recommendations", label: "\u9996\u9875\u63a8\u8350\u7ba1\u7406" },
   { href: "/admin/settings", label: "\u7ba1\u7406\u5458\u8bbe\u7f6e" },
   { href: "/notifications", label: "\u7cfb\u7edf\u901a\u77e5" },
@@ -157,7 +159,7 @@ export function HeaderAccountMenu({ locale, initialEmail, isAdmin }: Props) {
         type="button"
         onClick={() => setMenuOpen((value) => !value)}
         className="interactive-button flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-emerald-600 text-sm font-black text-white hover:bg-emerald-700"
-        aria-label={locale === "zh" ? "\u6253\u5f00\u8d26\u53f7\u83dc\u5355" : "Open account menu"}
+        aria-label={locale === "zh" ? "\u6253\u5f00\u8d26\u53f7\u83dc\u5355" : "打开账号菜单"}
       >
         {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" /> : initialFrom(nickname, email)}
       </button>

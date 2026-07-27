@@ -97,11 +97,11 @@ export function calculateContentHealth(
   ];
 
   const missingItems = [
-    { label: "Cover", missing: !coverReady },
-    { label: "Parking", missing: !hasText(item.parkingDetail) && imageCounts.parking === 0 },
-    { label: "Family Experience", missing: approvedExperiences === 0 },
-    { label: "Toilet", missing: !hasText(item.toiletDetail) && imageCounts.toilet === 0 },
-    { label: "Gallery", missing: imageCounts.gallery === 0 }
+    { label: "封面图", missing: !coverReady },
+    { label: "停车信息", missing: !hasText(item.parkingDetail) && imageCounts.parking === 0 },
+    { label: "家庭体验", missing: approvedExperiences === 0 },
+    { label: "卫生间信息", missing: !hasText(item.toiletDetail) && imageCounts.toilet === 0 },
+    { label: "图库", missing: imageCounts.gallery === 0 }
   ]
     .filter((item) => item.missing)
     .map((item) => item.label);

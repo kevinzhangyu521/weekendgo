@@ -23,8 +23,8 @@ function pick<T>(locale: Locale, en: T, zh: T): T {
 }
 
 function formatDistance(distanceKm: number, locale: Locale) {
-  if (!distanceKm || distanceKm <= 0) return pick(locale, "Distance pending", "\u8ddd\u79bb\u5f85\u8ba1\u7b97");
-  return pick(locale, `About ${distanceKm}km away`, `\u7ea6 ${distanceKm}km`);
+  if (!distanceKm || distanceKm <= 0) return pick(locale, "距离信息完善中", "\u8ddd\u4fe1\u606f\u5b8c\u5584\u4e2d");
+  return pick(locale, `约 ${distanceKm}km`, `\u7ea6 ${distanceKm}km`);
 }
 
 async function authHeaders() {
@@ -79,25 +79,25 @@ export function FavoritesClient({ locale }: { locale: Locale }) {
         <div className="mb-5">
           <h1 className="inline-flex items-center gap-2 text-2xl font-bold text-slate-900">
             <Heart className="h-6 w-6 text-rose-600" />
-            {pick(locale, "My Favorites", "\u6211\u7684\u6536\u85cf")}
+            {pick(locale, "我的收藏", "\u6211\u7684\u6536\u85cf")}
           </h1>
         </div>
-        {loading ? <div className="rounded-xl border border-slate-200 bg-white p-6 text-slate-700">{pick(locale, "Loading favorites...", "\u6b63\u5728\u8bfb\u53d6\u6536\u85cf...")}</div> : null}
+        {loading ? <div className="rounded-xl border border-slate-200 bg-white p-6 text-slate-700">{pick(locale, "正在读取收藏...", "\u6b63\u5728\u8bfb\u53d6\u6536\u85cf...")}</div> : null}
         {!loading && !currentUser.isAuthenticated ? (
           <div className="rounded-xl border border-slate-200 bg-white p-6 text-slate-700">
-            <p className="font-medium">{pick(locale, "Please sign in to view favorites.", "\u8bf7\u5148\u767b\u5f55\uff0c\u7136\u540e\u67e5\u770b\u6536\u85cf\u3002")}</p>
+            <p className="font-medium">{pick(locale, "请先登录，然后查看收藏。", "\u8bf7\u5148\u767b\u5f55\uff0c\u7136\u540e\u67e5\u770b\u6536\u85cf\u3002")}</p>
             <Link href="/login?next=/favorites" className="interactive-button mt-4 inline-flex rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
-              {pick(locale, "Sign in", "\u53bb\u767b\u5f55")}
+              {pick(locale, "登录查看", "\u767b\u5f55\u67e5\u770b")}
             </Link>
           </div>
         ) : null}
         {error ? <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-amber-900">{error}</div> : null}
         {!loading && currentUser.isAuthenticated && list.length === 0 ? (
           <div className="rounded-xl border border-slate-200 bg-white p-6 text-slate-700">
-            <p className="font-medium">{pick(locale, "No favorites yet.", "\u8fd8\u6ca1\u6709\u6536\u85cf\u3002")}</p>
-            <p className="mt-1 text-sm text-slate-600">{pick(locale, "Save places from the destination list or detail page.", "\u53ef\u5728\u5217\u8868\u9875\u6216\u8be6\u60c5\u9875\u6536\u85cf\u76ee\u7684\u5730\u3002")}</p>
+            <p className="font-medium">{pick(locale, "还没有收藏。", "\u8fd8\u6ca1\u6709\u6536\u85cf\u3002")}</p>
+            <p className="mt-1 text-sm text-slate-600">{pick(locale, "可在列表页或详情页收藏目的地。", "\u53ef\u5728\u5217\u8868\u9875\u6216\u8be6\u60c5\u9875\u6536\u85cf\u76ee\u7684\u5730\u3002")}</p>
             <Link href="/destinations" className="interactive-button mt-4 inline-flex rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
-              {pick(locale, "Explore destinations", "\u53bb\u770b\u76ee\u7684\u5730")}
+              {pick(locale, "去看目的地", "\u53bb\u770b\u76ee\u7684\u5730")}
             </Link>
           </div>
         ) : null}

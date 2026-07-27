@@ -30,15 +30,15 @@ export default async function MapPage({
           <div>
             <h1 className="inline-flex items-center gap-2 text-2xl font-bold text-slate-900">
               <MapPinned className="h-6 w-6 text-emerald-700" />
-              {pick(locale, "Map Explorer", "\u5730\u56fe\u63a2\u7d22")}
+              {pick(locale, "地图探索", "\u5730\u56fe\u63a2\u7d22")}
             </h1>
           </div>
           <div className="flex items-center gap-2 text-sm">
             <Link href="/destinations" className="rounded-full bg-white px-3 py-1.5 text-slate-700 ring-1 ring-slate-200">
-              {pick(locale, "List View", "\u5217\u8868\u89c6\u56fe")}
+              {pick(locale, "列表视图", "\u5217\u8868\u89c6\u56fe")}
             </Link>
             <Link href="/" className="rounded-full bg-white px-3 py-1.5 text-slate-700 ring-1 ring-slate-200">
-              {pick(locale, "Home", "\u9996\u9875")}
+              {pick(locale, "首页", "\u9996\u9875")}
             </Link>
           </div>
         </div>

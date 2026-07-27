@@ -215,7 +215,7 @@ export function HomeRecommendationsAdminClient() {
       <div className="mb-6">
         <p className="text-sm font-semibold text-emerald-700">管理后台</p>
         <h1 className="mt-1 text-2xl font-black text-slate-950">首页推荐管理</h1>
-        <p className="mt-2 text-sm text-slate-500">配置首页“今日推荐”和“更多探索”的真实数据库内容。</p>
+        <p className="mt-2 text-sm text-slate-500">配置首页“今日推荐”和“更多探索”展示的真实目的地内容。</p>
       </div>
 
       {message ? <div className="mb-5 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-700 shadow-sm">{message}</div> : null}

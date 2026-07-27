@@ -39,7 +39,7 @@ function formatKm(distanceKm: number) {
 function nearbyDistanceLine(item: DestinationItem, locale: Locale) {
   if (!item.distanceKm || item.distanceKm <= 0) return undefined;
 
-  return pick(locale, `About ${formatKm(item.distanceKm)} km away`, `\u8ddd\u79bb\u7ea6 ${formatKm(item.distanceKm)} km`);
+  return pick(locale, `距离约 ${formatKm(item.distanceKm)} km`, `\u8ddd\u79bb\u7ea6 ${formatKm(item.distanceKm)} km`);
 }
 
 function timestamp(item: DestinationItem) {
@@ -104,10 +104,10 @@ export default async function HomePage() {
         <div className="qmd-container flex min-h-[220px] flex-col justify-center py-5 md:min-h-[260px]">
           <div className="max-w-3xl">
             <h1 className="text-3xl font-black leading-tight tracking-[-0.03em] text-slate-950 md:text-5xl">
-              {pick(locale, `${homeCity} \u00b7 Where to go this weekend?`, `${homeCity} \u00b7 \u8fd9\u4e2a\u5468\u672b\u53bb\u54ea\uff1f`)}
+              {pick(locale, `${homeCity} \u00b7 这个周末去哪？`, `${homeCity} \u00b7 \u8fd9\u4e2a\u5468\u672b\u53bb\u54ea\uff1f`)}
             </h1>
             <p className="mt-3 text-base leading-7 text-slate-500 md:text-lg">
-              {pick(locale, "Help families decide where to go this weekend.", "\u5e2e\u5bb6\u5ead\u8f7b\u677e\u51b3\u5b9a\u8fd9\u4e2a\u5468\u672b\u53bb\u54ea\u3002")}
+              {pick(locale, "帮家庭轻松决定这个周末去哪。", "\u5e2e\u5bb6\u5ead\u8f7b\u677e\u51b3\u5b9a\u8fd9\u4e2a\u5468\u672b\u53bb\u54ea\u3002")}
             </p>
           </div>
 
@@ -115,10 +115,10 @@ export default async function HomePage() {
             <input type="hidden" name="city" value={homeCity} />
             <div className="flex h-12 min-w-0 items-center gap-3 rounded-full bg-slate-100 px-5">
               <Search className="h-5 w-5 shrink-0 text-slate-400" />
-              <input name="q" type="search" placeholder={pick(locale, "Search camping, water, parks...", "\u641c\u7d22\u9732\u8425\u3001\u73a9\u6c34\u3001\u516c\u56ed\u2026\u2026")} className="min-w-0 flex-1 bg-transparent text-base text-slate-900 outline-none placeholder:text-slate-400" />
+              <input name="q" type="search" placeholder={pick(locale, "搜索露营、玩水、公园……", "\u641c\u7d22\u9732\u8425\u3001\u73a9\u6c34\u3001\u516c\u56ed\u2026\u2026")} className="min-w-0 flex-1 bg-transparent text-base text-slate-900 outline-none placeholder:text-slate-400" />
             </div>
             <button type="submit" className="interactive-button h-12 rounded-full bg-emerald-600 px-7 text-base font-bold text-white shadow-sm hover:bg-emerald-700">
-              {pick(locale, "Search", "\u641c\u7d22")}
+              {pick(locale, "搜索", "\u641c\u7d22")}
             </button>
           </form>
 
@@ -139,20 +139,20 @@ export default async function HomePage() {
 
       <section id="today-pick" className="qmd-container mt-6 scroll-mt-20 md:mt-8">
         <HomeSectionHeader
-          title={pick(locale, "Today\u2019s Recommendation", "\u4eca\u65e5\u63a8\u8350")}
+          title={pick(locale, "今日推荐", "\u4eca\u65e5\u63a8\u8350")}
           locale={locale}
         />
         {featuredDestination ? (
           <DestinationCard item={featuredDestination} locale={locale} homeCity={homeCity} imagePriority featured />
         ) : (
-          <EmptyState>{pick(locale, "No featured destination yet", "\u6682\u65e0\u63a8\u8350\u5185\u5bb9")}</EmptyState>
+          <EmptyState>{pick(locale, "暂无推荐内容", "\u6682\u65e0\u63a8\u8350\u5185\u5bb9")}</EmptyState>
         )}
       </section>
 
       <section id="nearby" className="qmd-container qmd-section scroll-mt-20">
         <HomeSectionHeader
-          title={pick(locale, "Nearby Recommendations", "\u9644\u8fd1\u63a8\u8350")}
-          subtitle={pick(locale, "Closer places, easier departures.", "\u79bb\u4f60\u66f4\u8fd1\uff0c\u51fa\u53d1\u66f4\u8f7b\u677e\u3002")}
+          title={pick(locale, "附近推荐", "\u9644\u8fd1\u63a8\u8350")}
+          subtitle={pick(locale, "离你更近，出发更轻松。", "\u79bb\u4f60\u66f4\u8fd1\uff0c\u51fa\u53d1\u66f4\u8f7b\u677e\u3002")}
           href={destinationListHref({ city: homeCity, scenario: "all", difficulty: "all", maxDistance: 50, needParking: false, needToilet: false })}
           locale={locale}
         />
@@ -163,14 +163,14 @@ export default async function HomePage() {
             ))}
           </div>
         ) : (
-          <EmptyState>{pick(locale, "No nearby recommendations yet", "\u6682\u65e0\u9644\u8fd1\u63a8\u8350")}</EmptyState>
+          <EmptyState>{pick(locale, "暂无附近推荐", "\u6682\u65e0\u9644\u8fd1\u63a8\u8350")}</EmptyState>
         )}
       </section>
 
       <section className="qmd-container qmd-section">
         <HomeSectionHeader
-          title={pick(locale, "More to Explore", "\u66f4\u591a\u63a2\u7d22")}
-          subtitle={pick(locale, "Discover more places for weekend departures.", "\u53d1\u73b0\u66f4\u591a\u9002\u5408\u5468\u672b\u51fa\u53d1\u7684\u5730\u65b9\u3002")}
+          title={pick(locale, "更多探索", "\u66f4\u591a\u63a2\u7d22")}
+          subtitle={pick(locale, "发现更多适合周末出发的地方。", "\u53d1\u73b0\u66f4\u591a\u9002\u5408\u5468\u672b\u51fa\u53d1\u7684\u5730\u65b9\u3002")}
           href={destinationListHref({ city: homeCity, scenario: "all", difficulty: "all", maxDistance: 120, needParking: false, needToilet: false })}
           locale={locale}
         />
@@ -183,7 +183,7 @@ export default async function HomePage() {
             ))}
           </div>
         ) : (
-          <EmptyState>{pick(locale, "No more destinations yet", "\u6682\u65e0\u66f4\u591a\u76ee\u7684\u5730")}</EmptyState>
+          <EmptyState>{pick(locale, "暂无更多目的地", "\u6682\u65e0\u66f4\u591a\u76ee\u7684\u5730")}</EmptyState>
         )}
       </section>
 
@@ -191,8 +191,8 @@ export default async function HomePage() {
 
       <footer className="qmd-container mt-16 border-t border-slate-200 py-16 text-sm text-slate-500">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <p>{pick(locale, "Qimeide helps families find weekend outdoor places.", "\u5e2e\u4eb2\u5b50\u5bb6\u5ead\u53d1\u73b0\u5468\u672b\u6237\u5916\u76ee\u7684\u5730\u3002")}</p>
-          <p>{pick(locale, "Camping \u00b7 Water play \u00b7 Parks \u00b7 Family trips", "\u9732\u8425 \u00b7 \u73a9\u6c34 \u00b7 \u516c\u56ed \u00b7 \u4eb2\u5b50\u51fa\u6e38")}</p>
+          <p>{pick(locale, "帮亲子家庭发现周末户外目的地。", "\u5e2e\u4eb2\u5b50\u5bb6\u5ead\u53d1\u73b0\u5468\u672b\u6237\u5916\u76ee\u7684\u5730\u3002")}</p>
+          <p>{pick(locale, "露营 · 玩水 · 公园 · 亲子出游", "\u9732\u8425 \u00b7 \u73a9\u6c34 \u00b7 \u516c\u56ed \u00b7 \u4eb2\u5b50\u51fa\u6e38")}</p>
         </div>
       </footer>
     </main>
