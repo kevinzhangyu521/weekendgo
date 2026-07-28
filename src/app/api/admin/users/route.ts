@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { getRequestAuth } from "@/lib/auth/request-auth";
 import { normalizeUserRole, type UserRole } from "@/lib/auth/roles";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 type UserProfileRow = {
   user_id: string;
@@ -43,22 +44,10 @@ type AdminUserItem = {
 
 const profileSelect = "user_id,nickname,avatar_url,bio,home_city,role,created_at";
 const emailSelect = "user_id,user_email";
+const authUsersPerPage = 1000;
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
-
-function createServiceClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) return null;
-
-  return createSupabaseClient(url, key, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false
-    }
-  });
-}
 
 function addCount(target: Map<string, number>, rows: CountRow[] | null) {
   (rows ?? []).forEach((row) => {
@@ -87,6 +76,38 @@ function applyRole(items: AdminUserItem[], role: string) {
   return items.filter((item) => item.role === role);
 }
 
+async function listAllAuthUsers(adminClient: SupabaseClient) {
+  const users: User[] = [];
+  let page = 1;
+
+  while (true) {
+    const { data, error } = await adminClient.auth.admin.listUsers({
+      page,
+      perPage: authUsersPerPage
+    });
+
+    if (error) throw error;
+
+    const nextUsers = data.users ?? [];
+    users.push(...nextUsers);
+
+    if (nextUsers.length < authUsersPerPage) break;
+    page += 1;
+  }
+
+  return users.sort((a, b) => Date.parse(b.created_at ?? "") - Date.parse(a.created_at ?? ""));
+}
+
+async function fetchCountRows(dataClient: SupabaseClient, table: string, userIds: string[]) {
+  const { data } = await dataClient.from(table).select("user_id").in("user_id", userIds);
+  return (data ?? []) as CountRow[];
+}
+
+async function fetchEmailRows(dataClient: SupabaseClient, table: string, userIds: string[]) {
+  const { data } = await dataClient.from(table).select(emailSelect).in("user_id", userIds).not("user_email", "is", null);
+  return (data ?? []) as UserEmailRow[];
+}
+
 export async function GET(request: Request) {
   const auth = await getRequestAuth(request);
   if (!auth.user) {
@@ -99,32 +120,41 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q")?.trim() ?? "";
   const role = searchParams.get("role")?.trim() ?? "";
-  const dataClient = createServiceClient() ?? auth.supabase;
+  let dataClient: SupabaseClient;
+  let authUsers: User[];
 
-  const { data: profileData, error: profileError } = await dataClient
-    .from("user_profiles")
-    .select(profileSelect)
-    .order("created_at", { ascending: false })
-    .limit(300);
+  try {
+    dataClient = createSupabaseAdminClient();
+    authUsers = await listAllAuthUsers(dataClient);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown admin client error";
+    return NextResponse.json({ ok: false, isAdmin: true, users: [], message: `用户管理服务端配置或读取失败：${message}` }, { status: 500 });
+  }
 
-  if (profileError || !profileData) {
-    return NextResponse.json({ ok: false, isAdmin: true, users: [], message: `读取用户资料失败：${profileError?.message ?? "没有返回数据"}` }, { status: 500 });
+  const userIds = authUsers.map((user) => user.id).filter(Boolean);
+  const { data: profileData, error: profileError } =
+    userIds.length > 0
+      ? await dataClient.from("user_profiles").select(profileSelect).in("user_id", userIds)
+      : { data: [], error: null };
+
+  if (profileError) {
+    return NextResponse.json({ ok: false, isAdmin: true, users: [], message: `读取用户资料失败：${profileError.message}` }, { status: 500 });
   }
 
   const profiles = profileData as UserProfileRow[];
-  const userIds = profiles.map((profile) => profile.user_id).filter(Boolean);
-  const [favoriteResult, planResult, submissionResult, feedbackResult, experienceResult, applicationResult, submissionEmailResult, feedbackEmailResult, applicationEmailResult] =
+  const profileMap = new Map(profiles.map((profile) => [profile.user_id, profile]));
+  const [favoriteRows, planRows, submissionRows, feedbackRows, experienceRows, applicationRows, submissionEmailRows, feedbackEmailRows, applicationEmailRows] =
     userIds.length > 0
       ? await Promise.all([
-          dataClient.from("favorites").select("user_id").in("user_id", userIds),
-          dataClient.from("weekend_plans").select("user_id").in("user_id", userIds),
-          dataClient.from("spot_submissions").select("user_id").in("user_id", userIds),
-          dataClient.from("feedbacks").select("user_id").in("user_id", userIds),
-          dataClient.from("family_destination_experiences").select("user_id").in("user_id", userIds),
-          dataClient.from("family_experience_applications").select("user_id").in("user_id", userIds),
-          dataClient.from("spot_submissions").select(emailSelect).in("user_id", userIds).not("user_email", "is", null),
-          dataClient.from("feedbacks").select(emailSelect).in("user_id", userIds).not("user_email", "is", null),
-          dataClient.from("family_experience_applications").select(emailSelect).in("user_id", userIds).not("user_email", "is", null)
+          fetchCountRows(dataClient, "favorites", userIds),
+          fetchCountRows(dataClient, "weekend_plans", userIds),
+          fetchCountRows(dataClient, "spot_submissions", userIds),
+          fetchCountRows(dataClient, "feedbacks", userIds),
+          fetchCountRows(dataClient, "family_destination_experiences", userIds),
+          fetchCountRows(dataClient, "family_experience_applications", userIds),
+          fetchEmailRows(dataClient, "spot_submissions", userIds),
+          fetchEmailRows(dataClient, "feedbacks", userIds),
+          fetchEmailRows(dataClient, "family_experience_applications", userIds)
         ])
       : [];
 
@@ -134,45 +164,48 @@ export async function GET(request: Request) {
   const feedbackCounts = new Map<string, number>();
   const experienceCounts = new Map<string, number>();
   const applicationCounts = new Map<string, number>();
-  const emails = new Map<string, string>();
+  const businessEmails = new Map<string, string>();
 
-  addCount(favoriteCounts, (favoriteResult?.data ?? []) as CountRow[]);
-  addCount(planCounts, (planResult?.data ?? []) as CountRow[]);
-  addCount(submissionCounts, (submissionResult?.data ?? []) as CountRow[]);
-  addCount(feedbackCounts, (feedbackResult?.data ?? []) as CountRow[]);
-  addCount(experienceCounts, (experienceResult?.data ?? []) as CountRow[]);
-  addCount(applicationCounts, (applicationResult?.data ?? []) as CountRow[]);
+  addCount(favoriteCounts, favoriteRows ?? null);
+  addCount(planCounts, planRows ?? null);
+  addCount(submissionCounts, submissionRows ?? null);
+  addCount(feedbackCounts, feedbackRows ?? null);
+  addCount(experienceCounts, experienceRows ?? null);
+  addCount(applicationCounts, applicationRows ?? null);
 
-  [submissionEmailResult, feedbackEmailResult, applicationEmailResult].forEach((result) => {
-    ((result?.data ?? []) as UserEmailRow[]).forEach((row) => {
-      if (row.user_id && row.user_email && !emails.has(row.user_id)) emails.set(row.user_id, row.user_email);
+  [submissionEmailRows, feedbackEmailRows, applicationEmailRows].forEach((rows) => {
+    (rows ?? []).forEach((row) => {
+      if (row.user_id && row.user_email && !businessEmails.has(row.user_id)) businessEmails.set(row.user_id, row.user_email);
     });
   });
 
-  const users: AdminUserItem[] = profiles.map((profile) => ({
-    id: profile.user_id,
-    email: emails.get(profile.user_id) ?? null,
-    nickname: profile.nickname,
-    avatarUrl: profile.avatar_url,
-    city: profile.home_city,
-    bio: profile.bio,
-    role: normalizeUserRole(profile.role),
-    createdAt: profile.created_at,
-    counts: {
-      favorites: countFor(favoriteCounts, profile.user_id),
-      plans: countFor(planCounts, profile.user_id),
-      submissions: countFor(submissionCounts, profile.user_id),
-      feedbacks: countFor(feedbackCounts, profile.user_id),
-      experiences: countFor(experienceCounts, profile.user_id),
-      familyApplications: countFor(applicationCounts, profile.user_id)
-    }
-  }));
+  const users: AdminUserItem[] = authUsers.map((authUser) => {
+    const profile = profileMap.get(authUser.id);
+    return {
+      id: authUser.id,
+      email: authUser.email ?? businessEmails.get(authUser.id) ?? null,
+      nickname: profile?.nickname ?? "未设置",
+      avatarUrl: profile?.avatar_url ?? null,
+      city: profile?.home_city ?? "未设置",
+      bio: profile?.bio ?? null,
+      role: normalizeUserRole(profile?.role),
+      createdAt: profile?.created_at ?? authUser.created_at ?? null,
+      counts: {
+        favorites: countFor(favoriteCounts, authUser.id),
+        plans: countFor(planCounts, authUser.id),
+        submissions: countFor(submissionCounts, authUser.id),
+        feedbacks: countFor(feedbackCounts, authUser.id),
+        experiences: countFor(experienceCounts, authUser.id),
+        familyApplications: countFor(applicationCounts, authUser.id)
+      }
+    };
+  });
 
   return NextResponse.json({
     ok: true,
     isAdmin: true,
     users: applyRole(applySearch(users, q), role),
     authSource: auth.authSource,
-    emailSource: "业务表用户邮箱快照"
+    emailSource: "Supabase Authentication"
   });
 }
