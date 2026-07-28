@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { AlertCircle, Lightbulb, Loader2, MessageSquare, X } from "lucide-react";
 import type { FeedbackType } from "@/features/feedback/types";
 import { feedbackTypeLabels } from "@/features/feedback/types";
@@ -38,6 +39,7 @@ function detectDeviceType() {
 }
 
 export function FeedbackWidget() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [externallyHidden, setExternallyHidden] = useState(false);
   const [type, setType] = useState<FeedbackType>("experience");
@@ -46,6 +48,14 @@ export function FeedbackWidget() {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const hiddenOnCurrentPage =
+    pathname === "/my-experiences" ||
+    pathname === "/my-plans" ||
+    pathname === "/plans" ||
+    pathname === "/account" ||
+    pathname === "/profile" ||
+    pathname === "/admin" ||
+    pathname.startsWith("/admin/");
 
   useEffect(() => {
     function handleOpen(event: Event) {
@@ -108,7 +118,7 @@ export function FeedbackWidget() {
 
   return (
     <>
-      {!externallyHidden ? (
+      {!externallyHidden && !hiddenOnCurrentPage ? (
         <button
           type="button"
           onClick={() => setOpen(true)}
