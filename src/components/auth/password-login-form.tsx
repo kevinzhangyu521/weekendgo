@@ -10,6 +10,12 @@ type Props = {
   loginError?: string;
 };
 
+function getSessionBridgeError(value: unknown) {
+  if (!value || typeof value !== "object" || !("error" in value)) return "";
+  const error = (value as { error?: unknown }).error;
+  return typeof error === "string" ? error : "";
+}
+
 function LoginErrorAlert({ message, showResetAction }: { message: string; showResetAction: boolean }) {
   return (
     <div
@@ -75,6 +81,29 @@ export function PasswordLoginForm({ next, loginError }: Props) {
 
     if (!session?.user) {
       setErrorMessage("浏览器没有保存登录状态，请关闭无痕模式，并确认浏览器允许本站保存数据。");
+      setStatus("");
+      setIsSubmitting(false);
+      return;
+    }
+
+    const bridgeResponse = await fetch("/auth/session-bridge", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      credentials: "include",
+      cache: "no-store",
+      body: JSON.stringify({
+        session,
+        access_token: session.access_token,
+        refresh_token: session.refresh_token
+      })
+    });
+
+    if (!bridgeResponse.ok) {
+      const bridgeResult: unknown = await bridgeResponse.json().catch(() => null);
+      const bridgeError = getSessionBridgeError(bridgeResult);
+      setErrorMessage(bridgeError ? `登录状态同步失败：${bridgeError}` : "登录状态同步失败，请重新登录。");
       setStatus("");
       setIsSubmitting(false);
       return;

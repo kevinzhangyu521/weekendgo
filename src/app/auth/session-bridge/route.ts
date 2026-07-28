@@ -8,6 +8,8 @@ export const dynamic = "force-dynamic";
 
 type BridgePayload = {
   session?: Session;
+  access_token?: string;
+  refresh_token?: string | null;
 };
 
 export async function POST(request: Request) {
@@ -19,8 +21,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "bad_request" }, { status: 400 });
   }
 
-  const session = payload.session;
-  if (!session?.access_token) {
+  const accessToken = payload.session?.access_token ?? payload.access_token;
+  const refreshToken = payload.session?.refresh_token ?? payload.refresh_token;
+  if (!accessToken) {
     return NextResponse.json({ ok: false, error: "missing_session" }, { status: 400 });
   }
 
@@ -28,7 +31,7 @@ export async function POST(request: Request) {
   const {
     data: { user },
     error
-  } = await supabase.auth.getUser(session.access_token);
+  } = await supabase.auth.getUser(accessToken);
 
   if (error || !user) {
     return NextResponse.json({ ok: false, error: "invalid_session" }, { status: 401 });
@@ -45,7 +48,7 @@ export async function POST(request: Request) {
       }
     }
   );
-  setQimeideSessionCookies(response, session.access_token, session.refresh_token);
+  setQimeideSessionCookies(response, accessToken, refreshToken);
   setQimeideDebugCookie(response, `bridge-ok:${user.email ?? "unknown"}`);
   response.headers.set("x-debug-session-bridge-mode", "site-session-cookie-only");
   return response;

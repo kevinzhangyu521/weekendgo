@@ -18,7 +18,7 @@ export async function getCurrentAuth(): Promise<CurrentAuth> {
       data: { user }
     } = await supabase.auth.getUser();
 
-    return { supabase, user };
+    if (user) return { supabase, user };
   } catch {
     // Fall through to the small first-party session cookie below.
   }
