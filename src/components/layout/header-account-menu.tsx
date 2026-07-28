@@ -160,7 +160,7 @@ export function HeaderAccountMenu({ initialEmail, isAdmin }: Props) {
   }
 
   return (
-    <div ref={menuRef} className="relative">
+    <div ref={menuRef} className="relative z-[110] overflow-visible">
       <button
         type="button"
         onClick={() => setMenuOpen((value) => !value)}
@@ -173,8 +173,8 @@ export function HeaderAccountMenu({ initialEmail, isAdmin }: Props) {
 
       {menuOpen ? (
         <>
-          <button type="button" aria-label="关闭账号菜单" className="fixed inset-0 z-40 cursor-default bg-transparent md:hidden" onClick={() => setMenuOpen(false)} />
-          <div className="absolute right-0 top-12 z-50 w-60 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl">
+          <button type="button" aria-label="关闭账号菜单" className="fixed inset-0 z-[100] cursor-default bg-transparent md:hidden" onClick={() => setMenuOpen(false)} />
+          <div className="absolute right-0 top-12 z-[120] max-h-[calc(100dvh-88px)] w-60 overflow-y-auto overscroll-contain rounded-2xl border border-slate-200 bg-white p-2 shadow-xl">
             <div className="border-b border-slate-100 px-3 py-2">
               <p className="truncate text-sm font-bold text-slate-900">{nickname || email}</p>
               <p className="mt-1 text-xs font-semibold text-emerald-700">{effectiveIsAdmin ? "管理员" : "普通用户"}</p>
