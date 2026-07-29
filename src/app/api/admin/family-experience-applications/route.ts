@@ -8,6 +8,7 @@ import {
   familyExperienceStatusOptions,
   type FamilyExperienceApplicationStatus
 } from "@/features/family-experience/types";
+import { createNotification } from "@/features/notifications/create-notification";
 import { getRequestAuth } from "@/lib/auth/request-auth";
 
 const statusSet = new Set<FamilyExperienceApplicationStatus>(familyExperienceStatusOptions);
@@ -101,17 +102,15 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ ok: false, message: `保存处理结果失败：${error?.message ?? "没有返回保存结果"}` }, { status: 500 });
   }
 
-  if (data.user_id) {
-    await auth.supabase.from("notifications").insert({
-      user_id: data.user_id,
-      role: "user",
-      type: "family_experience_application_updated",
-      title: "你的体验家庭申请有新进度",
-      content: adminReply || "管理员已更新你的体验家庭申请状态，请查看最新进度。",
-      related_id: data.id,
-      related_type: "family_experience_application"
-    });
-  }
+  await createNotification(auth.supabase, {
+    role: "user",
+    userId: data.user_id,
+    type: "family_experience_application_updated",
+    title: "你的体验家庭申请有新进度",
+    content: adminReply || "管理员已更新你的体验家庭申请状态，请查看最新进度。",
+    relatedId: data.id,
+    relatedType: "family_experience_application"
+  });
 
   return NextResponse.json({
     ok: true,

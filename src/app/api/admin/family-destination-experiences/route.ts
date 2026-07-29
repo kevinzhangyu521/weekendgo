@@ -8,6 +8,7 @@ import {
   familyDestinationExperienceStatusOptions,
   type FamilyDestinationExperienceStatus
 } from "@/features/family-destination-experiences/types";
+import { createNotification } from "@/features/notifications/create-notification";
 import { getRequestAuth } from "@/lib/auth/request-auth";
 
 const statusSet = new Set<FamilyDestinationExperienceStatus>(familyDestinationExperienceStatusOptions);
@@ -75,9 +76,35 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ ok: false, message: `保存审核结果失败：${error?.message ?? "没有返回保存结果"}` }, { status: 500 });
   }
 
+  const item = normalizeFamilyDestinationExperience(data as FamilyDestinationExperienceRow);
+
+  if (status === "approved") {
+    await createNotification(auth.supabase, {
+      role: "user",
+      userId: item.userId,
+      type: "family_destination_experience_approved",
+      title: "你的真实家庭体验已通过",
+      content: "你提交的真实家庭体验已审核通过，会展示在目的地详情页。",
+      relatedId: item.id,
+      relatedType: "family_destination_experience"
+    });
+  }
+
+  if (status === "rejected") {
+    await createNotification(auth.supabase, {
+      role: "user",
+      userId: item.userId,
+      type: "family_destination_experience_rejected",
+      title: "你的真实家庭体验暂未通过",
+      content: "你提交的真实家庭体验暂未通过审核，可根据实际情况重新整理后再提交。",
+      relatedId: item.id,
+      relatedType: "family_destination_experience"
+    });
+  }
+
   return NextResponse.json({
     ok: true,
-    item: normalizeFamilyDestinationExperience(data as FamilyDestinationExperienceRow),
+    item,
     message: "审核结果已保存。"
   });
 }

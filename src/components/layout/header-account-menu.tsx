@@ -29,6 +29,11 @@ type ProfileUpdatedEvent = CustomEvent<{
   role?: UserRole | string | null;
 }>;
 
+type UnreadCountResponse = {
+  ok?: boolean;
+  unreadCount?: number;
+};
+
 const userMenuItems = [
   { href: "/favorites", label: "我的收藏" },
   { href: "/plans", label: "我的计划" },
@@ -67,6 +72,7 @@ export function HeaderAccountMenu({ initialEmail, isAdmin }: Props) {
   const [nickname, setNickname] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [profileRole, setProfileRole] = useState<UserRole>(isAdmin ? "admin" : "user");
+  const [unreadCount, setUnreadCount] = useState(0);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const effectiveIsAdmin = isAdminRole(profileRole);
   const menuItems = effectiveIsAdmin ? adminMenuItems : userMenuItems;
@@ -143,6 +149,39 @@ export function HeaderAccountMenu({ initialEmail, isAdmin }: Props) {
     };
   }, [currentUser.isLoading, isSignedIn, isAdmin]);
 
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadUnreadCount() {
+      if (!menuOpen || !isSignedIn || currentUser.isLoading) return;
+
+      const supabase = createClient();
+      const {
+        data: { session }
+      } = await supabase.auth.getSession();
+      const headers: Record<string, string> = {};
+      if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
+
+      try {
+        const response = await fetch("/api/notifications/unread-count", {
+          headers,
+          credentials: "include",
+          cache: "no-store"
+        });
+        const result = (await response.json()) as UnreadCountResponse;
+        if (mounted && response.ok && result.ok) setUnreadCount(result.unreadCount ?? 0);
+      } catch {
+        if (mounted) setUnreadCount(0);
+      }
+    }
+
+    void loadUnreadCount();
+
+    return () => {
+      mounted = false;
+    };
+  }, [menuOpen, isSignedIn, currentUser.isLoading, effectiveIsAdmin]);
+
   async function handleSignOut() {
     setSigningOut(true);
     setMenuOpen(false);
@@ -186,9 +225,14 @@ export function HeaderAccountMenu({ initialEmail, isAdmin }: Props) {
                   key={`${item.href}-${item.label}`}
                   href={item.href}
                   onClick={() => setMenuOpen(false)}
-                  className="block rounded-xl px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  className="flex items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                 >
-                  {item.label}
+                  <span>{item.label}</span>
+                  {item.href === "/notifications" && unreadCount > 0 ? (
+                    <span className="min-w-5 rounded-full bg-rose-500 px-1.5 py-0.5 text-center text-[11px] font-bold leading-4 text-white">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  ) : null}
                 </Link>
               ))}
             </div>

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { FeedbackItem, FeedbackStatus, FeedbackType } from "@/features/feedback/types";
+import { createNotification } from "@/features/notifications/create-notification";
 import { getRequestAuth } from "@/lib/auth/request-auth";
 
 type FeedbackRow = {
@@ -119,14 +120,14 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   if (error || !data) return NextResponse.json({ ok: false, message: `\u66f4\u65b0\u5931\u8d25\uff1a${error?.message ?? "\u672a\u8fd4\u56de\u4fdd\u5b58\u7ed3\u679c"}` }, { status: 500 });
 
   if (existing.user_id && adminReply && (replyChanged || statusChanged) && (status === "accepted" || status === "completed")) {
-    await supabase.from("notifications").insert({
-      user_id: existing.user_id,
+    await createNotification(supabase, {
+      userId: existing.user_id,
       role: "user",
       type: "feedback_replied",
       title: "\u4f60\u7684\u53cd\u9988\u5df2\u5904\u7406",
       content: "\u7ba1\u7406\u5458\u5df2\u56de\u590d\u4f60\u7684\u53cd\u9988\uff0c\u8bf7\u67e5\u770b\u5904\u7406\u7ed3\u679c\u3002",
-      related_id: id,
-      related_type: "feedback"
+      relatedId: id,
+      relatedType: "feedback"
     });
   }
 

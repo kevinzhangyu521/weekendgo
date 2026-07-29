@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath, revalidateTag } from "next/cache";
+import { createNotification } from "@/features/notifications/create-notification";
 import { getCurrentAuthWithAdmin } from "@/lib/auth/current-user";
 
 export async function approveSubmission(formData: FormData) {
@@ -63,22 +64,14 @@ export async function approveSubmission(formData: FormData) {
     })
     .eq("id", id);
 
-  await supabase.from("user_notifications").insert({
-    user_id: submission.user_id,
-    type: "submission_approved",
-    title: "\u6295\u7a3f\u5df2\u901a\u8fc7",
-    body: `\u4f60\u63a8\u8350\u7684\u300c${submission.name_zh || submission.name}\u300d\u5df2\u5ba1\u6838\u901a\u8fc7\uff0c\u5730\u70b9\u5df2\u53d1\u5e03\u5230\u76ee\u7684\u5730\u5217\u8868\u3002`,
-    href: "/my-submissions"
-  });
-
-  await supabase.from("notifications").insert({
-    user_id: submission.user_id,
+  await createNotification(supabase, {
+    userId: submission.user_id,
     role: "user",
     type: "submission_approved",
     title: "\u6295\u7a3f\u5df2\u901a\u8fc7",
     content: `\u4f60\u63a8\u8350\u7684\u300c${submission.name_zh || submission.name}\u300d\u5df2\u5ba1\u6838\u901a\u8fc7\uff0c\u5730\u70b9\u5df2\u53d1\u5e03\u5230\u76ee\u7684\u5730\u5217\u8868\u3002`,
-    related_id: submission.id,
-    related_type: "submission"
+    relatedId: submission.id,
+    relatedType: "submission"
   });
 
   revalidateTag("destinations");
@@ -121,14 +114,14 @@ export async function requestChangesSubmission(formData: FormData) {
     })
     .eq("id", id);
 
-  await supabase.from("notifications").insert({
-    user_id: submission.user_id,
+  await createNotification(supabase, {
+    userId: submission.user_id,
     role: "user",
     type: "submission_needs_changes",
     title: "\u6295\u7a3f\u9700\u4fee\u6539",
     content: `\u4f60\u63d0\u4ea4\u7684\u300c${submission.name_zh || submission.name}\u300d\u9700\u8981\u8865\u5145\u4fe1\u606f\u540e\u518d\u5ba1\u6838\u3002\u5907\u6ce8\uff1a${note}`,
-    related_id: id,
-    related_type: "submission"
+    relatedId: id,
+    relatedType: "submission"
   });
 
   revalidatePath("/admin/submissions");
@@ -168,22 +161,14 @@ export async function rejectSubmission(formData: FormData) {
     })
     .eq("id", id);
 
-  await supabase.from("user_notifications").insert({
-    user_id: submission.user_id,
-    type: "submission_rejected",
-    title: "\u6295\u7a3f\u672a\u901a\u8fc7",
-    body: `\u4f60\u63a8\u8350\u7684\u300c${submission.name_zh || submission.name}\u300d\u6682\u672a\u901a\u8fc7\u5ba1\u6838\u3002\u539f\u56e0\uff1a${note}`,
-    href: "/my-submissions"
-  });
-
-  await supabase.from("notifications").insert({
-    user_id: submission.user_id,
+  await createNotification(supabase, {
+    userId: submission.user_id,
     role: "user",
     type: "submission_rejected",
     title: "\u6295\u7a3f\u672a\u901a\u8fc7",
     content: `\u4f60\u63a8\u8350\u7684\u300c${submission.name_zh || submission.name}\u300d\u6682\u672a\u901a\u8fc7\u5ba1\u6838\u3002\u539f\u56e0\uff1a${note}`,
-    related_id: id,
-    related_type: "submission"
+    relatedId: id,
+    relatedType: "submission"
   });
 
   revalidatePath("/admin/submissions");

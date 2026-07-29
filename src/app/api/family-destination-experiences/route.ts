@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { getRequestAuth } from "@/lib/auth/request-auth";
 import type { FamilyDestinationExperienceChildAgeGroup } from "@/features/family-destination-experiences/types";
+import { createNotification } from "@/features/notifications/create-notification";
+import { getRequestAuth } from "@/lib/auth/request-auth";
 
 type Payload = {
   destinationId?: string;
@@ -8,6 +9,10 @@ type Payload = {
   visitedAt?: string | null;
   recommendation?: string;
   tip?: string;
+};
+
+type InsertedExperience = {
+  id: string;
 };
 
 const ageGroups = new Set<FamilyDestinationExperienceChildAgeGroup>(["0-3", "3-6", "6-12", "12+"]);
@@ -44,20 +49,38 @@ export async function POST(request: Request) {
   if (recommendation.length < 4) return NextResponse.json({ ok: false, message: "推荐内容至少 4 个字。" }, { status: 400 });
   if (tip.length < 4) return NextResponse.json({ ok: false, message: "提醒内容至少 4 个字。" }, { status: 400 });
 
-  const { error } = await (supabase.from("family_destination_experiences") as unknown as {
-    insert: (payload: Record<string, unknown>) => Promise<{ error: { message: string } | null }>;
-  }).insert({
-    destination_id: destinationId,
-    user_id: user.id,
-    child_age_group: childAgeGroup,
-    visited_at: visitedAt,
-    recommendation,
-    tip,
-    status: "pending",
-    updated_at: new Date().toISOString()
-  });
+  const { data, error } = await (supabase.from("family_destination_experiences") as unknown as {
+    insert: (payload: Record<string, unknown>) => {
+      select: (columns: string) => {
+        single: () => Promise<{ data: InsertedExperience | null; error: { message: string } | null }>;
+      };
+    };
+  })
+    .insert({
+      destination_id: destinationId,
+      user_id: user.id,
+      child_age_group: childAgeGroup,
+      visited_at: visitedAt,
+      recommendation,
+      tip,
+      status: "pending",
+      updated_at: new Date().toISOString()
+    })
+    .select("id")
+    .single();
 
   if (error) return NextResponse.json({ ok: false, message: `提交失败：${error.message}` }, { status: 500 });
+
+  if (data?.id) {
+    await createNotification(supabase, {
+      role: "admin",
+      type: "family_destination_experience_created",
+      title: "收到新的真实家庭体验",
+      content: "用户提交了新的目的地真实体验，请及时审核。",
+      relatedId: data.id,
+      relatedType: "family_destination_experience"
+    });
+  }
 
   return NextResponse.json({ ok: true, message: "已提交，审核通过后会展示在目的地详情页。" });
 }

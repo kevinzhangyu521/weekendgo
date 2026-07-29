@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { FeedbackType } from "@/features/feedback/types";
+import { createNotification } from "@/features/notifications/create-notification";
 import { getRequestAuth } from "@/lib/auth/request-auth";
 
 const feedbackTypes = new Set<FeedbackType>(["bug", "place_error", "feature", "experience", "other"]);
@@ -72,13 +73,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, message: "\u53cd\u9988\u63d0\u4ea4\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002" }, { status: 500 });
   }
 
-  await supabase.from("notifications").insert({
+  await createNotification(supabase, {
     role: "admin",
     type: "feedback_created",
     title: "\u6536\u5230\u65b0\u7684\u7528\u6237\u53cd\u9988",
     content: "\u7528\u6237\u63d0\u4ea4\u4e86\u65b0\u7684\u53cd\u9988\uff0c\u8bf7\u53ca\u65f6\u5904\u7406\u3002",
-    related_id: feedbackId,
-    related_type: "feedback"
+    relatedId: feedbackId,
+    relatedType: "feedback"
   });
 
   return NextResponse.json({

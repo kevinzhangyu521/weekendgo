@@ -5,6 +5,7 @@ import {
   type FamilyExperienceApplicationRow
 } from "@/features/family-experience/mapper";
 import { familyExperienceScenarioOptions } from "@/features/family-experience/types";
+import { createNotification } from "@/features/notifications/create-notification";
 import { getRequestAuth } from "@/lib/auth/request-auth";
 
 const activeStatuses = ["pending", "in_progress", "approved", "waitlisted"] as const;
@@ -165,13 +166,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, message: `申请提交失败：${error?.message ?? "没有返回保存结果"}` }, { status: 500 });
   }
 
-  await supabase.from("notifications").insert({
+  await createNotification(supabase, {
     role: "admin",
     type: "family_experience_application_created",
     title: "收到新的体验家庭申请",
     content: "有家庭提交了首批体验申请，请及时查看并处理。",
-    related_id: data.id,
-    related_type: "family_experience_application"
+    relatedId: data.id,
+    relatedType: "family_experience_application"
   });
 
   return NextResponse.json({
