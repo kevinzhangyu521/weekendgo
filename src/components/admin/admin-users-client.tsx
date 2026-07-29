@@ -207,7 +207,7 @@ export function AdminUsersClient() {
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {users.map((user) => (
-                        <tr key={user.id} onClick={() => setSelectedId(user.id)} className={`cursor-pointer transition hover:bg-slate-50 ${selectedUser?.id === user.id ? "bg-emerald-50/50" : ""}`}>
+                        <tr key={user.id} onClick={() => { window.location.href = `/admin/users/${user.id}`; }} className={`cursor-pointer transition hover:bg-slate-50 ${selectedUser?.id === user.id ? "bg-emerald-50/50" : ""}`}>
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-3">
                               <UserAvatar user={user} />
@@ -234,7 +234,7 @@ export function AdminUsersClient() {
 
                 <div className="divide-y divide-slate-100 md:hidden">
                   {users.map((user) => (
-                    <button key={user.id} type="button" onClick={() => setSelectedId(user.id)} className={`block w-full p-4 text-left ${selectedUser?.id === user.id ? "bg-emerald-50/60" : "bg-white"}`}>
+                    <button key={user.id} type="button" onClick={() => { window.location.href = `/admin/users/${user.id}`; }} className={`block w-full p-4 text-left ${selectedUser?.id === user.id ? "bg-emerald-50/60" : "bg-white"}`}>
                       <div className="flex items-start gap-3">
                         <UserAvatar user={user} />
                         <div className="min-w-0 flex-1">
