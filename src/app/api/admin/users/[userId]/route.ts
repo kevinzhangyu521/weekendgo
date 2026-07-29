@@ -6,8 +6,8 @@ import {
   type FamilyDestinationExperienceRow
 } from "@/features/family-destination-experiences/mapper";
 import { familyExperienceSelectFields, normalizeFamilyExperienceApplication, type FamilyExperienceApplicationRow } from "@/features/family-experience/mapper";
+import type { Scenario } from "@/features/destinations/types";
 import type { FeedbackStatus, FeedbackType } from "@/features/feedback/types";
-import type { PlanSummary } from "@/features/plans/types";
 import type { SpotSubmission } from "@/features/submissions/types";
 import { getRequestAuth } from "@/lib/auth/request-auth";
 import { normalizeUserRole } from "@/lib/auth/roles";
@@ -37,25 +37,32 @@ type FavoriteRow = {
   created_at: string;
 };
 
-type DestinationNameRow = {
+type DestinationSummaryRow = {
   id: string;
+  external_id: string | null;
   name: string | null;
   name_zh: string | null;
+  city: string | null;
+  city_zh: string | null;
+  scenario: Scenario | null;
+  image: string | null;
 };
 
 type PlanRow = {
   id: string;
   title: string;
   plan_date: string;
-  status: PlanSummary["status"];
+  status: "draft" | "published" | "archived";
   is_public: boolean;
   share_slug: string | null;
   created_at: string | null;
   updated_at: string | null;
 };
 
-type PlanItemCountRow = {
+type PlanItemRow = {
   plan_id: string;
+  destination_id: string;
+  sort_order: number | null;
 };
 
 type SubmissionRow = {
@@ -119,8 +126,9 @@ type FeedbackRow = {
 
 const profileSelect = "user_id,nickname,avatar_url,bio,home_city,role,created_at,updated_at";
 const favoriteSelect = "id,user_id,destination_id,created_at";
-const destinationNameSelect = "id,name,name_zh";
+const destinationSummarySelect = "id,external_id,name,name_zh,city,city_zh,scenario,image";
 const planSelect = "id,title,plan_date,status,is_public,share_slug,created_at,updated_at";
+const planItemSelect = "plan_id,destination_id,sort_order";
 const submissionSelect =
   "id,user_id,user_email,user_name,user_role,contact,name,name_zh,province,province_zh,city,city_zh,latitude,longitude,address,scenario,difficulty,safety,distance_km,min_kid_age,has_parking,has_toilet,ticket_price,image_url,description,description_zh,status,review_note,published_destination_id,allow_resubmit,is_locked,deleted_at,created_at,updated_at";
 const feedbackSelect =
@@ -233,22 +241,35 @@ function normalizeFeedback(row: FeedbackRow) {
   };
 }
 
-function countPlanItems(rows: PlanItemCountRow[] | null) {
-  const countMap = new Map<string, number>();
-  (rows ?? []).forEach((row) => {
-    countMap.set(row.plan_id, (countMap.get(row.plan_id) ?? 0) + 1);
-  });
-  return countMap;
-}
-
-function destinationNameMap(rows: DestinationNameRow[] | null) {
+function destinationMap(rows: DestinationSummaryRow[] | null) {
   return new Map((rows ?? []).map((destination) => [destination.id, destination]));
 }
 
-async function getDestinationNames(adminClient: ReturnType<typeof createSupabaseAdminClient>, destinationIds: string[]) {
-  if (destinationIds.length === 0) return new Map<string, DestinationNameRow>();
-  const { data } = await adminClient.from("destinations").select(destinationNameSelect).in("id", destinationIds);
-  return destinationNameMap((data ?? []) as DestinationNameRow[]);
+function groupPlanItems(rows: PlanItemRow[] | null) {
+  const grouped = new Map<string, PlanItemRow[]>();
+  (rows ?? []).forEach((row) => {
+    const current = grouped.get(row.plan_id) ?? [];
+    current.push(row);
+    grouped.set(row.plan_id, current);
+  });
+
+  grouped.forEach((items) => {
+    items.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+  });
+
+  return grouped;
+}
+
+function destinationHref(destination: DestinationSummaryRow | undefined, fallbackId: string) {
+  return `/destinations/${destination?.external_id || fallbackId}`;
+}
+
+async function getDestinationSummaries(adminClient: ReturnType<typeof createSupabaseAdminClient>, destinationIds: string[]) {
+  const ids = Array.from(new Set(destinationIds.filter(Boolean)));
+  if (ids.length === 0) return new Map<string, DestinationSummaryRow>();
+
+  const { data } = await adminClient.from("destinations").select(destinationSummarySelect).in("id", ids);
+  return destinationMap((data ?? []) as DestinationSummaryRow[]);
 }
 
 export async function GET(request: Request, context: RouteContext) {
@@ -322,39 +343,64 @@ export async function GET(request: Request, context: RouteContext) {
   const favorites = (favoritesResult.data ?? []) as FavoriteRow[];
   const plans = (plansResult.data ?? []) as PlanRow[];
   const planIds = plans.map((plan) => plan.id);
-  const favoriteDestinationIds = favorites.map((favorite) => favorite.destination_id).filter(Boolean);
 
-  const [favoriteDestinationNames, planItemRows] = await Promise.all([
-    getDestinationNames(adminClient, favoriteDestinationIds),
-    planIds.length > 0 ? adminClient.from("plan_items").select("plan_id").in("plan_id", planIds) : Promise.resolve({ data: [], error: null })
-  ]);
+  const planItemsResult =
+    planIds.length > 0
+      ? await adminClient.from("plan_items").select(planItemSelect).in("plan_id", planIds)
+      : { data: [] as PlanItemRow[], error: null };
 
-  if (planItemRows.error) {
-    return NextResponse.json({ ok: false, message: `读取计划内容数量失败：${planItemRows.error.message}` }, { status: 500 });
+  if (planItemsResult.error) {
+    return NextResponse.json({ ok: false, message: `读取计划内容失败：${planItemsResult.error.message}` }, { status: 500 });
   }
 
-  const planItemCountMap = countPlanItems((planItemRows.data ?? []) as PlanItemCountRow[]);
+  const planItems = (planItemsResult.data ?? []) as PlanItemRow[];
+  const allDestinationIds = [
+    ...favorites.map((favorite) => favorite.destination_id),
+    ...planItems.map((item) => item.destination_id)
+  ];
+  const destinations = await getDestinationSummaries(adminClient, allDestinationIds);
+  const planItemGroups = groupPlanItems(planItems);
+
   const normalizedFavorites = favorites.map((favorite) => {
-    const destination = favoriteDestinationNames.get(favorite.destination_id);
+    const destination = destinations.get(favorite.destination_id);
     return {
       id: favorite.id,
       userId: favorite.user_id,
       destinationId: favorite.destination_id,
       destinationName: destination?.name ?? null,
       destinationNameZh: destination?.name_zh ?? null,
+      city: destination?.city ?? null,
+      cityZh: destination?.city_zh ?? null,
+      scenario: destination?.scenario ?? null,
+      image: destination?.image ?? null,
+      detailHref: destinationHref(destination, favorite.destination_id),
       createdAt: favorite.created_at
     };
   });
 
-  const normalizedPlans: PlanSummary[] = plans.map((plan) => ({
-    id: plan.id,
-    title: plan.title,
-    planDate: plan.plan_date,
-    status: plan.status,
-    isPublic: plan.is_public,
-    shareSlug: plan.share_slug,
-    itemCount: planItemCountMap.get(plan.id) ?? 0
-  }));
+  const normalizedPlans = plans.map((plan) => {
+    const items = planItemGroups.get(plan.id) ?? [];
+    const previewDestinations = items.slice(0, 3).map((item) => {
+      const destination = destinations.get(item.destination_id);
+      return {
+        id: item.destination_id,
+        name: destination?.name ?? null,
+        nameZh: destination?.name_zh ?? null,
+        detailHref: destinationHref(destination, item.destination_id)
+      };
+    });
+
+    return {
+      id: plan.id,
+      title: plan.title,
+      planDate: plan.plan_date,
+      status: plan.status,
+      isPublic: plan.is_public,
+      shareSlug: plan.share_slug,
+      itemCount: items.length,
+      previewDestinations
+    };
+  });
 
   const submissions = ((submissionsResult.data ?? []) as SubmissionRow[]).map(normalizeSubmission);
   const feedbacks = ((feedbacksResult.data ?? []) as FeedbackRow[]).map(normalizeFeedback);

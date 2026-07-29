@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import type { Scenario } from "@/features/destinations/types";
 import type { UserRole } from "@/lib/auth/roles";
 
 type AdminUserDetail = {
@@ -54,7 +55,19 @@ type FavoriteActivity = {
   destinationId: string;
   destinationName: string | null;
   destinationNameZh: string | null;
+  city: string | null;
+  cityZh: string | null;
+  scenario: Scenario | null;
+  image: string | null;
+  detailHref: string;
   createdAt: string;
+};
+
+type PlanPreviewDestination = {
+  id: string;
+  name: string | null;
+  nameZh: string | null;
+  detailHref: string;
 };
 
 type PlanActivity = {
@@ -65,6 +78,7 @@ type PlanActivity = {
   isPublic: boolean;
   shareSlug: string | null;
   itemCount: number;
+  previewDestinations: PlanPreviewDestination[];
 };
 
 type SubmissionActivity = {
@@ -74,6 +88,7 @@ type SubmissionActivity = {
   city: string;
   cityZh: string | null;
   status: string;
+  reviewNote: string | null;
   createdAt: string;
 };
 
@@ -83,6 +98,7 @@ type FeedbackActivity = {
   type: string;
   content: string;
   status: string;
+  adminReply: string | null;
   createdAt: string;
 };
 
@@ -119,12 +135,30 @@ const statusLabels: Record<string, string> = {
   pending: "待审核",
   approved: "已通过",
   rejected: "已拒绝",
+  needs_changes: "需要修改",
   in_progress: "处理中",
   accepted: "已受理",
   completed: "已完成",
   draft: "草稿",
+  published: "已发布",
+  archived: "已归档",
   active: "已上线",
   inactive: "已下架"
+};
+
+const scenarioLabels: Record<Scenario, string> = {
+  camping: "露营",
+  creek: "玩水",
+  hiking: "徒步",
+  picnic: "野餐"
+};
+
+const feedbackTypeLabels: Record<string, string> = {
+  bug: "程序问题",
+  place_error: "地点信息错误",
+  feature: "功能建议",
+  experience: "体验问题",
+  other: "其他"
 };
 
 async function authHeaders() {
@@ -164,6 +198,16 @@ function formatDateTime(value: string | null | undefined, fallback = "未记录"
 function statusText(value: string | null | undefined) {
   if (!value) return "未记录";
   return statusLabels[value] ?? value;
+}
+
+function scenarioText(value: Scenario | null | undefined) {
+  if (!value) return "场景未记录";
+  return scenarioLabels[value] ?? value;
+}
+
+function feedbackTypeText(value: string | null | undefined) {
+  if (!value) return "类型未记录";
+  return feedbackTypeLabels[value] ?? value;
 }
 
 function displayName(detail: AdminUserDetail | null) {
@@ -328,8 +372,18 @@ export default function AdminUserDetailPage() {
                 <div className="space-y-3">
                   {activity.favorites.map((item) => (
                     <div key={item.id} className="rounded-xl bg-slate-50 p-4">
-                      <p className="font-semibold text-slate-900">{item.destinationNameZh || item.destinationName || item.destinationId}</p>
-                      <p className="mt-1 text-xs text-slate-500">收藏时间：{formatDateTime(item.createdAt)}</p>
+                      <div className="flex items-start gap-3">
+                        {item.image ? <img src={item.image} alt="" className="h-16 w-20 shrink-0 rounded-lg object-cover" /> : null}
+                        <div className="min-w-0 flex-1">
+                          <Link href={item.detailHref} className="font-semibold text-slate-900 hover:text-emerald-700">
+                            {item.destinationNameZh || item.destinationName || item.destinationId}
+                          </Link>
+                          <p className="mt-1 text-xs text-slate-500">
+                            {item.cityZh || item.city || "城市未记录"} · {scenarioText(item.scenario)}
+                          </p>
+                          <p className="mt-1 text-xs text-slate-500">收藏时间：{formatDateTime(item.createdAt)}</p>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -343,7 +397,20 @@ export default function AdminUserDetailPage() {
                         <p className="font-semibold text-slate-900">{item.title}</p>
                         <span className="rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-slate-600 ring-1 ring-slate-200">{statusText(item.status)}</span>
                       </div>
-                      <p className="mt-1 text-xs text-slate-500">出发日期：{formatDate(item.planDate)} · {item.itemCount} 个地点</p>
+                      <p className="mt-1 text-xs text-slate-500">
+                        出发日期：{formatDate(item.planDate)} · {item.itemCount} 个地点
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {item.previewDestinations.length > 0 ? (
+                          item.previewDestinations.map((destination) => (
+                            <Link key={`${item.id}-${destination.id}`} href={destination.detailHref} className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200 hover:text-emerald-700">
+                              {destination.nameZh || destination.name || "未命名地点"}
+                            </Link>
+                          ))
+                        ) : (
+                          <span className="text-xs text-slate-500">暂无地点明细</span>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -358,6 +425,7 @@ export default function AdminUserDetailPage() {
                         <span className="rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-slate-600 ring-1 ring-slate-200">{statusText(item.status)}</span>
                       </div>
                       <p className="mt-1 text-xs text-slate-500">{item.cityZh || item.city} · {formatDateTime(item.createdAt)}</p>
+                      <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-700">审核备注：{item.reviewNote?.trim() || "暂无审核备注"}</p>
                     </div>
                   ))}
                 </div>
@@ -369,9 +437,11 @@ export default function AdminUserDetailPage() {
                     <div key={item.id} className="rounded-xl bg-slate-50 p-4">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="font-semibold text-slate-900">{item.feedbackNo || "未生成编号"}</p>
+                        <span className="rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-slate-600 ring-1 ring-slate-200">{feedbackTypeText(item.type)}</span>
                         <span className="rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-slate-600 ring-1 ring-slate-200">{statusText(item.status)}</span>
                       </div>
                       <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-700">{item.content}</p>
+                      <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">管理员回复：{item.adminReply?.trim() || "暂无回复"}</p>
                       <p className="mt-1 text-xs text-slate-500">提交时间：{formatDateTime(item.createdAt)}</p>
                     </div>
                   ))}
@@ -386,7 +456,9 @@ export default function AdminUserDetailPage() {
                         <p className="font-semibold text-slate-900">{item.destinationNameZh || item.destinationName || "未关联目的地名称"}</p>
                         <span className="rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-slate-600 ring-1 ring-slate-200">{statusText(item.status)}</span>
                       </div>
-                      <p className="mt-1 text-xs text-slate-500">孩子年龄：{item.childAgeGroup} · 出行日期：{formatDate(item.visitedAt)}</p>
+                      <p className="mt-1 text-xs text-slate-500">
+                        孩子年龄：{item.childAgeGroup} · 出行日期：{formatDate(item.visitedAt)}
+                      </p>
                       <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-700">{item.recommendation}</p>
                     </div>
                   ))}
@@ -401,7 +473,9 @@ export default function AdminUserDetailPage() {
                         <p className="font-semibold text-slate-900">{item.applicationNo}</p>
                         <span className="rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-slate-600 ring-1 ring-slate-200">{statusText(item.status)}</span>
                       </div>
-                      <p className="mt-1 text-xs text-slate-500">{item.parentName} · {item.city} · {item.childrenAge || "孩子年龄未填写"}</p>
+                      <p className="mt-1 text-xs text-slate-500">
+                        {item.parentName} · {item.city} · {item.childrenAge || "孩子年龄未填写"}
+                      </p>
                       <p className="mt-1 text-xs text-slate-500">申请时间：{formatDateTime(item.createdAt)}</p>
                     </div>
                   ))}
