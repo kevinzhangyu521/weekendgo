@@ -42,6 +42,8 @@ type FamilyExperienceStatusRow = {
   status: FamilyDestinationExperienceStatus;
 };
 
+type DestinationStatusFilter = "all" | "active" | "inactive";
+
 async function authHeaders() {
   const supabase = createClient();
   const {
@@ -97,6 +99,7 @@ function emptyExperienceCounts(): ExperienceCounts {
 export function AdminDestinationsClient() {
   const currentUser = useCurrentUser();
   const [q, setQ] = useState("");
+  const [statusFilter, setStatusFilter] = useState<DestinationStatusFilter>("all");
   const [destinations, setDestinations] = useState<AdminDestination[]>([]);
   const [photosByDestination, setPhotosByDestination] = useState<Record<string, DestinationPhoto[]>>({});
   const [experiencesByDestination, setExperiencesByDestination] = useState<Record<string, ExperienceCounts>>({});
@@ -191,11 +194,17 @@ export function AdminDestinationsClient() {
     void loadDestinations(q);
   }
 
+  const filteredDestinations = destinations.filter((item) => {
+    if (statusFilter === "active") return item.isActive;
+    if (statusFilter === "inactive") return !item.isActive;
+    return true;
+  });
+
   async function toggleDestinationStatus(item: AdminDestination) {
     const nextIsActive = !item.isActive;
     const confirmMessage = nextIsActive
-      ? `确认恢复「${item.nameZh || item.name}」吗？恢复后会重新出现在前台。`
-      : `确认下架「${item.nameZh || item.name}」吗？下架后前台列表、首页和 TOP10 都不再展示。`;
+      ? `确认恢复展示“${item.nameZh || item.name}”吗？\n\n恢复后，这个目的地会重新出现在前台可见位置。`
+      : `确认下架“${item.nameZh || item.name}”吗？\n\n下架后：\n- 前台不可见\n- 用户收藏、计划、真实体验数据会保留\n- 后续恢复后可以继续使用`;
 
     if (!window.confirm(confirmMessage)) return;
 
@@ -245,15 +254,27 @@ export function AdminDestinationsClient() {
           <>
             <form onSubmit={handleSearch} className="mt-5 flex flex-wrap gap-2 rounded-xl border border-slate-200 bg-white p-4">
               <input value={q} onChange={(event) => setQ(event.target.value)} placeholder={"\u641c\u7d22\u5730\u70b9\u540d\u79f0\u6216\u57ce\u5e02"} className="min-w-0 flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+              <select
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value as DestinationStatusFilter)}
+                className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700"
+              >
+                <option value="all">全部</option>
+                <option value="active">已上线</option>
+                <option value="inactive">已下架</option>
+              </select>
               <button className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">{"\u641c\u7d22"}</button>
-              <button type="button" onClick={() => { setQ(""); void loadDestinations(""); }} className="rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-700">{"\u91cd\u7f6e"}</button>
+              <button type="button" onClick={() => { setQ(""); setStatusFilter("all"); void loadDestinations(""); }} className="rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-700">{"\u91cd\u7f6e"}</button>
             </form>
             {statusMessage ? <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{statusMessage}</div> : null}
             {error ? <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">{error}</div> : null}
             <div className="mt-5 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-              <div className="border-b border-slate-100 px-4 py-3 text-sm text-slate-600">{"\u5171"} {destinations.length} {"\u4e2a\u76ee\u7684\u5730"}</div>
+              <div className="border-b border-slate-100 px-4 py-3 text-sm text-slate-600">
+                共 {filteredDestinations.length} 个目的地
+                {filteredDestinations.length !== destinations.length ? <span className="ml-2 text-slate-400">全部 {destinations.length} 个</span> : null}
+              </div>
               <div className="divide-y divide-slate-100">
-                {destinations.map((item) => {
+                {filteredDestinations.map((item) => {
                   const image = getDestinationImage(item);
                   const health = calculateContentHealth(item, photosByDestination[item.id] ?? item.photos ?? [], experiencesByDestination[item.id]);
                   return (
@@ -266,7 +287,15 @@ export function AdminDestinationsClient() {
                         <div className="flex flex-wrap items-center gap-2">
                           <h2 className="font-semibold text-slate-900">{item.nameZh || item.name}</h2>
                           <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">{item.source}</span>
-                          {!item.isActive ? <span className="rounded-full bg-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700">{"\u5df2\u4e0b\u67b6"}</span> : null}
+                          <span
+                            className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                              item.isActive
+                                ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100"
+                                : "bg-slate-200 text-slate-700"
+                            }`}
+                          >
+                            {item.isActive ? "已上线" : "已下架"}
+                          </span>
                         </div>
                         <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
                           <span className={`rounded-full border px-2.5 py-1 font-semibold ${healthBadgeClass(health.contentScore)}`}>
