@@ -47,7 +47,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 function normalizeDestination(row: PlanItemDestinationRow | null): DestinationItem | null {
-  if (!row || row.is_active === false || !row.id || !row.name || !row.scenario || !row.difficulty || !row.safety) return null;
+  if (!row || !row.id || !row.name || !row.scenario || !row.difficulty || !row.safety) return null;
   return {
     id: row.id,
     name: row.name,

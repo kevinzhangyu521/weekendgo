@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Bath, Car, Heart, Star } from "lucide-react";
 import { DestinationImage } from "@/components/destinations/destination-image";
+import { FavoriteButton } from "@/components/favorites/favorite-button";
 import { getDestinationImage, hasUsableDestinationImage } from "@/features/destinations/images";
 import { destinationName, destinationRegion, destinationScenario } from "@/features/destinations/presenter";
 import type { DestinationItem } from "@/features/destinations/types";
@@ -71,7 +72,7 @@ export function FavoritesClient({ locale }: { locale: Locale }) {
     };
   }, [currentUser.isAuthenticated, currentUser.isLoading]);
 
-  const list = withDistanceFromCity(destinations, DEFAULT_HOME_CITY).filter(hasUsableDestinationImage);
+  const list = withDistanceFromCity(destinations, DEFAULT_HOME_CITY).filter((item) => item.isActive === false || hasUsableDestinationImage(item));
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -105,23 +106,46 @@ export function FavoritesClient({ locale }: { locale: Locale }) {
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {list.map((item) => {
               const image = getDestinationImage(item);
-              return (
-                <Link key={item.id} href={`/destinations/${item.id}`} className="interactive-card group flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+              const isInactive = item.isActive === false;
+              const cardContent = (
+                <>
                   <div className="relative h-44 overflow-hidden bg-slate-100">
                     <DestinationImage src={image.src} alt={destinationName(item, locale)} loading="lazy" decoding="async" className="interactive-image h-full w-full object-cover" />
+                    {isInactive ? <span className="absolute left-3 top-3 rounded-full bg-slate-900/80 px-2.5 py-1 text-xs font-semibold text-white">已下架</span> : null}
                   </div>
                   <div className="flex flex-1 flex-col space-y-3 p-4">
                     <div className="flex items-center justify-between">
                       <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">{destinationScenario(item, locale)}</span>
-                      <span className="inline-flex items-center gap-1 text-xs text-slate-600"><Star className="h-3.5 w-3.5 fill-current text-amber-500" />{item.rating.toFixed(1)}</span>
+                      {!isInactive ? <span className="inline-flex items-center gap-1 text-xs text-slate-600"><Star className="h-3.5 w-3.5 fill-current text-amber-500" />{item.rating.toFixed(1)}</span> : null}
                     </div>
                     <h2 className="text-base font-semibold text-slate-900">{destinationName(item, locale)}</h2>
                     <p className="text-sm text-slate-600">{destinationRegion(item, locale)} - {formatDistance(item.distanceKm, locale)}</p>
-                    <div className="mt-auto flex items-center gap-4 border-t border-slate-100 pt-3 text-xs text-slate-600">
-                      <span className="inline-flex items-center gap-1"><Car className="h-3.5 w-3.5" />{item.hasParking ? "\u53ef\u505c\u8f66" : "\u505c\u8f66\u4e00\u822c"}</span>
-                      <span className="inline-flex items-center gap-1"><Bath className="h-3.5 w-3.5" />{item.hasToilet ? "\u6709\u5395\u6240" : "\u5395\u6240\u8f83\u5c11"}</span>
-                    </div>
+                    {isInactive ? (
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
+                        <p className="font-semibold text-slate-800">该地点暂时停止展示，你的收藏仍会保留。</p>
+                        <FavoriteButton destinationId={item.id} size="sm" initialIsFavorite initialIsLoggedIn={currentUser.isAuthenticated} className="mt-3" />
+                      </div>
+                    ) : (
+                      <div className="mt-auto flex items-center gap-4 border-t border-slate-100 pt-3 text-xs text-slate-600">
+                        <span className="inline-flex items-center gap-1"><Car className="h-3.5 w-3.5" />{item.hasParking ? "\u53ef\u505c\u8f66" : "\u505c\u8f66\u4e00\u822c"}</span>
+                        <span className="inline-flex items-center gap-1"><Bath className="h-3.5 w-3.5" />{item.hasToilet ? "\u6709\u5395\u6240" : "\u5395\u6240\u8f83\u5c11"}</span>
+                      </div>
+                    )}
                   </div>
+                </>
+              );
+
+              if (isInactive) {
+                return (
+                  <article key={item.id} className="flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm opacity-95">
+                    {cardContent}
+                  </article>
+                );
+              }
+
+              return (
+                <Link key={item.id} href={`/destinations/${item.id}`} className="interactive-card group flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                  {cardContent}
                 </Link>
               );
             })}

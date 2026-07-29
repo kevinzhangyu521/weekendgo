@@ -75,7 +75,7 @@ export async function GET(request: Request) {
   }
 
   const ids = (favoriteRows as FavoriteRow[]).map((row) => row.destination_id).filter(Boolean);
-  const { data: destinationRows, error: destinationError } = await supabase.from("destinations").select(destinationSelectFields).eq("is_active", true).in("id", ids);
+  const { data: destinationRows, error: destinationError } = await supabase.from("destinations").select(destinationSelectFields).in("id", ids);
   if (destinationError || !destinationRows) {
     return NextResponse.json({ ok: false, destinations: [], message: "\u8bfb\u53d6\u6536\u85cf\u5931\u8d25\u3002" }, { status: 500 });
   }

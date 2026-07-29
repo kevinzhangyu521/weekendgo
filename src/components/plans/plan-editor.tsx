@@ -348,22 +348,26 @@ export function PlanEditor({ plan, locale }: Props) {
         {plan.items.length === 0 ? (
           <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-600">{text.noStopsYet}</div>
         ) : (
-          plan.items.map((item, index) => (
+          plan.items.map((item, index) => {
+            const isInactiveDestination = item.destination?.isActive === false;
+            const canOpenDestination = Boolean(item.destination && !isInactiveDestination);
+
+            return (
             <div
               key={item.id}
-              role={item.destination ? "button" : undefined}
-              tabIndex={item.destination ? 0 : undefined}
+              role={canOpenDestination ? "button" : undefined}
+              tabIndex={canOpenDestination ? 0 : undefined}
               onClick={() => {
-                if (item.destination) router.push(destinationHref(item.destination.id));
+                if (canOpenDestination && item.destination) router.push(destinationHref(item.destination.id));
               }}
               onKeyDown={(event) => {
-                if (!item.destination) return;
+                if (!canOpenDestination || !item.destination) return;
                 if (event.key === "Enter" || event.key === " ") {
                   event.preventDefault();
                   router.push(destinationHref(item.destination.id));
                 }
               }}
-              className={`rounded-xl border border-slate-200 bg-white p-4 ${item.destination ? "interactive-card group" : ""}`}
+              className={`rounded-xl border border-slate-200 bg-white p-4 ${canOpenDestination ? "interactive-card group" : ""}`}
             >
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div className="min-w-0">
@@ -372,20 +376,30 @@ export function PlanEditor({ plan, locale }: Props) {
                     <Link
                       href={destinationHref(item.destination.id)}
                       onClick={(event) => event.stopPropagation()}
-                      className="mt-1 inline-flex items-center text-base font-semibold text-slate-900 transition hover:text-emerald-700"
+                      aria-disabled={isInactiveDestination}
+                      tabIndex={isInactiveDestination ? -1 : undefined}
+                      className={`mt-1 inline-flex items-center text-base font-semibold text-slate-900 transition ${
+                        isInactiveDestination ? "pointer-events-none" : "hover:text-emerald-700"
+                      }`}
                     >
                       {destinationName(item.destination, locale)}
-                      <span className="ml-2 text-xs font-medium text-emerald-700 opacity-100 transition md:opacity-0 md:group-hover:opacity-100">
+                      {!isInactiveDestination ? <span className="ml-2 text-xs font-medium text-emerald-700 opacity-100 transition md:opacity-0 md:group-hover:opacity-100">
                         {"\u2192 \u67e5\u770b\u8be6\u60c5"}
-                      </span>
+                      </span> : null}
                     </Link>
                   ) : (
                     <p className="mt-1 text-base font-semibold text-slate-900">{text.unknownDestination}</p>
                   )}
                   <p className="mt-1 text-sm text-slate-600">{item.destination ? `${destinationRegion(item.destination, locale)} - ${formatDistance(item.destination.distanceKm)}` : text.noDetails}</p>
+                  {isInactiveDestination ? (
+                    <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+                      <span className="mr-2 rounded-full bg-slate-200 px-2 py-0.5 text-xs font-semibold text-slate-700">已下架</span>
+                      该地点暂时无法查看详情，你的计划记录仍会保留。
+                    </div>
+                  ) : null}
                 </div>
                 <div onClick={(event) => event.stopPropagation()} className="flex flex-wrap items-center gap-2 md:justify-end">
-                  {item.destination ? (
+                  {item.destination && !isInactiveDestination ? (
                     <>
                       <AmapNavigationButton destination={item.destination} label={text.navigate} />
                       <Link
@@ -409,7 +423,8 @@ export function PlanEditor({ plan, locale }: Props) {
                 </div>
               </div>
             </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>
