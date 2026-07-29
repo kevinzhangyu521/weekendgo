@@ -162,8 +162,8 @@ export function FamilyExperienceApplicationsAdminClient() {
       <section className="qmd-container py-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">体验家庭申请</h1>
-            <p className="mt-2 text-sm text-slate-600">查看首批体验家庭申请，筛选进度并跟进处理结果。</p>
+            <h1 className="text-2xl font-bold text-slate-900">体验家庭招募</h1>
+            <p className="mt-2 text-sm text-slate-600">查看首批体验家庭招募申请，筛选进度并跟进处理结果。</p>
           </div>
           <button onClick={() => void loadItems()} className="interactive-button inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50">
             <RefreshCw className="h-4 w-4" />

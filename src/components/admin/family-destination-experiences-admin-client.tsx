@@ -148,7 +148,7 @@ export function FamilyDestinationExperiencesAdminClient() {
       <section className="qmd-container py-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">体验审核</h1>
+            <h1 className="text-2xl font-bold text-slate-900">真实体验审核</h1>
             <p className="mt-2 text-sm text-slate-600">审核用户提交的真实家庭体验。通过后，每个目的地最多展示最近 3 条。</p>
           </div>
           <button onClick={() => void loadItems()} className="interactive-button inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50">

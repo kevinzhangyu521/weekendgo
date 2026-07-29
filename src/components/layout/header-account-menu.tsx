@@ -46,14 +46,11 @@ const userMenuItems = [
 
 const adminMenuItems = [
   { href: "/admin", label: "后台管理" },
-  { href: "/admin/destinations", label: "管理所有目的地" },
-  { href: "/admin/submissions", label: "管理投稿" },
-  { href: "/admin/feedback", label: "管理反馈" },
-  { href: "/admin/family-experience-applications", label: "体验家庭申请" },
-  { href: "/admin/family-destination-experiences", label: "体验审核" },
-  { href: "/admin/home-recommendations", label: "首页推荐管理" },
+  { href: "/admin/users", label: "用户管理" },
+  { href: "/admin/destinations", label: "目的地管理" },
+  { href: "/admin/feedback", label: "反馈管理" },
+  { href: "/notifications", label: "站内通知" },
   { href: "/admin/settings", label: "管理员设置" },
-  { href: "/notifications", label: "系统通知" },
   { href: "/profile", label: "账号设置" }
 ];
 

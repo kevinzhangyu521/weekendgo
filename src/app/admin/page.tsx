@@ -4,27 +4,34 @@ import { getCurrentAuthWithAdmin } from "@/lib/auth/current-user";
 
 const adminGroups = [
   {
-    title: "内容运营",
+    title: "内容管理",
     links: [
-      { href: "/admin/destinations", label: "管理所有目的地", description: "编辑、上下架和维护前台目的地。" },
-      { href: "/admin/submissions", label: "管理投稿", description: "审核用户提交的新地点。" },
-      { href: "/admin/home-recommendations", label: "首页推荐管理", description: "配置今日推荐和更多探索。" }
+      { href: "/admin/destinations", label: "目的地管理", description: "编辑、上下架和维护前台目的地。" },
+      { href: "/admin/submissions", label: "投稿审核", description: "审核用户提交的新地点。" },
+      { href: "/admin/home-recommendations", label: "首页推荐管理", description: "配置今日推荐和更多探索。" },
+      { href: "/admin/collections", label: "合集管理", description: "维护后台合集和内容工作台。" },
+      { href: "/admin/import", label: "内容导入", description: "校验并导入目的地内容数据。" }
     ]
   },
   {
     title: "用户运营",
     links: [
       { href: "/admin/users", label: "用户管理", description: "查看用户资料、角色和站内行为概览。" },
-      { href: "/admin/family-experience-applications", label: "体验家庭申请", description: "处理首批体验家庭招募申请。" },
-      { href: "/admin/family-destination-experiences", label: "体验审核", description: "审核用户提交的真实家庭体验，通过后展示在目的地详情页。" }
+      { href: "/admin/family-experience-applications", label: "体验家庭招募", description: "处理首批体验家庭招募申请。" },
+      { href: "/admin/family-destination-experiences", label: "真实体验审核", description: "审核用户提交的真实家庭体验，通过后展示在目的地详情页。" }
     ]
   },
   {
-    title: "系统处理",
+    title: "用户支持",
     links: [
-      { href: "/admin/feedback", label: "管理反馈", description: "处理用户提交的问题和建议。" },
-      { href: "/admin/settings", label: "管理员设置", description: "查看当前账号的管理员状态，并进入常用管理功能。" },
-      { href: "/notifications", label: "系统通知", description: "查看需要管理员处理的站内信。" }
+      { href: "/admin/feedback", label: "反馈管理", description: "处理用户提交的问题和建议。" },
+      { href: "/notifications", label: "站内通知", description: "查看需要管理员处理的站内消息。" }
+    ]
+  },
+  {
+    title: "系统设置",
+    links: [
+      { href: "/admin/settings", label: "管理员设置", description: "查看当前账号的管理员状态，并进入常用管理功能。" }
     ]
   }
 ];
