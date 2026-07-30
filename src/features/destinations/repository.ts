@@ -128,7 +128,7 @@ function normalizePhoto(row: DestinationPhotoRow): DestinationPhoto {
   };
 }
 
-async function getCoverImagesByDestinationId(destinationIds: string[]) {
+export async function getCoverImagesByDestinationId(destinationIds: string[]) {
   if (!hasSupabaseEnv() || destinationIds.length === 0) return new Map<string, string>();
 
   try {
@@ -157,7 +157,7 @@ async function getCoverImagesByDestinationId(destinationIds: string[]) {
   }
 }
 
-async function applyDestinationPhotoCovers(items: DestinationItem[]) {
+export async function applyDestinationPhotoCovers<T extends DestinationItem>(items: T[]): Promise<T[]> {
   const ids = items.map((item) => item.id).filter(Boolean);
   const covers = await getCoverImagesByDestinationId(ids);
   if (covers.size === 0) return items;
@@ -324,7 +324,12 @@ export async function getDestinationById(id: string): Promise<DestinationItem | 
         .eq("is_active", true)
         .maybeSingle();
 
-      if (!error && data) return normalizeRow(data as DestinationRow);
+      if (!error && data) {
+        const normalized = normalizeRow(data as DestinationRow);
+        if (!normalized) return null;
+        const [withCover] = await applyDestinationPhotoCovers([normalized]);
+        return withCover;
+      }
     } catch {
       // Fall back to the cached list so a transient detail lookup failure does not break the page.
     }
