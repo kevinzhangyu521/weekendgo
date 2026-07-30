@@ -47,11 +47,12 @@ export function AdminEditDestinationClient({ id }: { id: string }) {
 
   useEffect(() => {
     let mounted = true;
+
     async function loadItem() {
       if (currentUser.isLoading) return;
       if (!currentUser.isAuthenticated) {
         setLoading(false);
-        setError("\u8bf7\u5148\u767b\u5f55\u7ba1\u7406\u5458\u8d26\u53f7\u3002");
+        setError("请先登录管理员账号。");
         return;
       }
 
@@ -64,7 +65,7 @@ export function AdminEditDestinationClient({ id }: { id: string }) {
           cache: "no-store"
         });
         const result = (await response.json()) as DestinationResponse;
-        if (!response.ok || !result.ok || !result.item) throw new Error(result.message ?? "\u8bfb\u53d6\u76ee\u7684\u5730\u5931\u8d25\u3002");
+        if (!response.ok || !result.ok || !result.item) throw new Error(result.message ?? "读取目的地失败。");
         if (mounted) setItem(result.item);
 
         const supabase = createClient();
@@ -80,7 +81,7 @@ export function AdminEditDestinationClient({ id }: { id: string }) {
           if (mounted) setExperienceCounts(counts);
         }
       } catch (err) {
-        if (mounted) setError(err instanceof Error ? err.message : "\u8bfb\u53d6\u76ee\u7684\u5730\u5931\u8d25\u3002");
+        if (mounted) setError(err instanceof Error ? err.message : "读取目的地失败。");
       } finally {
         if (mounted) setLoading(false);
       }
@@ -96,18 +97,18 @@ export function AdminEditDestinationClient({ id }: { id: string }) {
     <main className="min-h-screen bg-slate-50">
       <section className="qmd-container py-6">
         <Link href="/admin/destinations" className="text-sm text-emerald-700 hover:underline">
-          {"\u8fd4\u56de\u76ee\u7684\u5730\u7ba1\u7406"}
+          返回目的地管理
         </Link>
-        <h1 className="mt-4 text-2xl font-bold text-slate-900">{"\u7f16\u8f91\u76ee\u7684\u5730"}</h1>
-        <p className="mt-2 text-sm text-slate-600">{"\u4fee\u6539\u540e\u4f1a\u7acb\u5373\u5f71\u54cd\u524d\u53f0\u76ee\u7684\u5730\u5217\u8868\u3001\u8be6\u60c5\u9875\u3001\u5730\u56fe\u548c\u8ba1\u5212\u9875\u3002"}</p>
+        <h1 className="mt-4 text-2xl font-bold text-slate-900">编辑目的地</h1>
+        <p className="mt-2 text-sm text-slate-600">修改后会立即影响前台目的地列表、详情页、地图和计划页。</p>
 
-        {loading ? <div className="mt-5 rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-600">{"\u6b63\u5728\u8bfb\u53d6..."}</div> : null}
+        {loading ? <div className="mt-5 rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-600">正在读取...</div> : null}
         {error ? (
           <div className="mt-5 rounded-2xl border border-amber-200 bg-white p-6 shadow-sm">
-            <p className="text-sm font-semibold text-amber-700">{"\u6682\u65f6\u65e0\u6cd5\u7f16\u8f91"}</p>
+            <p className="text-sm font-semibold text-amber-700">暂时无法编辑</p>
             <p className="mt-2 text-slate-700">{error}</p>
             <Link href="/admin/destinations" className="mt-5 inline-flex rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">
-              {"\u8fd4\u56de\u76ee\u7684\u5730\u7ba1\u7406"}
+              返回目的地管理
             </Link>
           </div>
         ) : null}
@@ -128,27 +129,37 @@ export function AdminEditDestinationClient({ id }: { id: string }) {
                       真实体验记录 {health.experienceTotal}
                     </span>
                   </div>
-                  <div className="mt-4">
-                    <p className="text-sm font-bold text-slate-900">{"\u5185\u5bb9\u7f3a\u5931"}</p>
-                    {health.missingItems.length > 0 ? (
-                      <div className="mt-2 flex flex-wrap gap-2 text-sm">
-                        {["封面图", "停车信息", "家庭体验", "卫生间信息", "图库"].map((label) => {
-                          const missing = health.missingItems.includes(label);
-                          return (
-                            <span
-                              key={label}
-                              className={`rounded-full border px-3 py-1 font-semibold ${
-                                missing ? "border-amber-200 bg-amber-50 text-amber-800" : "border-emerald-200 bg-emerald-50 text-emerald-800"
-                              }`}
-                            >
-                              {missing ? "\u2610" : "\u2713"} {label}
+
+                  <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                    <div className="rounded-xl border border-rose-100 bg-rose-50 p-4">
+                      <p className="text-sm font-bold text-rose-800">必须完善</p>
+                      {health.requiredIssues.length > 0 ? (
+                        <div className="mt-2 flex flex-wrap gap-2 text-sm">
+                          {health.requiredIssues.map((label) => (
+                            <span key={label} className="rounded-full border border-rose-200 bg-white px-3 py-1 font-semibold text-rose-700">
+                              ☐ {label}
                             </span>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <p className="mt-2 text-sm text-emerald-700">{"\u6838\u5fc3\u5185\u5bb9\u5df2\u8865\u9f50\u3002"}</p>
-                    )}
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="mt-2 text-sm font-semibold text-emerald-700">核心内容已补齐。</p>
+                      )}
+                    </div>
+
+                    <div className="rounded-xl border border-amber-100 bg-amber-50 p-4">
+                      <p className="text-sm font-bold text-amber-800">建议优化</p>
+                      {health.recommendedIssues.length > 0 ? (
+                        <div className="mt-2 flex flex-wrap gap-2 text-sm">
+                          {health.recommendedIssues.map((label) => (
+                            <span key={label} className="rounded-full border border-amber-200 bg-white px-3 py-1 font-semibold text-amber-800">
+                              ☐ {label}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="mt-2 text-sm font-semibold text-emerald-700">运营信息已比较完整。</p>
+                      )}
+                    </div>
                   </div>
                 </div>
               );

@@ -10,6 +10,8 @@ export type ContentHealthSummary = {
   experienceTotal: number;
   experienceCounts: ExperienceCounts;
   missingItems: string[];
+  requiredIssues: string[];
+  recommendedIssues: string[];
   imageCounts: {
     cover: number;
     gallery: number;
@@ -96,22 +98,40 @@ export function calculateContentHealth(
     imageCounts.food > 0
   ];
 
-  const missingItems = [
+  const requiredIssues = [
+    { label: "名称", missing: !hasText(item.nameZh || item.name) },
+    { label: "地址", missing: !hasText(item.address) },
+    { label: "坐标", missing: !hasCoordinates(item) },
     { label: "封面图", missing: !coverReady },
-    { label: "停车信息", missing: !hasText(item.parkingDetail) && imageCounts.parking === 0 },
+    { label: "推荐理由", missing: !hasText(item.editorRecommendation) },
+    { label: "带娃提醒", missing: !hasText(item.familyTips) },
+    { label: "避坑提醒", missing: !hasText(item.avoidPitfalls) }
+  ]
+    .filter((issue) => issue.missing)
+    .map((issue) => issue.label);
+
+  const recommendedIssues = [
+    { label: "年龄范围", missing: !hasAge(item) },
+    { label: "游玩时长", missing: !hasText(item.suggestedDuration) },
+    { label: "预算/门票", missing: !hasText(item.familyBudget) && !hasText(item.ticketPrice) },
+    { label: "开放时间", missing: !hasText(item.openingHours) },
+    { label: "最佳游玩时间", missing: !hasText(item.bestTime) },
     { label: "家庭体验", missing: approvedExperiences === 0 },
+    { label: "停车信息", missing: !hasText(item.parkingDetail) && imageCounts.parking === 0 },
     { label: "卫生间信息", missing: !hasText(item.toiletDetail) && imageCounts.toilet === 0 },
     { label: "图库", missing: imageCounts.gallery === 0 }
   ]
-    .filter((item) => item.missing)
-    .map((item) => item.label);
+    .filter((issue) => issue.missing)
+    .map((issue) => issue.label);
 
   return {
     contentScore: calculatePercent(contentChecks.filter(Boolean).length, contentChecks.length),
     imageScore: calculatePercent(imageChecks.filter(Boolean).length, imageChecks.length),
     experienceTotal: experienceCounts.approved + experienceCounts.pending + experienceCounts.rejected,
     experienceCounts,
-    missingItems,
+    missingItems: [...requiredIssues, ...recommendedIssues],
+    requiredIssues,
+    recommendedIssues,
     imageCounts
   };
 }
