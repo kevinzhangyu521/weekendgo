@@ -1,4 +1,5 @@
 import type { DestinationItem, DestinationPhoto } from "@/features/destinations/types";
+import { applyDestinationPhotoCovers } from "@/features/destinations/repository";
 import { requireAdmin } from "./permissions";
 
 type DestinationRow = {
@@ -113,7 +114,8 @@ export async function getAdminDestinations(query = "") {
 
   const { data, error } = await request.limit(200);
   if (error || !data) return [];
-  return (data as DestinationRow[]).map(normalize).filter((item): item is AdminDestination => item !== null);
+  const destinations = (data as DestinationRow[]).map(normalize).filter((item): item is AdminDestination => item !== null);
+  return applyDestinationPhotoCovers(destinations);
 }
 
 export async function getAdminDestinationById(id: string) {
@@ -122,5 +124,8 @@ export async function getAdminDestinationById(id: string) {
 
   const { data, error } = await supabase.from("destinations").select(selectFields).eq("id", id).maybeSingle();
   if (error || !data) return null;
-  return normalize(data as DestinationRow);
+  const destination = normalize(data as DestinationRow);
+  if (!destination) return null;
+  const [withCover] = await applyDestinationPhotoCovers([destination]);
+  return withCover;
 }

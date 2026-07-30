@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { AdminDestination } from "@/features/admin/destinations";
+import { applyDestinationPhotoCovers } from "@/features/destinations/repository";
 import type { DestinationItem } from "@/features/destinations/types";
 import { getRequestAuth } from "@/lib/auth/request-auth";
 
@@ -120,10 +121,14 @@ export async function GET(request: Request) {
     return NextResponse.json({ ok: false, destinations: [], isAdmin: true, message: "\u8bfb\u53d6\u76ee\u7684\u5730\u5931\u8d25\u3002" }, { status: 500 });
   }
 
+  const destinations = await applyDestinationPhotoCovers(
+    (data as DestinationRow[]).map(normalize).filter((item): item is AdminDestination => item !== null)
+  );
+
   return NextResponse.json({
     ok: true,
     isAdmin: true,
-    destinations: (data as DestinationRow[]).map(normalize).filter((item): item is AdminDestination => item !== null),
+    destinations,
     authSource
   });
 }

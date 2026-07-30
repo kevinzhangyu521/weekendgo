@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DestinationImage } from "@/components/destinations/destination-image";
+import { DestinationPhotoManager } from "@/components/admin/destination-photo-manager";
 import type { AdminDestination } from "@/features/admin/destinations";
 import { toChineseRegionName } from "@/lib/geo/region-names";
 import { createClient } from "@/lib/supabase/client";
@@ -328,27 +329,7 @@ export function EditDestinationForm({ item }: { item: AdminDestination }) {
           {"\u63cf\u8ff0 *"}
           <textarea name="description" required rows={4} defaultValue={item.descriptionZh || item.description} className={inputClass} />
         </label>
-        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <h3 className="text-sm font-bold text-slate-900">{"当前图片列表"}</h3>
-          {item.photos && item.photos.length > 0 ? (
-            <div className="mt-3 grid gap-3 md:grid-cols-2">
-              {item.photos.map((photo) => (
-                <div key={photo.id} className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-                  <div className="h-36 bg-slate-100">
-                    <DestinationImage src={photo.imageUrl} alt={photo.altText || item.nameZh || item.name} loading="lazy" decoding="async" className="h-full w-full object-cover" />
-                  </div>
-                  <div className="space-y-1 p-3 text-xs text-slate-600">
-                    <p><span className="font-semibold text-slate-900">{"分类："}</span>{photo.category}</p>
-                    <p><span className="font-semibold text-slate-900">{"封面："}</span>{photo.isCover ? "是" : "否"}</p>
-                    <p><span className="font-semibold text-slate-900">{"排序："}</span>{photo.sortOrder}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="mt-2 text-sm text-slate-500">{"暂无更多图片，当前仍使用上方封面图。"}</p>
-          )}
-        </div>
+        <DestinationPhotoManager destinationId={item.id} destinationName={item.nameZh || item.name} initialPhotos={item.photos ?? []} />
       </section>
 
       <div className="flex flex-wrap items-center gap-3 border-t border-slate-100 pt-5">
