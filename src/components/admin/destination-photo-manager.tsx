@@ -90,11 +90,13 @@ function hasCoverPhoto(photos: DestinationPhoto[]) {
 export function DestinationPhotoManager({
   destinationId,
   destinationName,
-  initialPhotos
+  initialPhotos,
+  hasLegacyCover = false
 }: {
   destinationId: string;
   destinationName: string;
   initialPhotos: DestinationPhoto[];
+  hasLegacyCover?: boolean;
 }) {
   const [photos, setPhotos] = useState<DestinationPhoto[]>(sortPhotos(initialPhotos));
   const [previews, setPreviews] = useState<UploadPreview[]>([]);
@@ -130,7 +132,7 @@ export function DestinationPhotoManager({
 
     setMessage("");
     setPreviews((current) => {
-      const existingCover = hasCoverPhoto(photos) || current.some((item) => item.isCover);
+      const existingCover = hasLegacyCover || hasCoverPhoto(photos) || current.some((item) => item.isCover);
       return [
         ...current,
         ...files.map((file, index) => {

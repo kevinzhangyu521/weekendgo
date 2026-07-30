@@ -329,7 +329,12 @@ export function EditDestinationForm({ item }: { item: AdminDestination }) {
           {"\u63cf\u8ff0 *"}
           <textarea name="description" required rows={4} defaultValue={item.descriptionZh || item.description} className={inputClass} />
         </label>
-        <DestinationPhotoManager destinationId={item.id} destinationName={item.nameZh || item.name} initialPhotos={item.photos ?? []} />
+        <DestinationPhotoManager
+          destinationId={item.id}
+          destinationName={item.nameZh || item.name}
+          initialPhotos={item.photos ?? []}
+          hasLegacyCover={Boolean(item.image?.trim())}
+        />
       </section>
 
       <div className="flex flex-wrap items-center gap-3 border-t border-slate-100 pt-5">
