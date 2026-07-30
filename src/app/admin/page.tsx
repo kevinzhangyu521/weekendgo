@@ -7,6 +7,7 @@ const adminGroups = [
     title: "内容管理",
     links: [
       { href: "/admin/destinations", label: "目的地管理", description: "编辑、上下架和维护前台目的地。" },
+      { href: "/admin/content-quality", label: "内容质量工作台", description: "集中查看目的地内容完整度、图片完整度和运营缺口。" },
       { href: "/admin/submissions", label: "投稿审核", description: "审核用户提交的新地点。" },
       { href: "/admin/home-recommendations", label: "首页推荐管理", description: "配置今日推荐和更多探索。" },
       { href: "/admin/collections", label: "合集管理", description: "维护后台合集和内容工作台。" },
