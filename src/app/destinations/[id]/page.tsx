@@ -5,6 +5,7 @@ import { FavoriteButton } from "@/components/favorites/favorite-button";
 import { DestinationFeedbackButton } from "@/components/feedback/destination-feedback-button";
 import { AuthActionHint } from "@/components/auth/auth-action-hint";
 import { DestinationImage } from "@/components/destinations/destination-image";
+import { DestinationPhotoGallery } from "@/components/destinations/destination-photo-gallery";
 import { FamilyExperienceSection } from "@/components/experiences/family-experience-section";
 import { AddToPlanButton } from "@/components/plans/add-to-plan-button";
 import { AmapNavigationButton } from "@/components/plans/amap-navigation-button";
@@ -142,7 +143,7 @@ export default async function DestinationDetailPage({
                 alt={name}
                 fetchPriority="high"
                 decoding="async"
-                className="interactive-image h-full w-full object-cover"
+                className="interactive-image h-full w-full object-contain"
               />
               <span className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-emerald-700 shadow-sm">
                 {destinationScenario(destination, locale)}
@@ -193,32 +194,7 @@ export default async function DestinationDetailPage({
           </div>
         </section>
 
-        <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-xl font-black text-slate-950">{pick(locale, "图片", "图片")}</h2>
-          {gallery.length > 0 ? (
-            <div className="mt-4 grid gap-3 md:grid-cols-3">
-              {gallery.map((photo) => (
-                <figure key={photo.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
-                  <div className="aspect-[4/3] overflow-hidden bg-slate-100">
-                    <DestinationImage
-                      src={photo.imageUrl}
-                      alt={photo.altText || name}
-                      loading="lazy"
-                      decoding="async"
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <figcaption className="flex items-center justify-between gap-2 px-3 py-2 text-xs text-slate-600">
-                    <span className="rounded-full bg-white px-2 py-1 font-semibold">{photo.category}</span>
-                    {photo.isCover ? <span className="font-semibold text-emerald-700">{pick(locale, "封面", "封面")}</span> : null}
-                  </figcaption>
-                </figure>
-              ))}
-            </div>
-          ) : (
-            <p className="mt-3 rounded-xl bg-slate-50 p-4 text-sm text-slate-500">{pick(locale, "暂无图片", "暂无图片")}</p>
-          )}
-        </section>
+        <DestinationPhotoGallery photos={gallery} title="图片" />
 
         <section className="mt-5 grid gap-4 md:grid-cols-2">
           <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5">
