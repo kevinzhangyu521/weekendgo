@@ -103,6 +103,7 @@ export function DestinationPhotoManager({
   const [drafts, setDrafts] = useState<Record<string, PatchDraft>>({});
   const [busy, setBusy] = useState("");
   const [message, setMessage] = useState("");
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const previewsRef = useRef<UploadPreview[]>([]);
 
   useEffect(() => {
@@ -125,6 +126,27 @@ export function DestinationPhotoManager({
     const maxExisting = photos.reduce((max, photo) => Math.max(max, photo.sortOrder ?? 0), 0);
     return maxExisting + previews.length + 1;
   }, [photos, previews.length]);
+
+  const activePreviewPhoto = previewIndex === null ? null : photos[previewIndex] ?? null;
+
+  function openPhotoPreview(photoId: string) {
+    const index = photos.findIndex((photo) => photo.id === photoId);
+    if (index >= 0) setPreviewIndex(index);
+  }
+
+  function showPreviousPhoto() {
+    setPreviewIndex((current) => {
+      if (current === null || photos.length === 0) return current;
+      return (current - 1 + photos.length) % photos.length;
+    });
+  }
+
+  function showNextPhoto() {
+    setPreviewIndex((current) => {
+      if (current === null || photos.length === 0) return current;
+      return (current + 1) % photos.length;
+    });
+  }
 
   function addPreviews(event: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? []).filter((file) => file.type.startsWith("image/"));
@@ -361,8 +383,8 @@ export function DestinationPhotoManager({
           <div className="mt-3 grid gap-3 md:grid-cols-2">
             {previews.map((preview) => (
               <div key={preview.id} className="overflow-hidden rounded-xl border border-emerald-100 bg-white">
-                <div className="relative h-36 bg-slate-100">
-                  <img src={preview.previewUrl} alt={preview.file.name} className="h-full w-full object-cover" />
+                <div className="relative flex aspect-[4/3] items-center justify-center bg-slate-100 p-2">
+                  <img src={preview.previewUrl} alt={preview.file.name} className="max-h-full max-w-full object-contain" />
                   {preview.isCover ? <span className="absolute left-2 top-2 rounded-full bg-emerald-700 px-2 py-1 text-xs font-bold text-white">默认封面</span> : null}
                 </div>
                 <div className="space-y-2 p-3">
@@ -405,14 +427,13 @@ export function DestinationPhotoManager({
               const draft = drafts[photo.id] ?? makeDraft(photo);
               return (
                 <div key={photo.id} className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-                  <div className="relative h-36 bg-slate-100">
-                    <DestinationImage src={photo.imageUrl} alt={photo.altText || destinationName} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                  <button type="button" onClick={() => openPhotoPreview(photo.id)} className="relative flex aspect-[4/3] w-full items-center justify-center bg-slate-100 p-2">
+                    <DestinationImage src={photo.imageUrl} alt={photo.altText || destinationName} loading="lazy" decoding="async" className="max-h-full max-w-full object-contain" />
                     {photo.isCover ? <span className="absolute left-2 top-2 rounded-full bg-emerald-700 px-2 py-1 text-xs font-bold text-white">当前封面</span> : null}
-                  </div>
+                  </button>
                   <div className="space-y-2 p-3">
                     <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600">
                       <span className="rounded-full bg-slate-100 px-2 py-1 font-semibold">{photoLabel(photo.category)}</span>
-                      {photo.isCover ? <span className="rounded-full bg-emerald-100 px-2 py-1 font-semibold text-emerald-700">封面图</span> : null}
                     </div>
                     <div className="grid gap-2 md:grid-cols-2">
                       <label className="text-xs font-bold text-slate-700">
@@ -454,6 +475,53 @@ export function DestinationPhotoManager({
           <p className="mt-2 text-sm text-slate-500">暂无图片，请先上传目的地封面或图库图片。</p>
         )}
       </div>
+
+      {activePreviewPhoto ? (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/80 p-4" onClick={() => setPreviewIndex(null)}>
+          <div className="relative flex max-h-full w-full max-w-5xl flex-col gap-3" onClick={(event) => event.stopPropagation()}>
+            <div className="flex items-center justify-between gap-3 text-white">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-bold">{activePreviewPhoto.altText || destinationName}</p>
+                <p className="mt-1 text-xs text-white/70">
+                  {photoLabel(activePreviewPhoto.category)}
+                  {activePreviewPhoto.isCover ? " · 当前封面" : ""}
+                </p>
+              </div>
+              <button type="button" onClick={() => setPreviewIndex(null)} className="rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold text-white hover:bg-white/25">
+                关闭
+              </button>
+            </div>
+
+            <div className="relative flex min-h-[280px] items-center justify-center rounded-2xl bg-white/5 p-3">
+              {photos.length > 1 ? (
+                <button type="button" onClick={showPreviousPhoto} className="absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/85 px-3 py-2 text-lg font-bold text-slate-900 shadow-sm hover:bg-white">
+                  ‹
+                </button>
+              ) : null}
+              <DestinationImage src={activePreviewPhoto.imageUrl} alt={activePreviewPhoto.altText || destinationName} loading="eager" decoding="async" className="max-h-[78vh] max-w-full object-contain" />
+              {photos.length > 1 ? (
+                <button type="button" onClick={showNextPhoto} className="absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/85 px-3 py-2 text-lg font-bold text-slate-900 shadow-sm hover:bg-white">
+                  ›
+                </button>
+              ) : null}
+            </div>
+
+            {photos.length > 1 ? (
+              <div className="flex justify-center gap-1.5">
+                {photos.map((photo, index) => (
+                  <button
+                    key={photo.id}
+                    type="button"
+                    onClick={() => setPreviewIndex(index)}
+                    className={`h-1.5 rounded-full transition-all ${index === previewIndex ? "w-6 bg-white" : "w-1.5 bg-white/40"}`}
+                    aria-label={`查看第 ${index + 1} 张图片`}
+                  />
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
